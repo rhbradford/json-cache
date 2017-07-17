@@ -1,0 +1,25 @@
+plugins {
+  id 'org.springframework.boot' version '1.5.4.RELEASE'
+  id 'scala'  
+}
+
+dependencies {
+  // Spring Boot
+  compile("org.springframework.boot:spring-boot-starter-web") {
+    exclude module: "spring-boot-starter-tomcat"
+  }
+  compile("org.springframework.boot:spring-boot-starter-jetty")
+  compile("org.springframework.boot:spring-boot-starter-websocket")
+  
+  // Scala
+  compile("org.scala-lang:scala-library:2.12.2")
+  
+  // Logging
+  compile("org.clapper:grizzled-slf4j_2.12:1.3.1")
+  compile("org.slf4j:slf4j-api:1.7.25")
+  compile("ch.qos.logback:logback-classic:1.2.3")
+  compile("ch.qos.logback:logback-core:1.2.3")
+  
+  // UI
+  compile project(":Client")
+}
