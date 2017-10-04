@@ -1,0 +1,19 @@
+// Author: richard
+// Date:   28 Sep 2017
+
+import * as React from "react"
+import {storiesOf} from "@storybook/react"
+import {action} from "@storybook/addon-actions"
+
+// import "../semantic/dist/semantic.slate.css"
+import "../app/semantic.slate.min.css"
+
+import CacheObjectTypeSelector from "../app/views/components/CacheObjectTypeSelector"
+
+storiesOf("CacheObjectTypeSelector", module)
+    .add("With types available", () => (
+        <CacheObjectTypeSelector types={['TypeA', 'TypeB']} onSelect={action("onSelected")}/>
+    ))
+    .add("With no types available", () => (
+        <CacheObjectTypeSelector types={[]} onSelect={action("onSelect")}/>
+    ))

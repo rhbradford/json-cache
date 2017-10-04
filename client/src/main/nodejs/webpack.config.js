@@ -1,23 +1,26 @@
 const path = require('path')
-const webpack = require('webpack')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
     context: path.resolve(__dirname, 'app'),
-    entry: './index.js',
-    output: {
+    entry:   './index.tsx',
+    output:  {
         publicPath: '/assets/',
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, '..', '..', '..', 'build', 'classes', 'static', 'assets')
+        filename:   'bundle.js',
+        path:       path.resolve(__dirname, '..', '..', '..', 'build', 'classes', 'static', 'assets')
     },
+    devtool: 'source-map',
     plugins: [
         new HtmlWebpackPlugin({
             template: './index.html',
-            inject: 'body',
+            inject:   'body',
             filename: 'index.html'
         })
     ],
-    module: {
+    resolve: {
+        extensions: ['.js', '.ts', '.tsx']
+    },
+    module:  {
         rules: [
             {
                 test: /\.css$/,
@@ -28,35 +31,28 @@ module.exports = {
                     {
                         loader: 'css-loader',
                         options: {
+                            // Re-direct Semantic UI CSS theme to find assets from installed semantic-ui-css package
                             alias: {
-                                '../fonts/bootstrap': 'bootstrap/dist/fonts',
-                                '../fonts': 'bootstrap/dist/fonts'
+                                './themes/default': 'semantic-ui-css/themes/default'
                             }
                         }
                     }
                 ]
             },
             {
-                test: /\.woff2?$|\.ttf$|\.eot$|\.svg$/,
-                use: [
+                test: /\.woff2?$|\.ttf$|\.eot$|\.svg$|\.png$/,
+                use:  [
                     {
-                        loader: 'file-loader'
+                        loader: 'url-loader'
                     }
                 ]
             },
             {
-                test: /\.js$/,
+                test:    /\.ts$|.tsx$/,
                 exclude: path.resolve(__dirname, 'node_modules'),
-                use: [
+                use:     [
                     {
-                        loader: 'babel-loader',
-                        options: {
-                            presets: ['env','es2016','react'],
-                            plugins: [
-                                require('babel-plugin-transform-object-rest-spread'),
-                                require('babel-plugin-transform-runtime')
-                            ]
-                        }
+                        loader: 'ts-loader'
                     }
                 ]
             }
