@@ -23,7 +23,7 @@ object ScalaJsonCacheModule extends JsonCacheModule {
   override def getCacheObject(
     cacheObjectId: String, cacheObjectType: String,
     cacheObjectContent: JsonNode
-  ): CacheObject = null
+  ): CacheObject = ScalaCacheObject(cacheObjectId, cacheObjectType, cacheObjectContent)
 
   override def getCacheChangeSet(
     puts: util.List[CacheObject],
@@ -31,10 +31,6 @@ object ScalaJsonCacheModule extends JsonCacheModule {
   ): CacheChangeSet = null
 
   override def getCacheChanger(
-    cacheChangeSet: CacheChangeSet
-  ): CacheChanger = null
-
-  override def getReducingCacheChanger(
     cacheChangeSet: CacheChangeSet
   ): CacheChanger = null
 }

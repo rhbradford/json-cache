@@ -20,6 +20,4 @@ public interface JsonCacheModule {
     CacheChangeSet getCacheChangeSet(List<CacheObject> puts, List<CacheLocation> removes);
 
     CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
-
-    CacheChanger getReducingCacheChanger(CacheChangeSet cacheChangeSet);
 }
