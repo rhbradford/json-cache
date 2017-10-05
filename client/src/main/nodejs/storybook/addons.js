@@ -1,4 +1,5 @@
-// Author: richard
-// Date:   28 Sep 2017
+// Author: Richard Bradford
 
 import '@storybook/addon-actions/register'
+
+import "./actions.ts"

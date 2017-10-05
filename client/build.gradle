@@ -1,10 +1,14 @@
-apply plugin: 'java'
+// Author: Richard Bradford
+
+plugins {
+    id 'java'
+}
 
 task webpack(type: Exec) {
-    inputs.file("src/main/nodejs/package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE) 
-    inputs.dir("src/main/nodejs/app").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file("$projectDir/src/main/nodejs/package-lock.json").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir("$projectDir/src/main/nodejs/app").withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir("$buildDir/resources/main/static/assets")
-    outputs.cacheIf { true } 
+    outputs.cacheIf {true}
 
     commandLine "$projectDir/src/main/nodejs/node_modules/.bin/webpack", "--config", "$projectDir/src/main/nodejs/webpack.config.js"
 }

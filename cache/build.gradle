@@ -1,11 +1,13 @@
+// Author: Richard Bradford
+
 plugins {
-  id 'java'  
+    id 'java'
 }
 
 dependencies {
-  // JSON - Jackson 
-  compile("com.fasterxml.jackson.core:jackson-databind:2.9.0")
-  
-  // Reactive Streams
-  compile("org.reactivestreams:reactive-streams:1.0.1")
+    // JSON - Jackson 
+    compile("com.fasterxml.jackson.core:jackson-databind:2.9.0")
+
+    // Reactive Streams
+    compile("org.reactivestreams:reactive-streams:1.0.1")
 }

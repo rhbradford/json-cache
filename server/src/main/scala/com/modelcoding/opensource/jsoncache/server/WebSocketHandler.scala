@@ -1,5 +1,4 @@
-// Author: richard
-// Date:   07 Jul 2017
+// Author: Richard Bradford
 
 package com.modelcoding.opensource.jsoncache.server
 

@@ -1,3 +1,5 @@
+// Author: Richard Bradford
+
 const path = require('path');
 
 module.exports = {

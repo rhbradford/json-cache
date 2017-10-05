@@ -1,5 +1,4 @@
-// Author: richard
-// Date:   28 Sep 2017
+// Author: Richard Bradford
 
 import * as React from "react"
 import {storiesOf} from "@storybook/react"

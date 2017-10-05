@@ -1,17 +1,19 @@
+// Author: Richard Bradford
+
 rootProject.name = 'JsonCache'
 
 def modules = [
-   ':cache' : 'Cache',
-   ':cache-impl' : 'CacheImpl',
-   ':cache-tests' : 'CacheTests',
-   ':client' : 'Client',
-   ':server' : 'Server',
-   ':websocket-cache' : 'WebSocketCache',
-   ':websocket-cache-impl' : 'WebSocketCacheImpl',
-   ':websocket-cache-tests' : 'WebSocketCacheTests'
+    ':cache'                : 'Cache',
+    ':cache-impl'           : 'CacheImpl',
+    ':cache-tests'          : 'CacheTests',
+    ':client'               : 'Client',
+    ':server'               : 'Server',
+    ':websocket-cache'      : 'WebSocketCache',
+    ':websocket-cache-impl' : 'WebSocketCacheImpl',
+    ':websocket-cache-tests': 'WebSocketCacheTests'
 ]
 
 modules.each { p, name ->
-  include p
-  project(p).name = name
+    include p
+    project(p).name = name
 }

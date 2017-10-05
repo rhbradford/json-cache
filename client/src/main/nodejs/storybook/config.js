@@ -1,9 +1,6 @@
-// Author: richard
-// Date:   28 Sep 2017
+// Author: Richard Bradford
 
 import {configure} from '@storybook/react'
-
-import "./actions.ts"
 
 function loadStories() {
     require('../stories/CacheObjectTypeSelector.tsx');

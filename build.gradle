@@ -1,17 +1,19 @@
+// Author: Richard Bradford
+
 buildscript {
-  repositories {
-    maven {
-      url "http://localhost:8081/repository/maven-public/"
+    repositories {
+        maven {
+            url "http://localhost:8081/repository/maven-public/"
+        }
     }
-  }
 }
 
 apply plugin: 'maven'
 
 allprojects {
-repositories {
-  maven {
-    url "http://localhost:8081/repository/maven-public/"
-  }
-}
+    repositories {
+        maven {
+            url "http://localhost:8081/repository/maven-public/"
+        }
+    }
 }

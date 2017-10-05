@@ -1,0 +1,14 @@
+// Author: Richard Bradford
+
+plugins {
+    id 'java'
+    id 'scala'
+}
+
+dependencies {
+    // Scala
+    compile("org.scala-lang:scala-library:2.12.2")
+
+    compile project(":Cache")
+    testCompile project(":CacheTests")
+}
