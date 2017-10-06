@@ -6,9 +6,9 @@ package com.modelcoding.opensource.jsoncache;
  * A CacheChanger defines how a {@link JsonCache} is changed when a {@link CacheChangeSet} is applied - 
  * see {@link JsonCache#applyChanges(CacheChanger)}.
  * <p>
- * A {@link JsonCache} applies the given {@link #getChangeSet()} to its current {@link Cache} by calling {@link #reduce(Cache)}.
- * This provides a new {@link Cache} to replace the current one ({@link Reduction#getCache()}), and the details of the
- * changes actually made for subsequent publication ({@link Reduction#getChangeSet()}).
+ * A {@link JsonCache} applies the given {@link #getChangeSet()} to its current {@link Cache} by calling {@link #change(Cache)}.
+ * This provides a new {@link Cache} to replace the current one ({@link ChangeResult#getCache()}), and the details of the
+ * changes actually made for subsequent publication ({@link ChangeResult#getChangeSet()}).
  * <p>
  * An implementation of a {@link JsonCache} is therefore open to extension to different strategies for applying changes.
  * <p>
@@ -25,7 +25,7 @@ public interface CacheChanger {
     /**
      * The results for {@link JsonCache#applyChanges(CacheChanger)}.
      */
-    interface Reduction {
+    interface ChangeResult {
 
         /**
          * @return a new {@link Cache} to replace a previous {@link Cache}.
@@ -39,7 +39,7 @@ public interface CacheChanger {
     }
 
     /**
-     * @return the changes contained in this CacheChanger to be processed against a {@link Cache} supplied to {@link #reduce(Cache)}.
+     * @return the changes contained in this CacheChanger to be processed against a {@link Cache} supplied to {@link #change(Cache)}.
      */
     CacheChangeSet getChangeSet();
 
@@ -48,5 +48,5 @@ public interface CacheChanger {
      * @return the results of processing the changes from {@link #getChangeSet()} against the given {@code cache} according to
      *         the strategy encapsulated by this CacheChanger.
      */
-    Reduction reduce(Cache cache);
+    ChangeResult change(Cache cache);
 }
