@@ -22,8 +22,8 @@ object ScalaJsonCacheModule extends JsonCacheModule {
   ): RemoveObject = null
 
   override def getCacheChangeSet(
-    puts: util.Set[PutObject],
-    removes: util.Set[RemoveObject]
+    puts: util.Set[_ <: PutObject],
+    removes: util.Set[_ <: RemoveObject]
   ): CacheChangeSet = null
 
   override def getCacheChanger(

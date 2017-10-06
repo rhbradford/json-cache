@@ -16,11 +16,11 @@ public interface CacheChangeSet {
      * @return a set of objects that are to be/were added to a {@link JsonCache}.<br>
      *         <em>The return must not expose this CacheChangeSet to mutation.</em>
      */
-    Set<PutObject> getPuts();
+    Set<? extends PutObject> getPuts();
 
     /**
      * @return a set of objects that are to be/were removed from a {@link JsonCache}.<br>
      *         <em>The return must not expose this CacheChangeSet to mutation.</em>
      */
-    Set<RemoveObject> getRemoves();
+    Set<? extends RemoveObject> getRemoves();
 }

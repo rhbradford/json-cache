@@ -44,5 +44,5 @@ public interface Cache {
      * @return the contents of this Cache.<br>
      *         <em>The return must not expose this Cache to mutation.</em>
      */
-    Set<CacheObject> getObjects();
+    Set<? extends CacheObject> getObjects();
 }

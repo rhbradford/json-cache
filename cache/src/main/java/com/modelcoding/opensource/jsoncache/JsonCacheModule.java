@@ -20,7 +20,7 @@ public interface JsonCacheModule {
 
     RemoveObject getRemoveObject(String cacheObjectId, JsonNode removeObjectContent);
 
-    CacheChangeSet getCacheChangeSet(Set<PutObject> puts, Set<RemoveObject> removes);
+    CacheChangeSet getCacheChangeSet(Set<? extends PutObject> puts, Set<? extends RemoveObject> removes);
 
     CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
 }
