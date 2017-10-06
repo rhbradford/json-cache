@@ -10,8 +10,7 @@ import org.junit.runners.Suite
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
     [
-        CacheLocationSpecification.class,
-        CacheObjectSpecification.class
+        PutObjectSpecification.class
     ]
 )
 class JsonCacheTestSuite {

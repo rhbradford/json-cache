@@ -2,17 +2,25 @@
 
 package com.modelcoding.opensource.jsoncache;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Describes changes to be made/that were made to a {@link JsonCache}, in the form of a list of "put" and "remove"
+ * A CacheChangeSet describes changes to be made/that were made to a {@link JsonCache}, in the form of "put" and "remove" 
  * operations.
+ * <p>
+ * A CacheChangeSet is <em>immutable</em>.    
  */
 public interface CacheChangeSet {
 
-    List<CacheObject> getPuts();
+    /**
+     * @return a set of objects that are to be/were added to a {@link JsonCache}.<br>
+     *         <em>The return must not expose this CacheChangeSet to mutation.</em>
+     */
+    Set<PutObject> getPuts();
 
-    List<CacheLocation> getRemoves();
-
-    CacheChangeSet changeSetFrom(List<CacheObject> puts, List<CacheLocation> removes);
+    /**
+     * @return a set of objects that are to be/were removed from a {@link JsonCache}.<br>
+     *         <em>The return must not expose this CacheChangeSet to mutation.</em>
+     */
+    Set<RemoveObject> getRemoves();
 }

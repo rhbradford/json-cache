@@ -4,20 +4,23 @@ package com.modelcoding.opensource.jsoncache;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
 import java.util.Set;
 
+/**
+ * A JsonCacheModule provides an implementation of the {@link JsonCache} API.
+ * <p>
+ * The API is defined using interfaces, making it possible to stack/decorate implementations.<br>
+ * (Adding logging to a base implementation, for example).    
+ */
 public interface JsonCacheModule {
 
-    JsonCache getJsonCache(String cacheId, int publisherBacklogLimit);
+    JsonCache getJsonCache(String cacheId, int publisherBacklogLimit, Set<? extends CacheObject> cacheObjects);
 
-    JsonCache getJsonCache(String cacheId, int publisherBacklogLimit, Set<CacheObject> cacheObjects);
+    PutObject getPutObject(String cacheObjectId, String cacheObjectType, JsonNode cacheObjectContent);
 
-    CacheLocation getCacheLocation(String cacheObjectId);
+    RemoveObject getRemoveObject(String cacheObjectId, JsonNode removeObjectContent);
 
-    CacheObject getCacheObject(String cacheObjectId, String cacheObjectType, JsonNode cacheObjectContent);
-
-    CacheChangeSet getCacheChangeSet(List<CacheObject> puts, List<CacheLocation> removes);
+    CacheChangeSet getCacheChangeSet(Set<PutObject> puts, Set<RemoveObject> removes);
 
     CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
 }

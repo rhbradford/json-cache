@@ -8,26 +8,22 @@ import com.fasterxml.jackson.databind.JsonNode
 object ScalaJsonCacheModule extends JsonCacheModule {
 
   override def getJsonCache(
-    cacheId: String, publisherBacklogLimit: Int
-  ): JsonCache = null
-
-  override def getJsonCache(
     cacheId: String, publisherBacklogLimit: Int,
-    cacheObjects: util.Set[CacheObject]
+    cacheObjects: util.Set[_ <: CacheObject]
   ): JsonCache = null
 
-  override def getCacheLocation(
-    cacheObjectId: String
-  ): CacheLocation = ScalaCacheLocation(cacheObjectId)
-
-  override def getCacheObject(
+  override def getPutObject(
     cacheObjectId: String, cacheObjectType: String,
     cacheObjectContent: JsonNode
-  ): CacheObject = ScalaCacheObject(cacheObjectId, cacheObjectType, cacheObjectContent)
+  ): PutObject = ScalaPutObject(cacheObjectId, cacheObjectType, cacheObjectContent)
+
+  override def getRemoveObject(
+    cacheObjectId: String, removeObjectContent: JsonNode
+  ): RemoveObject = null
 
   override def getCacheChangeSet(
-    puts: util.List[CacheObject],
-    removes: util.List[CacheLocation]
+    puts: util.Set[PutObject],
+    removes: util.Set[RemoveObject]
   ): CacheChangeSet = null
 
   override def getCacheChanger(
