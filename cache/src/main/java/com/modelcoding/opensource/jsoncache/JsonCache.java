@@ -6,8 +6,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
 /**
- * A JsonCache is a "live" cache of entities in the form of "JSON objects" - objects that have an id, a type and content 
- * as JSON.
+ * A JsonCache is a "live" cache of entities in the form of "JSON objects".
+ * A "JSON object" represents an instance of an entity that has a fixed identity and type, but whose content changes 
+ * over time.    
  * <p>
  * A JsonCache contains a {@link Cache} of {@link CacheObject}s.
  * <p>
@@ -15,12 +16,12 @@ import org.reactivestreams.Subscriber;
  * The {@link CacheChanger}s received are applied in the same sequence as they were supplied.
  * <p>
  * A JsonCache publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s.<br>
- * A {@link Subscriber} receives an initial {@link CacheChangeSet} containing a {@link PutObject} for each object in the
- * cache when publication to the subscriber is started, followed by change sets detailing subsequent changes made to the
- * JsonCache thereafter.<br>
+ * A {@link Subscriber} receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
+ * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes made 
+ * to the JsonCache thereafter.<br>
  * A JsonCache will always call {@link Subscriber#onComplete()} at some point once a subscriber has cancelled subscription.<br>
  * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onComplete()} if the backlog of change sets
- * published to a subscriber exceeds {@link #getPublisherBacklogLimit()}.
+ * published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  */
 public interface JsonCache extends Publisher<CacheChangeSet> {
 
@@ -33,7 +34,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * @return the maximum number of {@link CacheChangeSet}s allowed in the publication buffer to a {@link Subscriber}
      *         after which the subscriber is dropped by the JsonCache and sent {@link Subscriber#onComplete()}
      */
-    int getPublisherBacklogLimit();
+    int getSubscriberBacklogLimit();
 
     /**
      * Adds the given {@code cacheChanger} to the sequence of pending changes to be applied in due course, that will alter
@@ -46,13 +47,13 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
     /**
      * Register a {@link Subscriber} to receive {@link CacheChangeSet}s from this JsonCache.
      * <p>
-     * A subscriber receives an initial {@link CacheChangeSet} containing a {@link PutObject} for each object 
+     * A subscriber receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
      * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes 
      * made to the JsonCache thereafter.<br>
      * A JsonCache will always call {@link Subscriber#onComplete()} at some point once a subscriber has cancelled 
      * subscription.<br>
      * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onComplete()} if the backlog of change 
-     * sets published to a subscriber exceeds {@link #getPublisherBacklogLimit()}.
+     * sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
      * 
      * @param s the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.
      */

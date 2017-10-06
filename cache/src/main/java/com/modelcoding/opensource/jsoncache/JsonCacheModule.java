@@ -14,13 +14,74 @@ import java.util.Set;
  */
 public interface JsonCacheModule {
 
-    JsonCache getJsonCache(String cacheId, int publisherBacklogLimit, Set<? extends CacheObject> cacheObjects);
+    /**
+     * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
+     * @param subscriberBacklogLimit limit of buffered notifications beyond which a slow subscriber is completed and dropped
+     *                               - cannot be negative or 0
+     * @param cacheObjects initial set of objects for the {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
+     *         initially containing the given {@code cacheObjects}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheId} is {@code null}</li>
+     *             <li>{@code cacheObjects} is {@code null}</li>
+     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
+     *         </ul>     
+     */
+    JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit, Set<? extends CacheObject> cacheObjects);
 
-    PutObject getPutObject(String cacheObjectId, String cacheObjectType, JsonNode cacheObjectContent);
+    /**
+     * @param cacheObjectId an id for the {@link CacheObject} - cannot be {@code null}
+     * @param cacheObjectType a type for the {@link CacheObject} - cannot be {@code null}
+     * @param cacheObjectContent some content for the {@link CacheObject} - cannot be {@code null}
+     * @return an instance of a {@link CacheObject} with the given {@code cacheObjectId}, {@code cacheObjectType} and
+     *         {@code cacheObjectContent}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheObjectId} is {@code null}</li>
+     *             <li>{@code cacheObjectType} is {@code null}</li>
+     *             <li>{@code cacheObjectContent} is {@code null}</li>
+     *         </ul>     
+     */
+    CacheObject getCacheObject(String cacheObjectId, String cacheObjectType, JsonNode cacheObjectContent);
 
-    RemoveObject getRemoveObject(String cacheObjectId, JsonNode removeObjectContent);
+    /**
+     * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
+     * @param cacheRemoveContent some content for the {@link CacheRemove} - cannot be {@code null}
+     * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and {@code cacheRemoveContent}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheObjectId} is {@code null}</li>
+     *             <li>{@code cacheRemoveContent} is {@code null}</li>
+     *         </ul>     
+     */
+    CacheRemove getCacheRemove(String cacheObjectId, JsonNode cacheRemoveContent);
 
-    CacheChangeSet getCacheChangeSet(Set<? extends PutObject> puts, Set<? extends RemoveObject> removes);
+    /**
+     * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
+     * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and with an empty 
+     *         {@link com.fasterxml.jackson.databind.node.ObjectNode} as its {@link CacheRemove#getContent()}
+     * @throws IllegalArgumentException if {@code cacheObjectId} is {@code null}
+     */
+    CacheRemove getCacheRemove(String cacheObjectId);
 
+    /**
+     * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
+     * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code puts} is {@code null}</li>
+     *             <li>{@code removes} is {@code null}</li>
+     *         </ul>     
+     */
+    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
+
+    /**
+     * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link CacheChanger} that will simply apply all the puts and removes from the given
+     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied 
+     * @throws IllegalArgumentException if {@code cacheChangeSet} is {@code null}
+     */
     CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
 }

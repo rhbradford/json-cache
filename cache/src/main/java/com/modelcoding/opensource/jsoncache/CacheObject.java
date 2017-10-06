@@ -5,19 +5,21 @@ package com.modelcoding.opensource.jsoncache;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * A CacheObject represents a JSON "object" in a {@link JsonCache}.
+ * A CacheObject represents a "JSON object" in a {@link JsonCache}.<br>
+ * A "JSON object" represents an instance of an entity that has a fixed identity and type, but whose content changes 
+ * over time.    
  * <p>
  * A CacheObject is <em>immutable</em> and must have:<br>
  *     <ul>
- *         <li>a unique location/identity in the cache: {@link #getId()}</li>
+ *         <li>a unique identity in the cache: {@link #getId()}</li>
  *         <li>a type: {@link #getType()}</li>
  *         <li>some JSON content: {@link #getContent()}</li>
- *     </ul><br>    
+ *     </ul>
  */
 public interface CacheObject {
 
     /**
-     * @return the location/identity of a CacheObject in a {@link JsonCache}.
+     * @return the identity of this CacheObject in a {@link JsonCache}.
      */
     String getId();
     

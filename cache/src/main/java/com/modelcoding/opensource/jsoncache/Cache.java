@@ -25,20 +25,21 @@ public interface Cache {
     CacheObject getCacheObject(String cacheObjectId);
 
     /**
-     * @param put a new {@link CacheObject} to be contained in a Cache.
-     * @return a new Cache with the same content as this Cache except it is guaranteed to contain the given {@code put}.<br>
+     * @param cacheObject a new {@link CacheObject} to be contained in a Cache.
+     * @return a new Cache with the same content as this Cache except it is guaranteed to contain the given {@code cacheObject}.<br>
      *         If an object with the same identity is already in this Cache, then the object is replaced with the 
-     *         given {@code put} in the new Cache that is returned.
+     *         given {@code cacheObject} in the new Cache that is returned.
      */
-    Cache put(PutObject put);
+    Cache put(CacheObject cacheObject);
 
     /**
-     * @param remove provides the identity of a {@link CacheObject} that may be contained in this Cache.
+     * @param cacheRemove provides the identity of a {@link CacheObject} that may be contained in this Cache.
      * @return a new Cache with the same content as this Cache except it is guaranteed to contain no {@link CacheObject} 
-     *         with the identity given by {@code remove}.<br>
-     *         If no object with the identity given by {@code remove} is in this Cache, then this Cache is simply returned as is.
+     *         with the identity given by {@code cacheRemove}.<br>
+     *         If no object with the identity given by {@code cacheRemove} is in this Cache, then this Cache is 
+     *         simply returned as is.
      */
-    Cache remove(RemoveObject remove);
+    Cache remove(CacheRemove cacheRemove);
 
     /**
      * @return the contents of this Cache.<br>

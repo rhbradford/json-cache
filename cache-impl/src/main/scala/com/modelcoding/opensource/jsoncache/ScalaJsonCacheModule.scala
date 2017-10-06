@@ -3,30 +3,45 @@
 package com.modelcoding.opensource.jsoncache
 import java.util
 
-import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 
 object ScalaJsonCacheModule extends JsonCacheModule {
 
   override def getJsonCache(
-    cacheId: String, publisherBacklogLimit: Int,
+    cacheId: String, 
+    publisherBacklogLimit: Int,
     cacheObjects: util.Set[_ <: CacheObject]
-  ): JsonCache = null
+  ): JsonCache = 
+    null
 
-  override def getPutObject(
-    cacheObjectId: String, cacheObjectType: String,
+  override def getCacheObject(
+    cacheObjectId: String, 
+    cacheObjectType: String,
     cacheObjectContent: JsonNode
-  ): PutObject = ScalaPutObject(cacheObjectId, cacheObjectType, cacheObjectContent)
+  ): CacheObject = 
+    ScalaCacheObject(cacheObjectId)(cacheObjectType, cacheObjectContent)
 
-  override def getRemoveObject(
-    cacheObjectId: String, removeObjectContent: JsonNode
-  ): RemoveObject = null
+  override def getCacheRemove(
+    cacheObjectId: String, 
+    cacheRemoveContent: JsonNode
+  ): CacheRemove =
+    ScalaCacheRemove(cacheObjectId)(cacheRemoveContent)
+
+  private val emptyContent: JsonNode = new ObjectMapper().createObjectNode()
+  
+  override def getCacheRemove(
+    cacheObjectId: String
+  ): CacheRemove =
+    ScalaCacheRemove(cacheObjectId)(emptyContent)
 
   override def getCacheChangeSet(
-    puts: util.Set[_ <: PutObject],
-    removes: util.Set[_ <: RemoveObject]
-  ): CacheChangeSet = null
+    puts: util.Set[_ <: CacheObject],
+    removes: util.Set[_ <: CacheRemove]
+  ): CacheChangeSet =
+    null
 
   override def getCacheChanger(
     cacheChangeSet: CacheChangeSet
-  ): CacheChanger = null
+  ): CacheChanger = 
+    null
 }
