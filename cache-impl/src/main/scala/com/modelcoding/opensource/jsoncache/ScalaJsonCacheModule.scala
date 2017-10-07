@@ -7,13 +7,6 @@ import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 
 object ScalaJsonCacheModule extends JsonCacheModule {
 
-  override def getJsonCache(
-    cacheId: String, 
-    publisherBacklogLimit: Int,
-    cacheObjects: util.Set[_ <: CacheObject]
-  ): JsonCache = 
-    null
-
   override def getCacheObject(
     cacheObjectId: String, 
     cacheObjectType: String,
@@ -38,10 +31,26 @@ object ScalaJsonCacheModule extends JsonCacheModule {
     puts: util.Set[_ <: CacheObject],
     removes: util.Set[_ <: CacheRemove]
   ): CacheChangeSet =
-    null
+    new ScalaCacheChangeSet(puts, removes)
 
   override def getCacheChanger(
     cacheChangeSet: CacheChangeSet
   ): CacheChanger = 
+    null
+
+  override def getCache(
+    cacheObjects: util.Set[_ <: CacheObject]
+  ): Cache =
+    null
+
+  override def getJsonCache(
+    cacheId: String, subscriberBacklogLimit: Int,
+    cache: Cache
+  ): JsonCache =
+    null
+
+  override def getJsonCache(
+    cacheId: String, subscriberBacklogLimit: Int
+  ): JsonCache =
     null
 }

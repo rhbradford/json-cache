@@ -15,22 +15,6 @@ import java.util.Set;
 public interface JsonCacheModule {
 
     /**
-     * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
-     * @param subscriberBacklogLimit limit of buffered notifications beyond which a slow subscriber is completed and dropped
-     *                               - cannot be negative or 0
-     * @param cacheObjects initial set of objects for the {@link JsonCache} - cannot be {@code null}
-     * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
-     *         initially containing the given {@code cacheObjects}
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code cacheId} is {@code null}</li>
-     *             <li>{@code cacheObjects} is {@code null}</li>
-     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
-     *         </ul>     
-     */
-    JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit, Set<? extends CacheObject> cacheObjects);
-
-    /**
      * @param cacheObjectId an id for the {@link CacheObject} - cannot be {@code null}
      * @param cacheObjectType a type for the {@link CacheObject} - cannot be {@code null}
      * @param cacheObjectContent some content for the {@link CacheObject} - cannot be {@code null}
@@ -84,4 +68,41 @@ public interface JsonCacheModule {
      * @throws IllegalArgumentException if {@code cacheChangeSet} is {@code null}
      */
     CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
+
+    /**
+     * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
+     * @return an instance of a {@link Cache} containing the given {@code cacheObjects}
+     * @throws IllegalArgumentException if {@code cacheObjects} is {@code null}
+     */
+    Cache getCache(Set<? extends CacheObject> cacheObjects);
+
+    /**
+     * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
+     * @param subscriberBacklogLimit limit of buffered notifications beyond which a slow subscriber is completed and dropped
+     *                               - cannot be negative or 0
+     * @param cache initial set of objects for the {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
+     *         initially containing the given {@code cache}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheId} is {@code null}</li>
+     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
+     *             <li>{@code cache} is {@code null}</li>
+     *         </ul>     
+     */
+    JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit, Cache cache);
+
+    /**
+     * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
+     * @param subscriberBacklogLimit limit of buffered notifications beyond which a slow subscriber is completed and dropped
+     *                               - cannot be negative or 0
+     * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
+     *         initially containing an empty {@link Cache}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheId} is {@code null}</li>
+     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
+     *         </ul>     
+     */
+    JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit);
 }

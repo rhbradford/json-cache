@@ -11,7 +11,8 @@ import org.junit.runners.Suite
 @Suite.SuiteClasses(
     [
         CacheObjectSpecification.class,
-        CacheRemoveSpecification.class
+        CacheRemoveSpecification.class,
+        CacheChangeSetSpecification.class
     ]
 )
 class JsonCacheTestSuite {
