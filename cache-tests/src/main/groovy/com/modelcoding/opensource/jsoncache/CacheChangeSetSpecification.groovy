@@ -82,6 +82,8 @@ class CacheChangeSetSpecification extends Specification {
             m.getCacheRemove("Id3"),
             m.getCacheRemove("Id4", someContent)
         ] as Set
+        def thePuts = new HashSet(puts)
+        def theRemoves = new HashSet(removes)
 
         when:
         def cacheChangeSet = m.getCacheChangeSet(puts, removes)
@@ -104,7 +106,7 @@ class CacheChangeSetSpecification extends Specification {
         }
         
         then:
-        cacheChangeSet.puts == puts
-        cacheChangeSet.removes == removes
+        cacheChangeSet.puts == thePuts
+        cacheChangeSet.removes == theRemoves
     }
 }
