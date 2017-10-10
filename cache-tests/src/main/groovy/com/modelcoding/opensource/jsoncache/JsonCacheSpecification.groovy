@@ -171,6 +171,7 @@ class JsonCacheSpecification extends Specification {
         m.getCacheChangeSet(puts, [] as Set)
     }
     
+    @Ignore
     def "Multiple subscribers receive expected notifications from JsonCache"() {
         
         setup:
@@ -357,6 +358,7 @@ class JsonCacheSpecification extends Specification {
         }
     }
     
+    @Ignore
     def "JsonCache terminates slow subscribers"() {
         
         setup:
@@ -415,15 +417,100 @@ class JsonCacheSpecification extends Specification {
         }
     }
     
+    def "JsonCache can be used from multiple threads"() {
+
+        setup:
+        def thread1Changes = [0, 3, 7].collect { i -> cacheChangeSet(i) } 
+        def thread2Changes = [1, 2, 8].collect { i -> cacheChangeSet(i) } 
+        def thread3Changes = [4, 5, 6].collect { i -> cacheChangeSet(i) } 
+        def changeSets = (0..8).collect { i -> cacheChangeSet(i) }
+        def jsonCache = m.getJsonCache("id", 10, m.getCache([] as Set))
+        def subscriber1 = new MockSubscriber()
+        def subscriber2 = new MockSubscriber()
+        def subscriber3 = new MockSubscriber()
+        
+        when:
+        new Thread({
+            subscriber1.expect(1)
+            jsonCache.subscribe(subscriber1)
+            subscriber1.await()
+            thread1Changes.each { c -> 
+                subscriber1.expectNext(1)
+                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
+                subscriber1.await()
+                Thread.yield()
+            }
+            subscriber1.cancel()
+        } as Runnable, "Subscriber1").start()
+        new Thread({
+            subscriber2.expect(1)
+            jsonCache.subscribe(subscriber2)
+            subscriber2.await()
+            thread2Changes.each { c -> 
+                subscriber2.expectNext(1)
+                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
+                subscriber2.await()
+                Thread.yield()
+            }
+            subscriber2.cancel()
+        } as Runnable, "Subscriber2").start()
+        new Thread({
+            subscriber3.expect(1)
+            jsonCache.subscribe(subscriber3)
+            subscriber3.await()
+            thread3Changes.each { c -> 
+                subscriber3.expectNext(1)
+                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
+                subscriber3.await()
+                Thread.yield()
+            }
+            subscriber3.cancel()
+        } as Runnable, "Subscriber3").start()
+        
+        then:
+        subscriber1.awaitComplete()
+        subscriber2.awaitComplete()
+        subscriber3.awaitComplete()
+        subscriber1.completed
+        subscriber2.completed
+        subscriber3.completed
+        !subscriber1.hasError
+        !subscriber2.hasError
+        !subscriber3.hasError
+        subscriber1.changeSets.size() >= thread1Changes.size()+1
+        subscriber2.changeSets.size() >= thread2Changes.size()+1
+        subscriber3.changeSets.size() >= thread3Changes.size()+1
+        subscriber1.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
+        subscriber2.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
+        subscriber3.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
+        
+        when:
+        def subscriber = new MockSubscriber()
+        subscriber.expect(1)
+        jsonCache.subscribe(subscriber)
+        subscriber.cancel()
+        
+        then:
+        with(subscriber) {
+            await()
+            completed
+            !hasError
+        }
+        subscriber.changeSets.size() == 1
+        subscriber.changeSets[0].puts.size() > 0
+    }
+    
     private static class MockSubscriber implements Subscriber<CacheChangeSet>
     {
         private volatile boolean cancelled
         private volatile Subscription subscription
         private CountDownLatch notifications
 
-        final changeSets = []
+        final List<CacheChangeSet> changeSets = []
         boolean completed
         boolean hasError
+        
+        private final CountDownLatch completion = new CountDownLatch(1)
 
         void expect(int expectedNumberOfNotifications) {
             notifications = new CountDownLatch(expectedNumberOfNotifications)
@@ -434,6 +521,14 @@ class JsonCacheSpecification extends Specification {
 
         boolean await(long milliseconds = 1000) {
             notifications.await(milliseconds, TimeUnit.MILLISECONDS)
+        }
+
+        void expectNext(int expectedNumberOfNotifications) {
+            notifications = new CountDownLatch(expectedNumberOfNotifications)
+        }
+        
+        boolean awaitComplete(long milliseconds = 1000) {
+            completion.await(milliseconds, TimeUnit.MILLISECONDS)
         }
         
         void cancel() {
@@ -447,7 +542,7 @@ class JsonCacheSpecification extends Specification {
         
         @Override
         void onSubscribe(final Subscription s) {
-            subscription = s;
+            subscription = s
             // Ensures that MockSubscriber should always receive the initial change set.
             // The initial change set always contains a put for each object currently in the JsonCache.
             makeRequest(subscription) 
@@ -472,6 +567,7 @@ class JsonCacheSpecification extends Specification {
         @Override
         void onComplete() {
             completed = true
+            completion.countDown()
             notifications.countDown()
         }
     }
