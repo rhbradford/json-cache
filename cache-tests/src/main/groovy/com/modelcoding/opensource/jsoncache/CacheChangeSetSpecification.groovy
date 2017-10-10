@@ -5,7 +5,7 @@ package com.modelcoding.opensource.jsoncache
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.modelcoding.opensource.jsoncache.JsonCacheTestSuite.*
+import static TestSuite.*
 
 class CacheChangeSetSpecification extends Specification {
 
@@ -25,18 +25,19 @@ class CacheChangeSetSpecification extends Specification {
             ]
     @Shared
         someOtherContent = asJsonNode(otherContent)
-
-    def "CacheChangeSet is created as expected"() {
-
-        setup:
-        def puts = [
+    @Shared
+        puts = [
             m.getCacheObject("Id1", "Type", someContent),
             m.getCacheObject("Id2", "Type", someOtherContent)
         ] as Set
-        def removes = [
+    @Shared
+        removes = [
             m.getCacheRemove("Id3"),
             m.getCacheRemove("Id4", someContent)
         ] as Set
+    
+    
+    def "CacheChangeSet is created as expected"() {
 
         when:
         def cacheChangeSet = m.getCacheChangeSet(puts, removes)
@@ -47,16 +48,6 @@ class CacheChangeSetSpecification extends Specification {
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
-
-        setup:
-        def puts = [
-            m.getCacheObject("Id1", "Type", someContent),
-            m.getCacheObject("Id2", "Type", someOtherContent)
-        ] as Set
-        def removes = [
-            m.getCacheRemove("Id3"),
-            m.getCacheRemove("Id4", someContent)
-        ] as Set
 
         when:
         m.getCacheChangeSet(null, removes)
@@ -70,18 +61,24 @@ class CacheChangeSetSpecification extends Specification {
         then:
         thrown(IllegalArgumentException)
     }
+    
+    def "Equal CacheChangeSets are equal"() {
+
+        expect:
+        m.getCacheChangeSet(puts, removes) == m.getCacheChangeSet(puts, removes)
+        m.getCacheChangeSet(puts, removes).hashCode() == m.getCacheChangeSet(puts, removes).hashCode()
+    }
+    
+    def "Unequal CacheChangeSets are not equal"() {
+        
+        expect:
+        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet(puts, [] as Set)
+        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet([] as Set, removes)
+    }
 
     def "CacheChangeSet accessors do not expose CacheChangeSet to mutation"() {
 
         setup:
-        def puts = [
-            m.getCacheObject("Id1", "Type", someContent),
-            m.getCacheObject("Id2", "Type", someOtherContent)
-        ] as Set
-        def removes = [
-            m.getCacheRemove("Id3"),
-            m.getCacheRemove("Id4", someContent)
-        ] as Set
         def thePuts = new HashSet(puts)
         def theRemoves = new HashSet(removes)
 

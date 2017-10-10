@@ -13,14 +13,16 @@ import org.junit.runners.Suite
         CacheObjectSpecification.class,
         CacheRemoveSpecification.class,
         CacheChangeSetSpecification.class,
-        CacheSpecification.class
+        CacheSpecification.class,
+        CacheChangeCalculatorSpecification.class,
+        JsonCacheSpecification.class
     ]
 )
-class JsonCacheTestSuite {
-    
+class TestSuite {
+
     public static JsonCacheModule m
-    
-    static JsonNode asJsonNode(def content ) {
+
+    static JsonNode asJsonNode(def content) {
         new ObjectMapper().valueToTree(content)
     }
 }

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Set;
 
 /**
- * A JsonCacheModule provides an implementation of the {@link JsonCache} API.
+ * A JsonCacheModule provides an implementation of the JsonCache API.
  * <p>
  * The API is defined using interfaces, making it possible to stack/decorate implementations.<br>
  * (Adding logging to a base implementation, for example).    
@@ -62,19 +62,19 @@ public interface JsonCacheModule {
     CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
 
     /**
-     * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
-     * @return an instance of a {@link CacheChanger} that will simply apply all the puts and removes from the given
-     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied 
-     * @throws IllegalArgumentException if {@code cacheChangeSet} is {@code null}
-     */
-    CacheChanger getCacheChanger(CacheChangeSet cacheChangeSet);
-
-    /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
      * @return an instance of a {@link Cache} containing the given {@code cacheObjects}
      * @throws IllegalArgumentException if {@code cacheObjects} is {@code null}
      */
     Cache getCache(Set<? extends CacheObject> cacheObjects);
+
+    /**
+     * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link CacheChangeCalculator} that will simply apply all the puts and removes from the given
+     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied 
+     * @throws IllegalArgumentException if {@code cacheChangeSet} is {@code null}
+     */
+    CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 
     /**
      * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
@@ -91,18 +91,4 @@ public interface JsonCacheModule {
      *         </ul>     
      */
     JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit, Cache cache);
-
-    /**
-     * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}
-     * @param subscriberBacklogLimit limit of buffered notifications beyond which a slow subscriber is completed and dropped
-     *                               - cannot be negative or 0
-     * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
-     *         initially containing an empty {@link Cache}
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code cacheId} is {@code null}</li>
-     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
-     *         </ul>     
-     */
-    JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit);
 }

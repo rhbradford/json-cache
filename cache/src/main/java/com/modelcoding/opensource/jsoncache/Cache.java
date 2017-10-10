@@ -5,7 +5,9 @@ package com.modelcoding.opensource.jsoncache;
 import java.util.Set;
 
 /**
- * A Cache is contained inside a {@link JsonCache}. It is an <em>immutable</em> set of {@link CacheObject}s.
+ * A Cache is contained inside a {@link JsonCache}.
+ * <p>
+ * A Cache is an <em>immutable</em> set of {@link CacheObject}s.
  */
 public interface Cache {
 
@@ -42,8 +44,8 @@ public interface Cache {
     Cache remove(CacheRemove cacheRemove);
 
     /**
-     * @return the contents of this Cache.<br>
+     * @return the contents of this Cache as a {@link CacheChangeSet} with each object in the Cache as a "put"<br>
      *         <em>The return must not expose this Cache to mutation.</em>
      */
-    Set<? extends CacheObject> getObjects();
+    CacheChangeSet asChangeSet();
 }

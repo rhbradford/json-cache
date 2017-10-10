@@ -12,16 +12,19 @@ import org.reactivestreams.Subscriber;
  * <p>
  * A JsonCache contains a {@link Cache} of {@link CacheObject}s.
  * <p>
- * A JsonCache receives commands to alter the set of objects it contains via {@link #applyChanges(CacheChanger)}.<br>
- * The {@link CacheChanger}s received are applied in the same sequence as they were supplied.
+ * A JsonCache receives commands to alter the set of objects it contains via {@link #applyChanges(CacheChangeCalculator)}.<br>
+ * The {@link CacheChangeCalculator}s received are applied in the same sequence as they were supplied.
  * <p>
  * A JsonCache publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s.<br>
  * A {@link Subscriber} receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
  * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes made 
  * to the JsonCache thereafter.<br>
- * A JsonCache will always call {@link Subscriber#onComplete()} at some point once a subscriber has cancelled subscription.<br>
- * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onComplete()} if the backlog of change sets
- * published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
+ * A JsonCache will always call {@link Subscriber#onComplete()} once a subscriber has finished.<br>
+ * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onError(Throwable)} (and
+ * {@link Subscriber#onComplete()}) if the backlog of change sets published to a subscriber exceeds 
+ * {@link #getSubscriberBacklogLimit()}.<br>    
+ * <em>Note that always calling {@link Subscriber#onComplete()} violates a small part of the reactive streams
+ * specification.</em>
  */
 public interface JsonCache extends Publisher<CacheChangeSet> {
 
@@ -37,12 +40,13 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
     int getSubscriberBacklogLimit();
 
     /**
-     * Adds the given {@code cacheChanger} to the sequence of pending changes to be applied in due course, that will alter
-     * the set of objects contained in this JsonCache. {@link CacheChanger}s are applied in the order received.
+     * Adds the given {@code cacheChangeCalculator} to the sequence of pending changes to be applied in due course, 
+     * that will alter the set of objects contained in this JsonCache.<br>
+     * {@link CacheChangeCalculator}s are applied in the order received.
      * 
-     * @param cacheChanger the changes to be applied to this JsonCache.
+     * @param cacheChangeCalculator calculates the changes to be applied to this JsonCache.
      */
-    void applyChanges(CacheChanger cacheChanger);
+    void applyChanges(CacheChangeCalculator cacheChangeCalculator);
 
     /**
      * Register a {@link Subscriber} to receive {@link CacheChangeSet}s from this JsonCache.
@@ -50,10 +54,12 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * A subscriber receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
      * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes 
      * made to the JsonCache thereafter.<br>
-     * A JsonCache will always call {@link Subscriber#onComplete()} at some point once a subscriber has cancelled 
-     * subscription.<br>
-     * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onComplete()} if the backlog of change 
-     * sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
+     * A JsonCache will always call {@link Subscriber#onComplete()} once a subscriber has finished.<br>
+     * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onError(Throwable)} (and
+     * {@link Subscriber#onComplete()}) if the backlog of change sets published to a subscriber exceeds 
+     * {@link #getSubscriberBacklogLimit()}.<br>    
+     * <em>Note that always calling {@link Subscriber#onComplete()} violates a small part of the reactive streams
+     * specification.</em>
      * 
      * @param s the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.
      */

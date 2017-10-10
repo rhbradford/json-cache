@@ -5,7 +5,7 @@ package com.modelcoding.opensource.jsoncache
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.modelcoding.opensource.jsoncache.JsonCacheTestSuite.*
+import static TestSuite.*
 
 class CacheRemoveSpecification extends Specification {
 
@@ -79,6 +79,7 @@ class CacheRemoveSpecification extends Specification {
 
         expect:
         a == b
+        a.hashCode() == b.hashCode()
 
         where:
         a                                           | b

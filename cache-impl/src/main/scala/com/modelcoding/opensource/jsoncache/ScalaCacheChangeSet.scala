@@ -4,8 +4,24 @@ package com.modelcoding.opensource.jsoncache
 import java.util
 import java.util.Collections
 
-class ScalaCacheChangeSet(puts: util.Set[_ <: CacheObject], removes: util.Set[_ <: CacheRemove]) extends CacheChangeSet {
+object ScalaCacheChangeSet {
+   def apply(
+     puts: util.Set[_ <: CacheObject],
+     removes: util.Set[_ <: CacheRemove]
+   ): ScalaCacheChangeSet =
+    new ScalaCacheChangeSet(Collections.unmodifiableSet(puts), Collections.unmodifiableSet(removes)) {
+      
+    }
+}
+
+abstract case class ScalaCacheChangeSet private[ScalaCacheChangeSet] (
+  getPuts: util.Set[_ <: CacheObject], 
+  getRemoves: util.Set[_ <: CacheRemove]
+) 
+  extends CacheChangeSet {
   
-  override def getPuts: util.Set[_ <: CacheObject] = Collections.unmodifiableSet(puts)
-  override def getRemoves: util.Set[_ <: CacheRemove] = Collections.unmodifiableSet(removes)
+  def copy(
+    getPuts: util.Set[_ <: CacheObject] = getPuts, 
+    getRemoves: util.Set[_ <: CacheRemove] = getRemoves
+  ) = ScalaCacheChangeSet.apply(getPuts, getRemoves)
 }

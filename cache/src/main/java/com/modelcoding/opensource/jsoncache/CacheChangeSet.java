@@ -23,4 +23,20 @@ public interface CacheChangeSet {
      *         <em>The return must not expose this CacheChangeSet to mutation.</em>
      */
     Set<? extends CacheRemove> getRemoves();
+    
+    /**
+     * CacheChangeSet are considered equal if they have the same {@link #getPuts()} and {@link #getRemoves()}. 
+     * 
+     * @param   obj   the reference object with which to compare.
+     * @return  {@code true} if the obj is also a CacheChangeSet with the same {@link #getPuts()} and {@link #getRemoves()}; 
+     *          {@code false} otherwise.
+     * @see     #hashCode()
+     */
+    boolean equals(Object obj);
+   
+   /** 
+    * @return  a hash code value for this CacheChangeSet which must be based solely on {@link #getPuts()} and {@link #getRemoves()}.
+    * @see     #equals(java.lang.Object)
+    */
+   int hashCode();
 }
