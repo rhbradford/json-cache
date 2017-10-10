@@ -3,14 +3,14 @@
 package com.modelcoding.opensource.jsoncache
 
 import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
-import akka.stream.{ActorMaterializer, OverflowStrategy}
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import org.reactivestreams.{Publisher, Subscriber}
+import akka.stream.{ActorMaterializer, OverflowStrategy}
+import org.reactivestreams.{Subscriber, Subscription}
 
 import scala.collection.mutable
 
 class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
-  (implicit system: ActorSystem, materializer: ActorMaterializer) extends JsonCache {
+  (implicit system: ActorSystem) extends JsonCache {
 
   private case class PublishToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
 
@@ -26,7 +26,27 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = cacheActor ! PublishToSubscriber(s)
 
+  class StatefulSubscriber(delegate: Subscriber[_ >: CacheChangeSet]) extends Subscriber[CacheChangeSet] {
+
+    private var errorOccurred: Boolean = false
+    
+    override def onError(t: Throwable): Unit = {
+      errorOccurred = true
+      delegate.onError(t)
+    }
+
+    override def onComplete(): Unit = {
+      if(!errorOccurred) delegate.onComplete()
+    }
+
+    override def onNext(t: CacheChangeSet): Unit = delegate.onNext(t)
+
+    override def onSubscribe(s: Subscription): Unit = delegate.onSubscribe(s)
+  }
+  
   class CacheActor(backlogLimit: Int, aCache: Cache) extends Actor {
+
+    private implicit val materializer: ActorMaterializer = ActorMaterializer()(context)
 
     private var publishers: mutable.Map[ActorRef, Subscriber[_ >: CacheChangeSet]] = mutable.Map()
     private var cache     : Cache                                                  = aCache
@@ -41,10 +61,11 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
       case PublishToSubscriber(subscriber) =>
         val source: Source[CacheChangeSet, ActorRef] = Source.actorRef[CacheChangeSet](backlogLimit, OverflowStrategy.fail)
         val (publisherActor, publisher) = source.toMat(Sink.asPublisher[CacheChangeSet](fanout = false))(Keep.both).run()
-        publishers += (publisherActor -> subscriber)
+        val statefulSubscriber = new StatefulSubscriber(subscriber)
+        publishers += (publisherActor -> statefulSubscriber)
         context.watch(publisherActor) // Get notified when the publication is cancelled by subscriber: the publisherActor is terminated
         publisherActor ! cache.asChangeSet // Send initial change set
-        publisher.subscribe(subscriber)
+        publisher.subscribe(statefulSubscriber)
 
       case Terminated(publisherActor) =>
         val subscriber = publishers(publisherActor)

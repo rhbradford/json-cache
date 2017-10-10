@@ -111,7 +111,7 @@ class JsonCacheSpecification extends Specification {
         
         then: "the subscriber first receives a change set with a put for every object in the cache at that point"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == [m.getCacheChangeSet(preContent, [] as Set)]
             !completed
             !hasError
@@ -123,7 +123,7 @@ class JsonCacheSpecification extends Specification {
         
         then: "the subscriber receives a change set with the changes made"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == [cacheChangeSet]
             !completed
             !hasError
@@ -135,7 +135,7 @@ class JsonCacheSpecification extends Specification {
         
         then: "the subscriber is completed"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == []
             completed
             !hasError
@@ -149,16 +149,212 @@ class JsonCacheSpecification extends Specification {
         
         then: "the subscriber receives a change set with the expected puts for every object in the post-change cache"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == [m.getCacheChangeSet(postContent, [] as Set)]
             completed
             !hasError
         }
     }
 
+    private CacheObject cacheObject(int i) {
+        m.getCacheObject("Id$i", "Type", someContent)
+    }
+    
+    private CacheChangeSet cacheChangeSet(int i) {
+        def puts = [cacheObject(i)] as Set
+        def removes = i > 0 ? [m.getCacheRemove("Id${i-1}")] as Set : [] as Set
+        m.getCacheChangeSet(puts, removes)
+    }
+    
+    private CacheChangeSet cacheContent(int i) {
+        def puts = [cacheObject(i)] as Set
+        m.getCacheChangeSet(puts, [] as Set)
+    }
+    
     def "Multiple subscribers receive expected notifications from JsonCache"() {
         
+        setup:
+        def jsonCache = m.getJsonCache("id", 2, m.getCache([] as Set))
+        def subscriber1 = new MockSubscriber()
+        def subscriber2 = new MockSubscriber()
+        def subscriber3 = new MockSubscriber()
+
+        when:
+        subscriber1.expect(1)
+        jsonCache.subscribe(subscriber1)
         
+        then:
+        with(subscriber1) {
+            await()
+            changeSets == [m.getCacheChangeSet([] as Set, [] as Set)]
+            !completed
+            !hasError
+        }
+
+        when:
+        subscriber1.expect(1)
+        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(0)))
+        
+        then:
+        with(subscriber1) {
+            await()
+            changeSets == [cacheChangeSet(0)]
+            !completed
+            !hasError
+        }
+        
+        when:
+        subscriber2.expect(1)
+        jsonCache.subscribe(subscriber2)
+        
+        then:
+        with(subscriber2) {
+            await()
+            changeSets == [cacheContent(0)]
+            !completed
+            !hasError
+        }
+        with(subscriber1) {
+            changeSets == [cacheChangeSet(0)]
+            !completed
+            !hasError
+        }
+
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(1)))
+        
+        then:
+        with(subscriber1) {
+            await()
+            changeSets == [cacheChangeSet(1)]
+            !completed
+            !hasError
+        }
+        with(subscriber2) {
+            await()
+            changeSets == [cacheChangeSet(1)]
+            !completed
+            !hasError
+        }
+        
+        when:
+        subscriber3.expect(1)
+        jsonCache.subscribe(subscriber3)
+        
+        then:
+        with(subscriber3) {
+            await()
+            changeSets == [cacheContent(1)]
+            !completed
+            !hasError
+        }
+        with(subscriber1) {
+            changeSets == [cacheChangeSet(1)]
+            !completed
+            !hasError
+        }
+        with(subscriber2) {
+            changeSets == [cacheChangeSet(1)]
+            !completed
+            !hasError
+        }
+
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        subscriber3.expect(1)
+        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(2)))
+        
+        then:
+        with(subscriber1) {
+            await()
+            changeSets == [cacheChangeSet(2)]
+            !completed
+            !hasError
+        }
+        with(subscriber2) {
+            await()
+            changeSets == [cacheChangeSet(2)]
+            !completed
+            !hasError
+        }
+        with(subscriber3) {
+            await()
+            changeSets == [cacheChangeSet(2)]
+            !completed
+            !hasError
+        }
+
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        subscriber1.cancel()
+        subscriber2.cancel()
+        
+        then:
+        with(subscriber1) {
+            await()
+            changeSets == []
+            completed
+            !hasError
+        }
+        with(subscriber2) {
+            await()
+            changeSets == []
+            completed
+            !hasError
+        }
+        with(subscriber3) {
+            changeSets == [cacheChangeSet(2)]
+            !completed
+            !hasError
+        }
+        
+        when:
+        subscriber3.expect(1)
+        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(3)))
+        
+        then:
+        with(subscriber3) {
+            await()
+            changeSets == [cacheChangeSet(3)]
+            !completed
+            !hasError
+        }
+        with(subscriber1) {
+            changeSets == []
+            completed
+            !hasError
+        }
+        with(subscriber2) {
+            changeSets == []
+            completed
+            !hasError
+        }
+        
+        when:
+        subscriber3.expect(1)
+        subscriber3.cancel()
+        
+        then:
+        with(subscriber3) {
+            await()
+            changeSets == []
+            completed
+            !hasError
+        }
+        with(subscriber1) {
+            changeSets == []
+            completed
+            !hasError
+        }
+        with(subscriber2) {
+            changeSets == []
+            completed
+            !hasError
+        }
     }
     
     def "JsonCache terminates slow subscribers"() {
@@ -192,15 +388,15 @@ class JsonCacheSpecification extends Specification {
         }
         
         when: "A subscription is made, and a change made to the cache, but the subscriber is 'slow'" 
-        subscriber.expect(2)
+        subscriber.expect(1)
         jsonCache.subscribe(subscriber)
         jsonCache.applyChanges(cacheChangeCalculator)
         
-        then: "the notification of the initial change set and subsequent change set overfills the buffer, and the subscriber is completed"
+        then: "the notification of the initial change set and subsequent change set overfills the buffer, and the subscriber gets an error"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == []
-            completed
+            !completed
             hasError
         }
         
@@ -212,7 +408,7 @@ class JsonCacheSpecification extends Specification {
         
         then: "the new subscriber receives change sets as expected"
         with(subscriber) {
-            await(1000)
+            await()
             changeSets == [m.getCacheChangeSet(postContent, [] as Set)]
             completed
             !hasError
@@ -236,7 +432,7 @@ class JsonCacheSpecification extends Specification {
             hasError = false
         }
 
-        boolean await(long milliseconds) {
+        boolean await(long milliseconds = 1000) {
             notifications.await(milliseconds, TimeUnit.MILLISECONDS)
         }
         

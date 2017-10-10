@@ -4,6 +4,7 @@ package com.modelcoding.opensource.jsoncache;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 /**
  * A JsonCache is a "live" cache of entities in the form of "JSON objects".
@@ -19,12 +20,9 @@ import org.reactivestreams.Subscriber;
  * A {@link Subscriber} receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
  * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes made 
  * to the JsonCache thereafter.<br>
- * A JsonCache will always call {@link Subscriber#onComplete()} once a subscriber has finished.<br>
- * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onError(Throwable)} (and
- * {@link Subscriber#onComplete()}) if the backlog of change sets published to a subscriber exceeds 
- * {@link #getSubscriberBacklogLimit()}.<br>    
- * <em>Note that always calling {@link Subscriber#onComplete()} violates a small part of the reactive streams
- * specification.</em>
+ * A JsonCache calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
+ * A JsonCache stops publishing to a subscriber and call {@link Subscriber#onError(Throwable)} if the backlog of 
+ * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  */
 public interface JsonCache extends Publisher<CacheChangeSet> {
 
@@ -35,7 +33,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
 
     /**
      * @return the maximum number of {@link CacheChangeSet}s allowed in the publication buffer to a {@link Subscriber}
-     *         after which the subscriber is dropped by the JsonCache and sent {@link Subscriber#onComplete()}
+     *         after which the subscriber is dropped by the JsonCache and sent {@link Subscriber#onError(Throwable)}
      */
     int getSubscriberBacklogLimit();
 
@@ -54,12 +52,9 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * A subscriber receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
      * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes 
      * made to the JsonCache thereafter.<br>
-     * A JsonCache will always call {@link Subscriber#onComplete()} once a subscriber has finished.<br>
-     * A JsonCache will stop publishing to a subscriber and call {@link Subscriber#onError(Throwable)} (and
-     * {@link Subscriber#onComplete()}) if the backlog of change sets published to a subscriber exceeds 
-     * {@link #getSubscriberBacklogLimit()}.<br>    
-     * <em>Note that always calling {@link Subscriber#onComplete()} violates a small part of the reactive streams
-     * specification.</em>
+     * A JsonCache calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
+     * A JsonCache stops publishing to a subscriber and call {@link Subscriber#onError(Throwable)} if the backlog of 
+     * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
      * 
      * @param s the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.
      */

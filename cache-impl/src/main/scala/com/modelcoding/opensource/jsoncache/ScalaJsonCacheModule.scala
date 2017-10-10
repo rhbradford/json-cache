@@ -76,7 +76,6 @@ object ScalaJsonCacheModule extends JsonCacheModule {
   }
 
   private implicit val system      : ActorSystem       = ActorSystem("ScalaJsonCacheModule")
-  private implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   override def getJsonCache(
     cacheId: String,
@@ -88,6 +87,6 @@ object ScalaJsonCacheModule extends JsonCacheModule {
     require(subscriberBacklogLimit > 0, "A JsonCache subscriberBacklogLimit must be > 0")
     require(cache != null, "A JsonCache cannot be created with a null Cache")
 
-    new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)(system, materializer)
+    new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)(system)
   }
 }
