@@ -2,8 +2,6 @@
 
 package com.modelcoding.opensource.jsoncache;
 
-import java.util.Set;
-
 /**
  * A Cache is contained inside a {@link JsonCache}.
  * <p>
