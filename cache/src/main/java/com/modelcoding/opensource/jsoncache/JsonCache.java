@@ -16,12 +16,15 @@ import org.reactivestreams.Subscription;
  * A JsonCache receives commands to alter the set of objects it contains via {@link #applyChanges(CacheChangeCalculator)}.<br>
  * The {@link CacheChangeCalculator}s received are applied in the same sequence as they were supplied.
  * <p>
- * A JsonCache publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s.<br>
+ * A JsonCache publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s to
+ * {@link Subscriber}s registered using {@link #subscribe(Subscriber)}.<br>     
  * A {@link Subscriber} receives an initial {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object 
  * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes made 
  * to the JsonCache thereafter.<br>
+ * A subscriber registered using {@link #subscribe(Subscriber)} is notified of all changes entered <em>on the same thread</em>
+ * via {@link #applyChanges(CacheChangeCalculator)} after registration.<br>
  * A JsonCache calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
- * A JsonCache stops publishing to a subscriber and call {@link Subscriber#onError(Throwable)} if the backlog of 
+ * A JsonCache stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
  * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  */
 public interface JsonCache extends Publisher<CacheChangeSet> {
@@ -53,7 +56,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * in the cache when publication to the subscriber is started, followed by change sets detailing subsequent changes 
      * made to the JsonCache thereafter.<br>
      * A JsonCache calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
-     * A JsonCache stops publishing to a subscriber and call {@link Subscriber#onError(Throwable)} if the backlog of 
+     * A JsonCache stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
      * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
      * 
      * @param s the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.

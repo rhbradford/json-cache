@@ -4,7 +4,6 @@ package com.modelcoding.opensource.jsoncache
 
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -80,7 +79,6 @@ class JsonCacheSpecification extends Specification {
         thrown(IllegalArgumentException)
     }
     
-    @Ignore
     def "Single subscriber receives expected notifications from JsonCache"() {
         
         setup:
@@ -171,7 +169,6 @@ class JsonCacheSpecification extends Specification {
         m.getCacheChangeSet(puts, [] as Set)
     }
     
-    @Ignore
     def "Multiple subscribers receive expected notifications from JsonCache"() {
         
         setup:
@@ -358,7 +355,6 @@ class JsonCacheSpecification extends Specification {
         }
     }
     
-    @Ignore
     def "JsonCache terminates slow subscribers"() {
         
         setup:
@@ -402,13 +398,13 @@ class JsonCacheSpecification extends Specification {
             hasError
         }
         
-        when: "A new subscription is made"
+        when: "New subscriptions are made"
         subscriber = new MockSubscriber()
         subscriber.expect(2)
         jsonCache.subscribe(subscriber)
         subscriber.cancel()
         
-        then: "the new subscriber receives change sets as expected"
+        then: "new subscribers continue to receive change sets as expected"
         with(subscriber) {
             await()
             changeSets == [m.getCacheChangeSet(postContent, [] as Set)]
@@ -417,87 +413,100 @@ class JsonCacheSpecification extends Specification {
         }
     }
     
+    private static CacheChangeSet changeSet(Object... entries) {
+        
+        def puts = [] as Set
+        def removes = [] as Set
+        
+        entries.each {
+            (it instanceof CacheObject) ? puts << it : removes << it
+        }
+        
+        m.getCacheChangeSet(puts, removes)
+    }
+    
     def "JsonCache can be used from multiple threads"() {
 
         setup:
-        def thread1Changes = [0, 3, 7].collect { i -> cacheChangeSet(i) } 
-        def thread2Changes = [1, 2, 8].collect { i -> cacheChangeSet(i) } 
-        def thread3Changes = [4, 5, 6].collect { i -> cacheChangeSet(i) } 
-        def changeSets = (0..8).collect { i -> cacheChangeSet(i) }
-        def jsonCache = m.getJsonCache("id", 10, m.getCache([] as Set))
-        def subscriber1 = new MockSubscriber()
-        def subscriber2 = new MockSubscriber()
-        def subscriber3 = new MockSubscriber()
+        def threadIndexes = (1..3)
+        def numInsertsAndRemoves = 20
+        // Create sequences of changes where all but the last change cancels out
+        List<List<CacheChangeSet>> threadChanges = threadIndexes.collect { int threadNum ->
+            def changeSets = []
+            numInsertsAndRemoves.times { 
+                def insertObject =
+                    m.getCacheObject("Id$it", "Type", someContent)
+                def removeObject = 
+                    m.getCacheRemove("Id$it")
+                changeSets << changeSet(insertObject)
+                changeSets << changeSet(removeObject)
+            }
+            def insertLastObject = 
+                m.getCacheObject("End$threadNum", "Type", someOtherContent)
+            changeSets << changeSet(insertLastObject)
+            changeSets
+        }
+        def lastObjects = threadChanges.inject([] as Set) { Set set, listOfChangeSets ->
+            set.addAll(listOfChangeSets.last().puts)
+            set
+        }
+        Set<CacheChangeSet> possibleOutputChangeSets = threadChanges.inject([] as Set) { Set set, changeListForThread -> 
+            set.addAll(changeListForThread)
+            set
+        }
+        def numChangesAppliedPerSubscriber = threadChanges[0].size()
+        def subscribers = threadIndexes.collect { new MockSubscriber() }
+        // Note that the publisher buffer to a subscriber must potentially hold all possible changes for a
+        // subscriber to avoid 'slow' subscriber detection
+        def maxNumberOfChangeSetsForASubscriber = 1 + (threadChanges.size() * threadChanges[0].size())
+        def jsonCache = m.getJsonCache("id", maxNumberOfChangeSetsForASubscriber, m.getCache([] as Set))
+        
+        def thread = { int num ->
+            def index = num - 1
+            // Thread.yield() calls will hopefully shake the execution up between threads     
+            new Thread(
+                {
+                    subscribers[index].expectChangeSet(threadChanges[index].last())
+                    jsonCache.subscribe(subscribers[index])
+                    threadChanges[index].each { c ->
+                        // The specification for a JsonCache guarantees that these changes MUST be received by a
+                        // subscriber already registered by this thread 
+                        jsonCache.applyChanges(m.getCacheChangeCalculator(c))
+                        if(Math.random() > 0.5)
+                            Thread.yield()
+                    }
+                    subscribers[index].awaitChangeSet()
+                    subscribers[index].cancel()
+                } as Runnable,
+                "Subscriber$num"
+            )
+        }
         
         when:
-        new Thread({
-            subscriber1.expect(1)
-            jsonCache.subscribe(subscriber1)
-            subscriber1.await()
-            thread1Changes.each { c -> 
-                subscriber1.expectNext(1)
-                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
-                subscriber1.await()
-                Thread.yield()
-            }
-            subscriber1.cancel()
-        } as Runnable, "Subscriber1").start()
-        new Thread({
-            subscriber2.expect(1)
-            jsonCache.subscribe(subscriber2)
-            subscriber2.await()
-            thread2Changes.each { c -> 
-                subscriber2.expectNext(1)
-                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
-                subscriber2.await()
-                Thread.yield()
-            }
-            subscriber2.cancel()
-        } as Runnable, "Subscriber2").start()
-        new Thread({
-            subscriber3.expect(1)
-            jsonCache.subscribe(subscriber3)
-            subscriber3.await()
-            thread3Changes.each { c -> 
-                subscriber3.expectNext(1)
-                jsonCache.applyChanges(m.getCacheChangeCalculator(c)) 
-                subscriber3.await()
-                Thread.yield()
-            }
-            subscriber3.cancel()
-        } as Runnable, "Subscriber3").start()
+        threadIndexes.each { thread(it).start() }
         
         then:
-        subscriber1.awaitComplete()
-        subscriber2.awaitComplete()
-        subscriber3.awaitComplete()
-        subscriber1.completed
-        subscriber2.completed
-        subscriber3.completed
-        !subscriber1.hasError
-        !subscriber2.hasError
-        !subscriber3.hasError
-        subscriber1.changeSets.size() >= thread1Changes.size()+1
-        subscriber2.changeSets.size() >= thread2Changes.size()+1
-        subscriber3.changeSets.size() >= thread3Changes.size()+1
-        subscriber1.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
-        subscriber2.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
-        subscriber3.changeSets.drop(1).every { cacheChangeSet -> changeSets.contains(cacheChangeSet) }
+        subscribers.each { subscriber ->
+            subscriber.awaitComplete()
+            assert subscriber.completed
+            assert !subscriber.hasError
+            assert subscriber.changeSets.size() >= 1+numChangesAppliedPerSubscriber
+            assert subscriber.changeSets.drop(1).every { cacheChangeSet -> possibleOutputChangeSets.contains(cacheChangeSet) } 
+        }
         
-        when:
+        when: "Final contents of JsonCache is observed"
         def subscriber = new MockSubscriber()
         subscriber.expect(1)
         jsonCache.subscribe(subscriber)
         subscriber.cancel()
         
-        then:
+        then: "JsonCache contains only 'last' objects - all other inserts and removes have cancelled out"
         with(subscriber) {
             await()
             completed
             !hasError
         }
-        subscriber.changeSets.size() == 1
-        subscriber.changeSets[0].puts.size() > 0
+        subscriber.changeSets == [ m.getCacheChangeSet(lastObjects, [] as Set) ]
     }
     
     private static class MockSubscriber implements Subscriber<CacheChangeSet>
@@ -505,6 +514,9 @@ class JsonCacheSpecification extends Specification {
         private volatile boolean cancelled
         private volatile Subscription subscription
         private CountDownLatch notifications
+        
+        private CacheChangeSet specificNotification
+        private CountDownLatch specificNotifications
 
         final List<CacheChangeSet> changeSets = []
         boolean completed
@@ -523,8 +535,13 @@ class JsonCacheSpecification extends Specification {
             notifications.await(milliseconds, TimeUnit.MILLISECONDS)
         }
 
-        void expectNext(int expectedNumberOfNotifications) {
-            notifications = new CountDownLatch(expectedNumberOfNotifications)
+        void expectChangeSet(CacheChangeSet changeSet) {
+            specificNotification = changeSet
+            specificNotifications = new CountDownLatch(1)
+        }
+  
+        boolean awaitChangeSet(long milliseconds = 1000) {
+            specificNotifications.await(milliseconds, TimeUnit.MILLISECONDS)
         }
         
         boolean awaitComplete(long milliseconds = 1000) {
@@ -553,7 +570,9 @@ class JsonCacheSpecification extends Specification {
         @Override
         void onNext(final CacheChangeSet cacheChangeSet) {
             changeSets << cacheChangeSet
-            notifications.countDown()
+            notifications?.countDown()
+            if(cacheChangeSet == specificNotification)
+                specificNotifications?.countDown()
             if(!cancelled)
                 makeRequest(subscription)
         }
@@ -561,14 +580,14 @@ class JsonCacheSpecification extends Specification {
         @Override
         void onError(final Throwable t) {
             hasError = true
-            notifications.countDown()
+            notifications?.countDown()
         }
 
         @Override
         void onComplete() {
             completed = true
             completion.countDown()
-            notifications.countDown()
+            notifications?.countDown()
         }
     }
 }
