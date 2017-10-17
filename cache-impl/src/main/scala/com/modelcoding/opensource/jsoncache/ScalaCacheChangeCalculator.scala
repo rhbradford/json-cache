@@ -4,7 +4,7 @@ package com.modelcoding.opensource.jsoncache
 
 import scala.collection.JavaConverters._
 
-case class ScalaCacheChangeCalculator(getChangeSet: CacheChangeSet) extends CacheChangeCalculator {
+class ScalaCacheChangeCalculator(val getChangeSet: CacheChangeSet) extends CacheChangeCalculator {
 
   override def calculateChange(
     cache: Cache
@@ -14,8 +14,8 @@ case class ScalaCacheChangeCalculator(getChangeSet: CacheChangeSet) extends Cach
     nextCache = getChangeSet.getPuts.iterator().asScala.foldLeft(nextCache) { (c, co) => c.put(co) }
     nextCache = getChangeSet.getRemoves.iterator().asScala.foldLeft(nextCache) { (c, cr) => c.remove(cr) }
     
-    ScalaChangeResult(nextCache, getChangeSet)
+    new ScalaChangeResult(nextCache, getChangeSet)
   }
 }
 
-case class ScalaChangeResult(getCache: Cache, getChangeSet: CacheChangeSet) extends CacheChangeCalculator.ChangeResult
+class ScalaChangeResult(val getCache: Cache, val getChangeSet: CacheChangeSet) extends CacheChangeCalculator.ChangeResult

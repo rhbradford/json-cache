@@ -2,11 +2,9 @@
 
 package com.modelcoding.opensource.jsoncache
 
-import scala.collection.JavaConverters._
-
 class ScalaCache(content: Map[String, _ <: CacheObject]) extends Cache {
 
-  override def asChangeSet: CacheChangeSet = ScalaCacheChangeSet(content.values.toSet.asJava, new java.util.HashSet())
+  override def asChangeSet: CacheChangeSet = ScalaCacheChangeSet(content.values.toSet, Set())
 
   override def containsCacheObject(cacheObjectId: String): Boolean = content.contains(cacheObjectId)
 

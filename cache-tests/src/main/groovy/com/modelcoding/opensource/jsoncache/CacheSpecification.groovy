@@ -45,6 +45,7 @@ class CacheSpecification extends Specification {
 
         then:
         cache.asChangeSet().puts == content
+        cache.asChangeSet().removes == [] as Set
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
@@ -91,6 +92,7 @@ class CacheSpecification extends Specification {
         cache.containsCacheObject("Id1")
         !cache.containsCacheObject("Id2")
         cache.asChangeSet().puts == theContent
+        cache.asChangeSet().removes == [] as Set
     }
 
     def "Cache throws exception if asked to get CacheObject not in Cache"() {
@@ -129,12 +131,14 @@ class CacheSpecification extends Specification {
         then: "a new Cache is returned containing the old objects plus the new object, the old Cache remains unaffected"
         !newCache.is(cache)
         cache.asChangeSet().puts == theContent
+        cache.asChangeSet().removes == [] as Set
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("Id3")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
         newCache.asChangeSet().puts == new HashSet([object1, object2, object3])
+        newCache.asChangeSet().removes == [] as Set
         newCache.containsCacheObject("Id1")
         newCache.containsCacheObject("Id2")
         newCache.containsCacheObject("Id3")
@@ -155,12 +159,14 @@ class CacheSpecification extends Specification {
         then: "a new Cache is returned containing the old objects, with the expected instance replaced by the new object, the old Cache remains unaffected"
         !newCache.is(cache)
         cache.asChangeSet().puts == theContent
+        cache.asChangeSet().removes == [] as Set
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
         newCache.asChangeSet().puts == new HashSet([object1_changed, object2])
+        newCache.asChangeSet().removes == [] as Set
         newCache.containsCacheObject("Id1")
         newCache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
@@ -174,8 +180,10 @@ class CacheSpecification extends Specification {
         then: "a new Cache is returned containing the new object, the old Cache remains unaffected"
         !newCache.is(cache)
         cache.asChangeSet().puts == [] as Set
+        cache.asChangeSet().removes == [] as Set
         !cache.containsCacheObject("Id1")
         newCache.asChangeSet().puts == new HashSet([object1])
+        newCache.asChangeSet().removes == [] as Set
         newCache.containsCacheObject("Id1")
         !cache.containsCacheObject("NotInCache")
         newCache.getCacheObject("Id1") == object1
@@ -204,12 +212,14 @@ class CacheSpecification extends Specification {
         then: "a new Cache is returned, with the old objects minus the removed instance, the old Cache remains unaffected"
         !newCache.is(cache)
         cache.asChangeSet().puts == theContent
+        cache.asChangeSet().removes == [] as Set
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
         newCache.asChangeSet().puts == new HashSet([object1])
+        newCache.asChangeSet().removes == [] as Set
         newCache.containsCacheObject("Id1")
         !newCache.containsCacheObject("NotInCache")
         newCache.getCacheObject("Id1") == object1
@@ -226,6 +236,7 @@ class CacheSpecification extends Specification {
         then: "the same Cache is returned as is"
         newCache.is(cache)
         cache.asChangeSet().puts == theContent
+        cache.asChangeSet().removes == [] as Set
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")

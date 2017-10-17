@@ -106,9 +106,11 @@ class CacheChangeSetSpecification extends Specification {
         }
         catch(ignored) {
         }
+        thePuts << m.getCacheObject("Id5", "Type", someContent)
+        theRemoves.clear() 
         
         then:
-        cacheChangeSet.puts == thePuts
-        cacheChangeSet.removes == theRemoves
+        cacheChangeSet.puts == new HashSet(puts)
+        cacheChangeSet.removes == new HashSet(removes)
     }
 }

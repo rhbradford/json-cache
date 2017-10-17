@@ -2,26 +2,12 @@
 
 package com.modelcoding.opensource.jsoncache
 import java.util
-import java.util.Collections
+import scala.collection.JavaConverters._
 
-object ScalaCacheChangeSet {
-   def apply(
-     puts: util.Set[_ <: CacheObject],
-     removes: util.Set[_ <: CacheRemove]
-   ): ScalaCacheChangeSet =
-    new ScalaCacheChangeSet(Collections.unmodifiableSet(puts), Collections.unmodifiableSet(removes)) {
-      
-    }
-}
-
-abstract case class ScalaCacheChangeSet private[ScalaCacheChangeSet] (
-  getPuts: util.Set[_ <: CacheObject], 
-  getRemoves: util.Set[_ <: CacheRemove]
-) 
+case class ScalaCacheChangeSet(puts: Set[_ <: CacheObject], removes: Set[_ <: CacheRemove]) 
   extends CacheChangeSet {
-  
-  def copy(
-    getPuts: util.Set[_ <: CacheObject] = getPuts, 
-    getRemoves: util.Set[_ <: CacheRemove] = getRemoves
-  ) = ScalaCacheChangeSet.apply(getPuts, getRemoves)
+
+  override def getPuts: util.Set[_ <: CacheObject] = puts.asJava 
+
+  override def getRemoves: util.Set[_ <: CacheRemove] = removes.asJava
 }

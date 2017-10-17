@@ -50,7 +50,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     require(puts != null, "A CacheChangeSet cannot have null puts")
     require(removes != null, "A CacheChangeSet cannot have null removes")
 
-    ScalaCacheChangeSet(puts, removes)
+    ScalaCacheChangeSet(puts.asScala.toSet, removes.asScala.toSet)
   }
 
   override def getCache(
@@ -71,7 +71,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 
     require(cacheChangeSet != null, "A CacheChanger cannot have null content")
 
-    ScalaCacheChangeCalculator(cacheChangeSet)
+    new ScalaCacheChangeCalculator(cacheChangeSet)
   }
 
   override def getJsonCache(
