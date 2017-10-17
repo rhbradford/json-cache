@@ -1,0 +1,9 @@
+// Author: Richard Bradford
+
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compile project(":Cache")
+}
