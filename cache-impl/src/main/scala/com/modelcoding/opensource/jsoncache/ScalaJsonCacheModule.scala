@@ -5,12 +5,11 @@ package com.modelcoding.opensource.jsoncache
 import java.util
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 
 import scala.collection.JavaConverters._
 
-object ScalaJsonCacheModule extends JsonCacheModule {
+class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCacheModule {
 
   override def getCacheObject(
     cacheObjectId: String,
@@ -75,8 +74,6 @@ object ScalaJsonCacheModule extends JsonCacheModule {
     ScalaCacheChangeCalculator(cacheChangeSet)
   }
 
-  private implicit val system      : ActorSystem       = ActorSystem("ScalaJsonCacheModule")
-
   override def getJsonCache(
     cacheId: String,
     subscriberBacklogLimit: Int,
@@ -87,6 +84,6 @@ object ScalaJsonCacheModule extends JsonCacheModule {
     require(subscriberBacklogLimit > 0, "A JsonCache subscriberBacklogLimit must be > 0")
     require(cache != null, "A JsonCache cannot be created with a null Cache")
 
-    new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)(system)
+    new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)
   }
 }

@@ -2,6 +2,8 @@
 
 package com.modelcoding.opensource.jsoncache
 
+import org.junit.Rule
+import org.junit.rules.ExternalResource
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -9,6 +11,9 @@ import static TestSuite.*
 
 class CacheSpecification extends Specification {
 
+    @Rule
+    private ExternalResource setup = perTestMethodSetup
+    
     @Shared
         content =
             [

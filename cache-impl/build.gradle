@@ -10,6 +10,8 @@ dependencies {
     compile("org.scala-lang:scala-library:2.12.2")
     compile("com.typesafe.akka:akka-actor_2.12:2.5.6")
     compile("com.typesafe.akka:akka-stream_2.12:2.5.6")
+    
+    testCompile("com.typesafe.akka:akka-testkit_2.12:2.5.6")
 
     compile project(":Cache")
     testCompile project(":CacheTests")

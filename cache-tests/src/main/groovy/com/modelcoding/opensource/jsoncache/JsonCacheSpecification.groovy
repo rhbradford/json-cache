@@ -2,6 +2,8 @@
 
 package com.modelcoding.opensource.jsoncache
 
+import org.junit.Rule
+import org.junit.rules.ExternalResource
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 import spock.lang.Shared
@@ -14,6 +16,9 @@ import static com.modelcoding.opensource.jsoncache.TestSuite.*
 
 class JsonCacheSpecification extends Specification {
 
+    @Rule
+    private ExternalResource setup = perTestMethodSetup
+    
     @Shared
         content =
             [
@@ -496,13 +501,12 @@ class JsonCacheSpecification extends Specification {
         
         when: "Final contents of JsonCache is observed"
         def subscriber = new MockSubscriber()
-        subscriber.expect(1)
         jsonCache.subscribe(subscriber)
         subscriber.cancel()
         
         then: "JsonCache contains only 'last' objects - all other inserts and removes have cancelled out"
         with(subscriber) {
-            await()
+            awaitComplete()
             completed
             !hasError
         }
@@ -580,6 +584,7 @@ class JsonCacheSpecification extends Specification {
         @Override
         void onError(final Throwable t) {
             hasError = true
+            println t
             notifications?.countDown()
         }
 
