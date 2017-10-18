@@ -43,6 +43,7 @@ public interface Cache {
 
     /**
      * @return the contents of this Cache as a {@link CacheChangeSet} with each object in the Cache as a "put"<br>
+     *         ({@link CacheChangeSet#isCacheImage()} is {@code true} for the returned {@link CacheChangeSet}).<br>
      *         <em>The return must not expose this Cache to mutation.</em>
      */
     CacheChangeSet asChangeSet();

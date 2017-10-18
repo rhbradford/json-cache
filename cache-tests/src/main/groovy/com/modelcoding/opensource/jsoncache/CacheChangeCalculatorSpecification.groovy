@@ -42,7 +42,7 @@ class CacheChangeCalculatorSpecification extends Specification {
             m.getCacheRemove("Id3"),
             m.getCacheRemove("Id4", someContent)
         ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes)
+        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
 
         when:
         def cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
@@ -54,9 +54,20 @@ class CacheChangeCalculatorSpecification extends Specification {
     def "CacheChangeCalculator cannot be created from bad parameters"() {
 
         setup:
+        def puts = [
+            m.getCacheObject("Id1", "Type", someContent),
+            m.getCacheObject("Id2", "Type", someOtherContent)
+        ] as Set
+        CacheChangeSet cacheChangeSetAsCacheImage = m.getCacheChangeSet(puts, [] as Set, true)
 
         when:
         m.getCacheChangeCalculator(null)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        m.getCacheChangeCalculator(cacheChangeSetAsCacheImage)
 
         then:
         thrown(IllegalArgumentException)
@@ -78,7 +89,7 @@ class CacheChangeCalculatorSpecification extends Specification {
             m.getCacheRemove("Id2"),
             m.getCacheRemove("NotInCache")
         ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes)
+        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
         CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)

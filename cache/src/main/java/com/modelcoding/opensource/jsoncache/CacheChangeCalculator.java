@@ -35,13 +35,14 @@ public interface CacheChangeCalculator {
 
         /**
          * @return the changes actually made to create a new {@link Cache} from the previous {@link Cache}.
+         *         {@link CacheChangeSet#isCacheImage()} is required to be {@code false}.
          */
         CacheChangeSet getChangeSet();
     }
 
     /**
      * @return the changes contained in this CacheChangeCalculator to be processed against a {@link Cache} supplied to 
-     *         {@link #calculateChange(Cache)}.
+     *         {@link #calculateChange(Cache)}. {@link CacheChangeSet#isCacheImage()} is required to be {@code false}.
      */
     CacheChangeSet getChangeSet();
 

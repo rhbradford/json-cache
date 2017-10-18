@@ -52,14 +52,17 @@ public interface JsonCacheModule {
     /**
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
+     * @param isCacheImage if {@code true}, indicates the CacheChangeSet returned contains a "put" for each object in a 
+     *                  {@link JsonCache} and no "removes"               
      * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
      * @throws IllegalArgumentException if any of the following is true:<br>
      *         <ul>
      *             <li>{@code puts} is {@code null}</li>
      *             <li>{@code removes} is {@code null}</li>
+     *             <li>{@code isCacheImage} is {@code true}, but {@code removes} is not empty</li>
      *         </ul>     
      */
-    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
+    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
 
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
@@ -72,7 +75,11 @@ public interface JsonCacheModule {
      * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
      * @return an instance of a {@link CacheChangeCalculator} that will simply apply all the puts and removes from the given
      *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied 
-     * @throws IllegalArgumentException if {@code cacheChangeSet} is {@code null}
+     * @throws IllegalArgumentException if any of the following is true:<br>
+     *         <ul>
+     *             <li>{@code cacheChangeSet} is {@code null}</li>
+     *             <li>{@link CacheChangeSet#isCacheImage()} is {@code true} for the given {@code cacheChangeSet}</li>
+     *         </ul>     
      */
     CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 
