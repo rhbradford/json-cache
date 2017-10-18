@@ -61,8 +61,19 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * A JsonCache stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
      * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
      * 
-     * @param s the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.
+     * @param subscriber the {@link Subscriber} that will consume {@link CacheChangeSet}s from this JsonCache.
      */
     @Override
-    void subscribe(Subscriber<? super CacheChangeSet> s);
+    void subscribe(Subscriber<? super CacheChangeSet> subscriber);
+
+    /**
+     * Requests that a {@link CacheChangeSet} containing a {@link CacheObject} "put" for each object in the cache 
+     * ({@link CacheChangeSet#isCacheImage()} is {@code true}) is sent to the given {@code subscriber}.
+     * <p>
+     * The subscriber is notified of all prior changes entered <em>on the same thread</em> via 
+     * {@link #applyChanges(CacheChangeCalculator)} before it receives the cache image.
+     *     
+     * @param subscriber the subscriber to receive the cache image.
+     */
+    void sendImageToSubscriber(Subscriber<? super CacheChangeSet> subscriber);
 }

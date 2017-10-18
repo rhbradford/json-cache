@@ -128,14 +128,15 @@ class JsonCacheSpecification extends Specification {
             !hasError
         }
         
-        when: "A subsequent change is made to the cache"
-        subscriber.expect(1)
+        when: "A subsequent change is made to the cache, followed by a request for a cache image"
+        subscriber.expect(2)
         jsonCache.applyChanges(cacheChangeCalculator)
+        jsonCache.sendImageToSubscriber(subscriber)
         
-        then: "the subscriber receives a change set with the changes made"
+        then: "the subscriber receives a change set with the changes made, followed by a cache image"
         with(subscriber) {
             await()
-            changeSets == [cacheChangeSet]
+            changeSets == [cacheChangeSet, cacheImageChangeSet(postContent)]
             !completed
             !hasError
         }
@@ -442,7 +443,7 @@ class JsonCacheSpecification extends Specification {
 
         setup:
         def threadIndexes = (1..3)
-        def numInsertsAndRemoves = 20
+        def numInsertsAndRemoves = 4 // Must be > 2
         // Create sequences of changes where all but the last change cancels out
         List<List<CacheChangeSet>> threadChanges = threadIndexes.collect { int threadNum ->
             def changeSets = []
@@ -471,25 +472,28 @@ class JsonCacheSpecification extends Specification {
         def subscribers = threadIndexes.collect { new MockSubscriber() }
         // Note that the publisher buffer to a subscriber must potentially hold all possible changes for a
         // subscriber to avoid 'slow' subscriber detection
-        def maxNumberOfChangeSetsForASubscriber = 1 + (threadChanges.size() * threadChanges[0].size())
+        def maxNumberOfChangeSetsForASubscriber = 1 + 1 + (threadChanges.size() * threadChanges[0].size())
         def jsonCache = m.getJsonCache("id", maxNumberOfChangeSetsForASubscriber, m.getCache([] as Set))
         
         def thread = { int num ->
             def index = num - 1
+            def subscriber = subscribers[index]
             // Thread.yield() calls will hopefully shake the execution up between threads     
             new Thread(
                 {
-                    subscribers[index].expectChangeSet(threadChanges[index].last())
-                    jsonCache.subscribe(subscribers[index])
-                    threadChanges[index].each { c ->
+                    subscriber.expectChangeSet(threadChanges[index].last())
+                    jsonCache.subscribe(subscriber)
+                    threadChanges[index].eachWithIndex { c, i ->
                         // The specification for a JsonCache guarantees that these changes MUST be received by a
                         // subscriber already registered by this thread 
                         jsonCache.applyChanges(m.getCacheChangeCalculator(c))
                         if(Math.random() > 0.5)
                             Thread.yield()
+                        if(i == 1)
+                            jsonCache.sendImageToSubscriber(subscriber)
                     }
-                    subscribers[index].awaitChangeSet()
-                    subscribers[index].cancel()
+                    subscriber.awaitChangeSet()
+                    subscriber.cancel()
                 } as Runnable,
                 "Subscriber$num"
             )
@@ -503,8 +507,12 @@ class JsonCacheSpecification extends Specification {
             subscriber.awaitComplete()
             assert subscriber.completed
             assert !subscriber.hasError
-            assert subscriber.changeSets.size() >= 1+numChangesAppliedPerSubscriber
-            assert subscriber.changeSets.drop(1).every { cacheChangeSet -> possibleOutputChangeSets.contains(cacheChangeSet) } 
+            assert subscriber.changeSets.size() >= 1+1+numChangesAppliedPerSubscriber
+            List<CacheChangeSet> receivedNonImageChangeSets = new ArrayList(subscriber.changeSets.tail()) // Removes initial cache image
+            List<CacheChangeSet> receivedRequestedImageChangeSets = receivedNonImageChangeSets.findAll { it.isCacheImage() }
+            receivedNonImageChangeSets.removeAll { it.isCacheImage() }
+            assert receivedRequestedImageChangeSets.size() >= 1
+            assert receivedNonImageChangeSets.every { cacheChangeSet -> possibleOutputChangeSets.contains(cacheChangeSet) } 
         }
         
         when: "Final contents of JsonCache is observed"

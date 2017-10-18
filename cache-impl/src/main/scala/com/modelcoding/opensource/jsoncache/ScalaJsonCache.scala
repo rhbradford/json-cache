@@ -16,6 +16,8 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   private case class ChangeCache(cacheChangeCalculator: CacheChangeCalculator)
 
+  private case class SendCacheImageToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
+  
   private val cacheActor: ActorRef = system.actorOf(Props(new CacheActor(backlogLimit, aCache)))
 
   override def getId: String = id
@@ -26,7 +28,9 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = cacheActor ! PublishToSubscriber(s)
 
-  class StatefulSubscriber(delegate: Subscriber[_ >: CacheChangeSet]) extends Subscriber[CacheChangeSet] {
+  override def sendImageToSubscriber(s: Subscriber[_ >: CacheChangeSet]): Unit = cacheActor ! SendCacheImageToSubscriber(s)
+  
+  class StatefulSubscriber(val delegate: Subscriber[_ >: CacheChangeSet]) extends Subscriber[CacheChangeSet] {
 
     private var errorOccurred: Boolean = false
     
@@ -48,8 +52,9 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
     private implicit val materializer: ActorMaterializer = ActorMaterializer()(context)
 
-    private var publishers: mutable.Map[ActorRef, Subscriber[_ >: CacheChangeSet]] = mutable.Map()
-    private var cache     : Cache                                                  = aCache
+    private var publishers : mutable.Map[ActorRef, StatefulSubscriber]              = mutable.Map()
+    private var subscribers: mutable.Map[Subscriber[_ >: CacheChangeSet], ActorRef] = mutable.Map()
+    private var cache      : Cache                                                  = aCache
 
     override def receive: Receive = {
 
@@ -58,11 +63,17 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
         cache = result.getCache
         publishers.keys.foreach { publisher => publisher ! result.getChangeSet }
 
+      case SendCacheImageToSubscriber(subscriber) => 
+        if(subscribers.contains(subscriber)) {
+          subscribers(subscriber) ! cache.asChangeSet()
+        }
+
       case PublishToSubscriber(subscriber) =>
         val source: Source[CacheChangeSet, ActorRef] = Source.actorRef[CacheChangeSet](backlogLimit, OverflowStrategy.fail)
         val (publisherActor, publisher) = source.toMat(Sink.asPublisher[CacheChangeSet](fanout = false))(Keep.both).run()
         val statefulSubscriber = new StatefulSubscriber(subscriber)
         publishers += (publisherActor -> statefulSubscriber)
+        subscribers += (subscriber -> publisherActor)
         context.watch(publisherActor) // Get notified when the publication is cancelled by subscriber: the publisherActor is terminated
         publisherActor ! cache.asChangeSet // Send initial change set
         publisher.subscribe(statefulSubscriber)
@@ -70,6 +81,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
       case Terminated(publisherActor) =>
         val subscriber = publishers(publisherActor)
         publishers -= publisherActor
+        subscribers -= subscriber.delegate
         subscriber.onComplete() // manual call to onComplete() - otherwise, no indication that publishing has finished
     }
   }
