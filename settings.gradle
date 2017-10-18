@@ -3,14 +3,17 @@
 rootProject.name = 'JsonCache'
 
 def modules = [
-    ':cache'                : 'Cache',
-    ':cache-impl'           : 'CacheImpl',
-    ':cache-tests'          : 'CacheTests',
-    ':client'               : 'Client',
-    ':server'               : 'Server',
-    ':websocket-cache'      : 'WebSocketCache',
-    ':websocket-cache-impl' : 'WebSocketCacheImpl',
-    ':websocket-cache-tests': 'WebSocketCacheTests'
+    ':cache'                        : 'Cache',
+    ':cache-impl'                   : 'CacheImpl',
+    ':cache-tests'                  : 'CacheTests',
+    ':controlled-cache-client'      : 'ControlledCacheClient',
+    ':controlled-cache-client-impl' : 'ControlledCacheClientImpl',
+    ':controlled-cache-client-tests': 'ControlledCacheClientTests',
+    ':client'                       : 'Client',
+    ':server'                       : 'Server',
+    ':websocket-cache'              : 'WebSocketCache',
+    ':websocket-cache-impl'         : 'WebSocketCacheImpl',
+    ':websocket-cache-tests'        : 'WebSocketCacheTests'
 ]
 
 modules.each { p, name ->
