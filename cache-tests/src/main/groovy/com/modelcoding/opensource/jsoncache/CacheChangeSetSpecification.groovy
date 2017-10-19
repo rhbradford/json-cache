@@ -45,58 +45,41 @@ class CacheChangeSetSpecification extends Specification {
     def "CacheChangeSet is created as expected"() {
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
+        def cacheChangeSet = m.getCacheChangeSet(puts, removes)
 
         then:
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
-        !cacheChangeSet.cacheImage
-
-        when:
-        cacheChangeSet = m.getCacheChangeSet(puts, [] as Set, true)
-
-        then:
-        cacheChangeSet.puts == puts
-        cacheChangeSet.removes == [] as Set
-        cacheChangeSet.cacheImage
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
 
         when:
-        m.getCacheChangeSet(null, removes, false)
+        m.getCacheChangeSet(null, removes)
 
         then:
         thrown(IllegalArgumentException)
 
         when:
-        m.getCacheChangeSet(puts, null, false)
+        m.getCacheChangeSet(puts, null)
 
         then:
-        thrown(IllegalArgumentException)
-
-        when: "Attempting to create a cache image change set that contains some removes"
-        m.getCacheChangeSet(puts, removes, true)
-
-        then: "an exception is thrown"
         thrown(IllegalArgumentException)
     }
     
     def "Equal CacheChangeSets are equal"() {
 
         expect:
-        m.getCacheChangeSet(puts, removes, false) == m.getCacheChangeSet(puts, removes, false)
-        m.getCacheChangeSet(puts, [] as Set, true) == m.getCacheChangeSet(puts, [] as Set, true)
-        m.getCacheChangeSet(puts, removes, false).hashCode() == m.getCacheChangeSet(puts, removes, false).hashCode()
-        m.getCacheChangeSet(puts, [] as Set, true).hashCode() == m.getCacheChangeSet(puts, [] as Set, true).hashCode()
+        m.getCacheChangeSet(puts, removes) == m.getCacheChangeSet(puts, removes)
+        m.getCacheChangeSet(puts, removes).hashCode() == m.getCacheChangeSet(puts, removes).hashCode()
     }
     
     def "Unequal CacheChangeSets are not equal"() {
         
         expect:
-        m.getCacheChangeSet(puts, removes, false) != m.getCacheChangeSet(puts, [] as Set, false)
-        m.getCacheChangeSet(puts, removes, false) != m.getCacheChangeSet([] as Set, removes, false)
-        m.getCacheChangeSet(puts, [] as Set, false) != m.getCacheChangeSet(puts, [] as Set, true)
+        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet(puts, [] as Set)
+        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet([] as Set, removes)
+        m.getCacheChangeSet(puts, [] as Set) != m.getCacheImage(puts)
     }
 
     def "CacheChangeSet accessors do not expose CacheChangeSet to mutation"() {
@@ -106,7 +89,7 @@ class CacheChangeSetSpecification extends Specification {
         def theRemoves = new HashSet(removes)
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
+        def cacheChangeSet = m.getCacheChangeSet(puts, removes)
         def gotPuts = cacheChangeSet.puts
         def gotRemoves = cacheChangeSet.removes
         try {

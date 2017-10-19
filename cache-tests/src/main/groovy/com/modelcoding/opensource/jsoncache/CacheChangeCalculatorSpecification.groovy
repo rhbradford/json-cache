@@ -42,7 +42,7 @@ class CacheChangeCalculatorSpecification extends Specification {
             m.getCacheRemove("Id3"),
             m.getCacheRemove("Id4", someContent)
         ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
+        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes)
 
         when:
         def cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
@@ -53,13 +53,6 @@ class CacheChangeCalculatorSpecification extends Specification {
 
     def "CacheChangeCalculator cannot be created from bad parameters"() {
 
-        setup:
-        def puts = [
-            m.getCacheObject("Id1", "Type", someContent),
-            m.getCacheObject("Id2", "Type", someOtherContent)
-        ] as Set
-        CacheChangeSet cacheChangeSetAsCacheImage = m.getCacheChangeSet(puts, [] as Set, true)
-
         when:
         m.getCacheChangeCalculator(null)
 
@@ -67,7 +60,7 @@ class CacheChangeCalculatorSpecification extends Specification {
         thrown(IllegalArgumentException)
 
         when:
-        m.getCacheChangeCalculator(cacheChangeSetAsCacheImage)
+        m.getCacheChangeCalculator(m.getCacheImage([] as Set))
 
         then:
         thrown(IllegalArgumentException)
@@ -89,7 +82,7 @@ class CacheChangeCalculatorSpecification extends Specification {
             m.getCacheRemove("Id2"),
             m.getCacheRemove("NotInCache")
         ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
+        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes)
         CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
@@ -100,7 +93,7 @@ class CacheChangeCalculatorSpecification extends Specification {
 
         then:
         !results.cache.is(cache)
-        results.cache.asChangeSet().puts == postContent
+        results.cache.getImage().puts == postContent
         results.changeSet == cacheChangeSet
     }
 }

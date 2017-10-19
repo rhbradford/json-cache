@@ -65,7 +65,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
       case SendCacheImageToSubscriber(subscriber) => 
         if(subscribers.contains(subscriber)) {
-          subscribers(subscriber) ! cache.asChangeSet()
+          subscribers(subscriber) ! cache.getImage()
         }
 
       case PublishToSubscriber(subscriber) =>
@@ -75,7 +75,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
         publishers += (publisherActor -> statefulSubscriber)
         subscribers += (subscriber -> publisherActor)
         context.watch(publisherActor) // Get notified when the publication is cancelled by subscriber: the publisherActor is terminated
-        publisherActor ! cache.asChangeSet // Send initial change set
+        publisherActor ! cache.getImage // Send initial change set
         publisher.subscribe(statefulSubscriber)
 
       case Terminated(publisherActor) =>

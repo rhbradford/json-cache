@@ -31,10 +31,6 @@ class CacheSpecification extends Specification {
     @Shared
         someOtherContent = asJsonNode(otherContent)
 
-    private static CacheChangeSet cacheImageChangeSet(Set<CacheObject> content) {
-        m.getCacheChangeSet(content, [] as Set, true)
-    }
-    
     def "Cache is created as expected"() {
 
         setup:
@@ -43,13 +39,13 @@ class CacheSpecification extends Specification {
         def object2 =
             m.getCacheObject("Id2", "Type", someOtherContent)
         def content = [object1, object2] as Set
-        def asChangeSet = cacheImageChangeSet(content) 
+        def image = m.getCacheImage(content) 
 
         when:
         def cache = m.getCache(content)
 
         then:
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
@@ -76,11 +72,11 @@ class CacheSpecification extends Specification {
         def object2 =
             m.getCacheObject("Id2", "Type", someOtherContent)
         def content = [object1] as Set
-        def asChangeSet = cacheImageChangeSet(content) 
+        def image = m.getCacheImage(content) 
 
         when:
         def cache = m.getCache(content)
-        def gotObjects = cache.asChangeSet().puts
+        def gotObjects = cache.image.puts
         try {
             gotObjects.iterator().remove()
         }
@@ -95,7 +91,7 @@ class CacheSpecification extends Specification {
         then:
         cache.containsCacheObject("Id1")
         !cache.containsCacheObject("Id2")
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
     }
 
     def "Cache throws exception if asked to get CacheObject not in Cache"() {
@@ -125,7 +121,7 @@ class CacheSpecification extends Specification {
         def object3 =
             m.getCacheObject("Id3", "Type", someOtherContent)
         def content = [object1, object2] as Set
-        def asChangeSet = cacheImageChangeSet(content) 
+        def image = m.getCacheImage(content) 
         def cache = m.getCache(content)
 
         when: "Cache processes put for a new object not already in cache"
@@ -133,13 +129,13 @@ class CacheSpecification extends Specification {
 
         then: "a new Cache is returned containing the old objects plus the new object, the old Cache remains unaffected"
         !newCache.is(cache)
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("Id3")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
-        newCache.asChangeSet() == cacheImageChangeSet([object1, object2, object3] as Set)
+        newCache.image == m.getCacheImage([object1, object2, object3] as Set)
         newCache.containsCacheObject("Id1")
         newCache.containsCacheObject("Id2")
         newCache.containsCacheObject("Id3")
@@ -159,13 +155,13 @@ class CacheSpecification extends Specification {
 
         then: "a new Cache is returned containing the old objects, with the expected instance replaced by the new object, the old Cache remains unaffected"
         !newCache.is(cache)
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
-        newCache.asChangeSet() == cacheImageChangeSet([object1_changed, object2] as Set)
+        newCache.image == m.getCacheImage([object1_changed, object2] as Set)
         newCache.containsCacheObject("Id1")
         newCache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
@@ -178,9 +174,9 @@ class CacheSpecification extends Specification {
 
         then: "a new Cache is returned containing the new object, the old Cache remains unaffected"
         !newCache.is(cache)
-        cache.asChangeSet() == cacheImageChangeSet([] as Set)
+        cache.image == m.getCacheImage([] as Set)
         !cache.containsCacheObject("Id1")
-        newCache.asChangeSet() == cacheImageChangeSet([object1] as Set)
+        newCache.image == m.getCacheImage([object1] as Set)
         newCache.containsCacheObject("Id1")
         !cache.containsCacheObject("NotInCache")
         newCache.getCacheObject("Id1") == object1
@@ -200,7 +196,7 @@ class CacheSpecification extends Specification {
         def object2 =
             m.getCacheObject("Id2", "Type", someOtherContent)
         def content = [object1, object2] as Set
-        def asChangeSet = cacheImageChangeSet(content) 
+        def image = m.getCacheImage(content) 
         def cache = m.getCache(content)
 
         when: "Cache processes remove of an instance in the Cache"
@@ -208,13 +204,13 @@ class CacheSpecification extends Specification {
 
         then: "a new Cache is returned, with the old objects minus the removed instance, the old Cache remains unaffected"
         !newCache.is(cache)
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")
         cache.getCacheObject("Id1") == object1
         cache.getCacheObject("Id2") == object2
-        newCache.asChangeSet() == cacheImageChangeSet([object1] as Set)
+        newCache.image == m.getCacheImage([object1] as Set)
         newCache.containsCacheObject("Id1")
         !newCache.containsCacheObject("NotInCache")
         newCache.getCacheObject("Id1") == object1
@@ -230,7 +226,7 @@ class CacheSpecification extends Specification {
 
         then: "the same Cache is returned as is"
         newCache.is(cache)
-        cache.asChangeSet() == asChangeSet
+        cache.image == image
         cache.containsCacheObject("Id1")
         cache.containsCacheObject("Id2")
         !cache.containsCacheObject("NotInCache")

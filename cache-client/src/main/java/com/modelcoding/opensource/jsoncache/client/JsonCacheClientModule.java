@@ -3,6 +3,7 @@
 package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
+import com.modelcoding.opensource.jsoncache.CacheImage;
 import com.modelcoding.opensource.jsoncache.CacheObject;
 import com.modelcoding.opensource.jsoncache.JsonCache;
 import com.modelcoding.opensource.jsoncache.JsonCacheModule;
@@ -21,11 +22,11 @@ public interface JsonCacheClientModule {
      *     <li>receives {@link CacheObject} selectors one at a time, and maintains a current selector</li>
      *     <li>on receiving a new selector, calls {@link JsonCache#sendImageToSubscriber(Subscriber)} on the cache 
      *     provided to it by {@link CacheChangeSetProcessor#connect(JsonCache, Publisher)}<br>
-     *     - this ensures that a new cache image {@link CacheChangeSet} for the contents of the {@link JsonCache} is published -<br>
+     *     - this ensures that a new {@link CacheImage} for the contents of the {@link JsonCache} is published -<br>
      *     the new selector becomes the pending selector change</li>
-     *     <li>the pending selector change is made the current selector on receipt of the next cache image {@link CacheChangeSet}</li>
-     *     <li>if another selector is received whilst waiting for a cache image, this latest selector becomes the pending 
-     *     selector change, replacing the old pending change</li>
+     *     <li>the pending selector change is made the current selector on receipt of the next {@link CacheImage}</li>
+     *     <li>if another selector is received whilst waiting for a {@link CacheImage}, this latest selector becomes the 
+     *     pending selector change, replacing the old pending change</li>
      *     <li>on receiving any {@link CacheChangeSet}, the current selector is used to create a new {@link CacheChangeSet}
      *     for publication</li>
      *     <li>each output {@link CacheChangeSet} created always contains all the removes from the input change set</li>
@@ -49,7 +50,7 @@ public interface JsonCacheClientModule {
      */
     CacheChangeSetProcessor getCacheChangeSetProcessor(Publisher<Predicate<CacheObject>> cacheObjectSelectors);
 
-    CacheChangeSetSource getControlledCacheChangeSetSource(
+    JsonCacheClient getControlledCacheChangeSetSource(
         JsonCache jsonCache,
         CacheChangeSetProcessor cacheObjectSelector,
         CacheChangeSetProcessor cacheObjectAuthorisor

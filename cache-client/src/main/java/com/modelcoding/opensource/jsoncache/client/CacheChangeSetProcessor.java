@@ -3,6 +3,7 @@
 package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
+import com.modelcoding.opensource.jsoncache.CacheImage;
 import com.modelcoding.opensource.jsoncache.JsonCache;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -21,19 +22,18 @@ import org.reactivestreams.Subscriber;
  * All calls to the subscription to this {@link CacheChangeSetProcessor} are forwarded in turn to its subscription to the 
  * input publisher.
  * <p>
- * A {@link CacheChangeSetProcessor} can request {@link JsonCache#sendImageToSubscriber(Subscriber)} to have a cache image
- * {@link CacheChangeSet} be sent into the stream.<br>
- * A received cache image {@link CacheChangeSet} always results in the output of another cache image 
- * {@link CacheChangeSet} (i.e {@link CacheChangeSet#isCacheImage()} is {@code true} for the processed output).  
+ * A {@link CacheChangeSetProcessor} can request {@link JsonCache#sendImageToSubscriber(Subscriber)} to have a
+ * {@link CacheImage} be sent into the stream.<br>
+ * A received {@link CacheImage} always results in the output of another {@link CacheImage}.  
  */
 public interface CacheChangeSetProcessor extends Publisher<CacheChangeSet> {
 
     /**
      * Links this {@link CacheChangeSetProcessor} with a {@link JsonCache} 
-     * (in order to request cache image {@link CacheChangeSet}s via {@link JsonCache#sendImageToSubscriber(Subscriber)}),
+     * (in order to request {@link CacheImage}s via {@link JsonCache#sendImageToSubscriber(Subscriber)}),
      * and provides an {@code input} source of {@link CacheChangeSet}s.
      * <p>
-     * Note that the input publisher is not subscribed to until a subscription is made to this processor.
+     * Note that the {@code input} publisher is not subscribed to until a subscription is made to this processor.
      * 
      * @param jsonCache the original source of {@link CacheChangeSet}s
      * @param input the input source of {@link CacheChangeSet}s for this processor

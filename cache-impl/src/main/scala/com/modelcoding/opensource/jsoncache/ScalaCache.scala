@@ -4,7 +4,7 @@ package com.modelcoding.opensource.jsoncache
 
 class ScalaCache(content: Map[String, _ <: CacheObject]) extends Cache {
 
-  override def asChangeSet: CacheChangeSet = ScalaCacheChangeSet(content.values.toSet, Set(), isCacheImage = true)
+  override def getImage: CacheImage = ScalaCacheImage(content.values.toSet)
 
   override def containsCacheObject(cacheObjectId: String): Boolean = content.contains(cacheObjectId)
 

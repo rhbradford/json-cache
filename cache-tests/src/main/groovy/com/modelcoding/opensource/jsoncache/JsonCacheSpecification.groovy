@@ -36,12 +36,8 @@ class JsonCacheSpecification extends Specification {
     @Shared
         someOtherContent = asJsonNode(otherContent)
 
-    private static CacheChangeSet cacheImageChangeSet(Set<CacheObject> content) {
-        m.getCacheChangeSet(content, [] as Set, true)
-    }
-    
     private static CacheChangeSet cacheChangeSet(Set<CacheObject> puts, Set<CacheRemove> removes) {
-        m.getCacheChangeSet(puts, removes, false)
+        m.getCacheChangeSet(puts, removes)
     }
     
     def "JsonCache is created as expected"() {
@@ -123,7 +119,7 @@ class JsonCacheSpecification extends Specification {
         then: "the subscriber first receives a change set with a put for every object in the cache at that point"
         with(subscriber) {
             await()
-            changeSets == [cacheImageChangeSet(preContent)]
+            changeSets == [m.getCacheImage(preContent)]
             !completed
             !hasError
         }
@@ -136,7 +132,7 @@ class JsonCacheSpecification extends Specification {
         then: "the subscriber receives a change set with the changes made, followed by a cache image"
         with(subscriber) {
             await()
-            changeSets == [cacheChangeSet, cacheImageChangeSet(postContent)]
+            changeSets == [cacheChangeSet, m.getCacheImage(postContent)]
             !completed
             !hasError
         }
@@ -162,7 +158,7 @@ class JsonCacheSpecification extends Specification {
         then: "the subscriber receives a change set with the expected puts for every object in the post-change cache"
         with(subscriber) {
             await()
-            changeSets == [cacheImageChangeSet(postContent)]
+            changeSets == [m.getCacheImage(postContent)]
             completed
             !hasError
         }
@@ -180,7 +176,7 @@ class JsonCacheSpecification extends Specification {
     
     private CacheChangeSet cacheContent(int i) {
         def puts = [cacheObject(i)] as Set
-        cacheImageChangeSet(puts)
+        m.getCacheImage(puts)
     }
     
     def "Multiple subscribers receive expected notifications from JsonCache"() {
@@ -198,7 +194,7 @@ class JsonCacheSpecification extends Specification {
         then:
         with(subscriber1) {
             await()
-            changeSets == [cacheImageChangeSet([] as Set)]
+            changeSets == [m.getCacheImage([] as Set)]
             !completed
             !hasError
         }
@@ -421,7 +417,7 @@ class JsonCacheSpecification extends Specification {
         then: "new subscribers continue to receive change sets as expected"
         with(subscriber) {
             await()
-            changeSets == [cacheImageChangeSet(postContent)]
+            changeSets == [m.getCacheImage(postContent)]
             completed
             !hasError
         }
@@ -509,8 +505,8 @@ class JsonCacheSpecification extends Specification {
             assert !subscriber.hasError
             assert subscriber.changeSets.size() >= 1+1+numChangesAppliedPerSubscriber
             List<CacheChangeSet> receivedNonImageChangeSets = new ArrayList(subscriber.changeSets.tail()) // Removes initial cache image
-            List<CacheChangeSet> receivedRequestedImageChangeSets = receivedNonImageChangeSets.findAll { it.isCacheImage() }
-            receivedNonImageChangeSets.removeAll { it.isCacheImage() }
+            List<CacheChangeSet> receivedRequestedImageChangeSets = receivedNonImageChangeSets.findAll { it instanceof CacheImage }
+            receivedNonImageChangeSets.removeAll(receivedRequestedImageChangeSets)
             assert receivedRequestedImageChangeSets.size() >= 1
             assert receivedNonImageChangeSets.every { cacheChangeSet -> possibleOutputChangeSets.contains(cacheChangeSet) } 
         }
@@ -526,7 +522,7 @@ class JsonCacheSpecification extends Specification {
             completed
             !hasError
         }
-        subscriber.changeSets == [ cacheImageChangeSet(lastObjects) ]
+        subscriber.changeSets == [m.getCacheImage(lastObjects) ]
     }
     
     private static class MockSubscriber implements Subscriber<CacheChangeSet>

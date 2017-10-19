@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Set;
 
 /**
- * A JsonCacheModule provides an implementation of the JsonCache API.
+ * A {@link JsonCacheModule} provides an implementation of the JsonCache API.
  * <p>
  * The API is defined using interfaces, making it possible to stack/decorate implementations.<br>
  * (Adding logging to a base implementation, for example).    
@@ -52,17 +52,21 @@ public interface JsonCacheModule {
     /**
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
-     * @param isCacheImage if {@code true}, indicates the CacheChangeSet returned contains a "put" for each object in a 
-     *                  {@link JsonCache} and no "removes"               
      * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
      * @throws IllegalArgumentException if any of the following is true:<br>
      *         <ul>
      *             <li>{@code puts} is {@code null}</li>
      *             <li>{@code removes} is {@code null}</li>
-     *             <li>{@code isCacheImage} is {@code true}, but {@code removes} is not empty</li>
      *         </ul>     
      */
-    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
+    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
+
+    /**
+     * @param cacheObjects the objects in a {@link JsonCache} - cannot be {@code null}
+     * @return an instance of a {@link CacheImage} with the given {@code cacheObjects}
+     * @throws IllegalArgumentException if {@code cacheObjects} is {@code null}
+     */
+    CacheImage getCacheImage(Set<? extends CacheObject> cacheObjects);
 
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
@@ -78,7 +82,7 @@ public interface JsonCacheModule {
      * @throws IllegalArgumentException if any of the following is true:<br>
      *         <ul>
      *             <li>{@code cacheChangeSet} is {@code null}</li>
-     *             <li>{@link CacheChangeSet#isCacheImage()} is {@code true} for the given {@code cacheChangeSet}</li>
+     *             <li>if the given {@code cacheChangeSet} is an instance of a {@link CacheImage}</li>
      *         </ul>     
      */
     CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
