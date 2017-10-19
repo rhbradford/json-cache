@@ -1,6 +1,6 @@
 // Author: Richard Bradford
 
-package com.modelcoding.opensource.jsoncache.controlledclient;
+package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
 import com.modelcoding.opensource.jsoncache.JsonCache;

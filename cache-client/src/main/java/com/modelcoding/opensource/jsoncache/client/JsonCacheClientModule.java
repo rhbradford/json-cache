@@ -1,6 +1,6 @@
 // Author: Richard Bradford
 
-package com.modelcoding.opensource.jsoncache.controlledclient;
+package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
 import com.modelcoding.opensource.jsoncache.CacheObject;
@@ -11,7 +11,7 @@ import org.reactivestreams.Subscriber;
 
 import java.util.function.Predicate;
 
-public interface ControlledClientModule {
+public interface JsonCacheClientModule {
 
     /**
      * Creates a {@link CacheChangeSetProcessor} with the following properties:<br>
@@ -49,7 +49,7 @@ public interface ControlledClientModule {
      */
     CacheChangeSetProcessor getCacheChangeSetProcessor(Publisher<Predicate<CacheObject>> cacheObjectSelectors);
 
-    ControlledCacheChangeSetSource getControlledCacheChangeSetSource(
+    CacheChangeSetSource getControlledCacheChangeSetSource(
         JsonCache jsonCache,
         CacheChangeSetProcessor cacheObjectSelector,
         CacheChangeSetProcessor cacheObjectAuthorisor
