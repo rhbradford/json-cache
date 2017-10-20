@@ -42,6 +42,7 @@ public interface JsonCacheClient extends Publisher<CacheChangeSet> {
      * {@link #getJsonCache()}, and begin processing {@link CacheChangeSet}s through to the given {@code subscriber}.
      * 
      * @param subscriber the {@link Subscriber} that will consume signals from this {@link JsonCacheClient}
+     * @throws NullPointerException if {@code subscriber} is {@code null}
      * @throws IllegalStateException if called more than once    
      */
     @Override

@@ -52,6 +52,7 @@ public interface CacheChangeCalculator {
      *              given by {@link #getChangeSet()}. 
      * @return the results of processing the changes from {@link #getChangeSet()} against the given {@code cache} 
      *         according to the strategy encapsulated by this {@link CacheChangeCalculator}.
+     * @throws NullPointerException if {@code cache} is {@code null}                  
      */
     ChangeResult calculateChange(Cache cache);
 }

@@ -20,7 +20,7 @@ public interface JsonCacheModule {
      * @param cacheObjectContent some content for the {@link CacheObject} - cannot be {@code null}
      * @return an instance of a {@link CacheObject} with the given {@code cacheObjectId}, {@code cacheObjectType} and
      *         {@code cacheObjectContent}
-     * @throws IllegalArgumentException if any of the following is true:<br>
+     * @throws NullPointerException if:
      *         <ul>
      *             <li>{@code cacheObjectId} is {@code null}</li>
      *             <li>{@code cacheObjectType} is {@code null}</li>
@@ -33,11 +33,7 @@ public interface JsonCacheModule {
      * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
      * @param cacheRemoveContent some content for the {@link CacheRemove} - cannot be {@code null}
      * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and {@code cacheRemoveContent}
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code cacheObjectId} is {@code null}</li>
-     *             <li>{@code cacheRemoveContent} is {@code null}</li>
-     *         </ul>     
+     * @throws NullPointerException if {@code cacheObjectId} is {@code null}, or {@code cacheRemoveContent} is {@code null}
      */
     CacheRemove getCacheRemove(String cacheObjectId, JsonNode cacheRemoveContent);
 
@@ -45,7 +41,7 @@ public interface JsonCacheModule {
      * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
      * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and with an empty 
      *         {@link com.fasterxml.jackson.databind.node.ObjectNode} as its {@link CacheRemove#getContent()}
-     * @throws IllegalArgumentException if {@code cacheObjectId} is {@code null}
+     * @throws NullPointerException if {@code cacheObjectId} is {@code null}
      */
     CacheRemove getCacheRemove(String cacheObjectId);
 
@@ -53,37 +49,30 @@ public interface JsonCacheModule {
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
      * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code puts} is {@code null}</li>
-     *             <li>{@code removes} is {@code null}</li>
-     *         </ul>     
+     * @throws NullPointerException if {@code puts} is {@code null}, or {@code removes} is {@code null}
      */
     CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
 
     /**
      * @param cacheObjects the objects in a {@link JsonCache} - cannot be {@code null}
      * @return an instance of a {@link CacheImage} with the given {@code cacheObjects}
-     * @throws IllegalArgumentException if {@code cacheObjects} is {@code null}
+     * @throws NullPointerException if {@code cacheObjects} is {@code null}
      */
     CacheImage getCacheImage(Set<? extends CacheObject> cacheObjects);
 
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
      * @return an instance of a {@link Cache} containing the given {@code cacheObjects}
-     * @throws IllegalArgumentException if {@code cacheObjects} is {@code null}
+     * @throws NullPointerException if {@code cacheObjects} is {@code null}
      */
     Cache getCache(Set<? extends CacheObject> cacheObjects);
 
     /**
      * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
      * @return an instance of a {@link CacheChangeCalculator} that will simply apply all the puts and removes from the given
-     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied 
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code cacheChangeSet} is {@code null}</li>
-     *             <li>if the given {@code cacheChangeSet} is an instance of a {@link CacheImage}</li>
-     *         </ul>     
+     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied
+     * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
+     * @throws IllegalArgumentException if the given {@code cacheChangeSet} is an instance of a {@link CacheImage}
      */
     CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 
@@ -94,12 +83,8 @@ public interface JsonCacheModule {
      * @param cache initial set of objects for the {@link JsonCache} - cannot be {@code null}
      * @return an instance of a {@link JsonCache} with the given {@code cacheId}, {@code subscriberBacklogLimit} and
      *         initially containing the given {@code cache}
-     * @throws IllegalArgumentException if any of the following is true:<br>
-     *         <ul>
-     *             <li>{@code cacheId} is {@code null}</li>
-     *             <li>{@code subscriberBacklogLimit} is negative or 0</li>
-     *             <li>{@code cache} is {@code null}</li>
-     *         </ul>     
+     * @throws NullPointerException if {@code cacheId} is {@code null}, or {@code cache} is {@code null}       
+     * @throws IllegalArgumentException if {@code subscriberBacklogLimit} is negative or 0
      */
     JsonCache getJsonCache(String cacheId, int subscriberBacklogLimit, Cache cache);
 }

@@ -27,7 +27,7 @@ import org.reactivestreams.Subscription;
  * A {@link JsonCache} stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
  * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  */
-public interface JsonCache extends Publisher<CacheChangeSet> {
+public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
 
     /**
      * @return the identity of this {@link JsonCache}
@@ -46,6 +46,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * {@link CacheChangeCalculator}s are applied in the order received.
      * 
      * @param cacheChangeCalculator calculates the changes to be applied to this {@link JsonCache}.
+     * @throws NullPointerException if {@code cacheChangeCalculator} is {@code null}
      */
     void applyChanges(CacheChangeCalculator cacheChangeCalculator);
 
@@ -60,6 +61,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
      * 
      * @param subscriber the {@link Subscriber} that will consume {@link CacheChangeSet}s from this {@link JsonCache}.
+     * @throws NullPointerException if {@code subscriber} is {@code null}
      */
     @Override
     void subscribe(Subscriber<? super CacheChangeSet> subscriber);
@@ -72,6 +74,7 @@ public interface JsonCache extends Publisher<CacheChangeSet> {
      * {@link #applyChanges(CacheChangeCalculator)} before it receives the {@link CacheImage}.
      *     
      * @param subscriber the subscriber to receive the cache image.
+     * @throws NullPointerException if {@code subscriber} is {@code null}
      */
     void sendImageToSubscriber(Subscriber<? super CacheChangeSet> subscriber);
 }
