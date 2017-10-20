@@ -24,13 +24,28 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   override def getSubscriberBacklogLimit: Int = backlogLimit
 
-  override def applyChanges(c: CacheChangeCalculator): Unit = cacheActor ! ChangeCache(c)
+  override def applyChanges(c: CacheChangeCalculator): Unit = {
+    
+    require(c != null, "Cannot apply null changes to a JsonCache")
+    
+    cacheActor ! ChangeCache(c)
+  }
 
-  override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = cacheActor ! PublishToSubscriber(s)
+  override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = {
+    
+    require(s != null, "Cannot subscribe to a JsonCache with a null subscriber")
 
-  override def sendImageToSubscriber(s: Subscriber[_ >: CacheChangeSet]): Unit = cacheActor ! SendCacheImageToSubscriber(s)
+    cacheActor ! PublishToSubscriber(s)
+  }
+
+  override def sendImageToSubscriber(s: Subscriber[_ >: CacheChangeSet]): Unit = {
+    
+    require(s != null, "Cannot send images of a JsonCache to a null subscriber")
+
+    cacheActor ! SendCacheImageToSubscriber(s)
+  }
   
-  class StatefulSubscriber(val delegate: Subscriber[_ >: CacheChangeSet]) extends Subscriber[CacheChangeSet] {
+  private class StatefulSubscriber(val delegate: Subscriber[_ >: CacheChangeSet]) extends Subscriber[CacheChangeSet] {
 
     private var errorOccurred: Boolean = false
     
@@ -48,7 +63,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
     override def onSubscribe(s: Subscription): Unit = delegate.onSubscribe(s)
   }
   
-  class CacheActor(backlogLimit: Int, aCache: Cache) extends Actor {
+  private class CacheActor(backlogLimit: Int, aCache: Cache) extends Actor {
 
     private implicit val materializer: ActorMaterializer = ActorMaterializer()(context)
 
@@ -65,7 +80,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
       case SendCacheImageToSubscriber(subscriber) => 
         if(subscribers.contains(subscriber)) {
-          subscribers(subscriber) ! cache.getImage()
+          subscribers(subscriber) ! cache.getImage
         }
 
       case PublishToSubscriber(subscriber) =>

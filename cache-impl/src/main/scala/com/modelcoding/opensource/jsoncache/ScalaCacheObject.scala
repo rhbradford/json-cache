@@ -9,4 +9,6 @@ case class ScalaCacheObject(getId: String)(aType: String, someContent: JsonNode)
 
   override def getType: String = aType
   override def getContent: JsonNode = someContent
+
+  override def asCacheRemove(): CacheRemove = ScalaCacheRemove(getId)(ScalaJsonCacheModule.emptyContent)
 }

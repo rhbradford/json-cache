@@ -96,4 +96,18 @@ class CacheObjectSpecification extends Specification {
         a                                           | b
         m.getCacheObject("id", "type", someContent) | m.getCacheObject("otherId", "type", sameContent)
     }
+    
+    def "CacheObject creates its CacheRemove as expected"() {
+        
+        setup:
+        def anId = "Id"
+        def aType = "Type"
+
+        when:
+        def cacheObject = m.getCacheObject(anId, aType, someContent)
+        def cacheRemove = cacheObject.asCacheRemove()
+        
+        then:
+        cacheRemove.id == anId
+    }
 }

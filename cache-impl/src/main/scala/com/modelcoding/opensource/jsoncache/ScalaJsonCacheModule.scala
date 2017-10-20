@@ -35,12 +35,10 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     ScalaCacheRemove(cacheObjectId)(cacheRemoveContent)
   }
 
-  private val emptyContent: JsonNode = new ObjectMapper().createObjectNode()
-
   override def getCacheRemove(
     cacheObjectId: String
   ): CacheRemove =
-    getCacheRemove(cacheObjectId, emptyContent)
+    getCacheRemove(cacheObjectId, ScalaJsonCacheModule.emptyContent)
 
   override def getCacheChangeSet(
     puts: util.Set[_ <: CacheObject],
@@ -96,4 +94,9 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 
     new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)
   }
+}
+
+object ScalaJsonCacheModule {
+  
+  val emptyContent: JsonNode = new ObjectMapper().createObjectNode()
 }

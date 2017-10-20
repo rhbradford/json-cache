@@ -36,6 +36,11 @@ public interface CacheObject {
     JsonNode getContent();
 
     /**
+     * @return a {@link CacheRemove} that can be used to remove this {@link CacheObject} from a {@link Cache}
+     */
+    CacheRemove asCacheRemove();
+
+    /**
      * {@link CacheObject}s are always considered equal if they have the same {@link #getId()}. 
      * 
      * @param   obj   the reference object with which to compare.
