@@ -61,7 +61,7 @@ class CacheSpecification extends Specification {
         m.getCache(null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
     }
 
     def "Cache objects accessor does not expose Cache to mutation"() {
@@ -92,6 +92,39 @@ class CacheSpecification extends Specification {
         cache.containsCacheObject("Id1")
         !cache.containsCacheObject("Id2")
         cache.image == image
+    }
+
+    def "Cache throws exception if bad parameters passed into methods"() {
+
+        setup:
+        def object1 =
+            m.getCacheObject("Id1", "Type", someContent)
+        def content = [object1] as Set
+        def cache = m.getCache(content)
+
+        when:
+        cache.containsCacheObject(null)
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        cache.getCacheObject(null)
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        cache.put(null)
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        cache.remove(null)
+
+        then:
+        thrown(NullPointerException)
     }
 
     def "Cache throws exception if asked to get CacheObject not in Cache"() {

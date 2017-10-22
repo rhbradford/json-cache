@@ -6,8 +6,8 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import org.reactivestreams.{Subscriber, Subscription}
-
 import scala.collection.mutable
+import ScalaJsonCacheModule._
 
 class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
   (implicit system: ActorSystem) extends JsonCache {
@@ -26,21 +26,21 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   override def applyChanges(c: CacheChangeCalculator): Unit = {
     
-    require(c != null, "Cannot apply null changes to a JsonCache")
+    requireNotNull(c, "Cannot apply null changes to a JsonCache")
     
     cacheActor ! ChangeCache(c)
   }
 
   override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = {
     
-    require(s != null, "Cannot subscribe to a JsonCache with a null subscriber")
+    requireNotNull(s, "Cannot subscribe to a JsonCache with a null subscriber")
 
     cacheActor ! PublishToSubscriber(s)
   }
 
   override def sendImageToSubscriber(s: Subscriber[_ >: CacheChangeSet]): Unit = {
     
-    require(s != null, "Cannot send images of a JsonCache to a null subscriber")
+    requireNotNull(s, "Cannot send images of a JsonCache to a null subscriber")
 
     cacheActor ! SendCacheImageToSubscriber(s)
   }

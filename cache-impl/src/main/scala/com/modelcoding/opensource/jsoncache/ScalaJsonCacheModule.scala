@@ -11,15 +11,17 @@ import scala.collection.JavaConverters._
 
 class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCacheModule {
 
+  import ScalaJsonCacheModule._
+  
   override def getCacheObject(
     cacheObjectId: String,
     cacheObjectType: String,
     cacheObjectContent: JsonNode
   ): CacheObject = {
 
-    require(cacheObjectId != null, "A CacheObject cannot have a null id")
-    require(cacheObjectType != null, "A CacheObject cannot have a null type")
-    require(cacheObjectContent != null, "A CacheObject cannot have null content")
+    requireNotNull(cacheObjectId, "A CacheObject cannot have a null id")
+    requireNotNull(cacheObjectType, "A CacheObject cannot have a null type")
+    requireNotNull(cacheObjectContent, "A CacheObject cannot have null content")
 
     ScalaCacheObject(cacheObjectId)(cacheObjectType, cacheObjectContent)
   }
@@ -29,8 +31,8 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     cacheRemoveContent: JsonNode
   ): CacheRemove = {
 
-    require(cacheObjectId != null, "A CacheRemove cannot have a null id")
-    require(cacheRemoveContent != null, "A CacheRemove cannot have null content")
+    requireNotNull(cacheObjectId, "A CacheRemove cannot have a null id")
+    requireNotNull(cacheRemoveContent, "A CacheRemove cannot have null content")
 
     ScalaCacheRemove(cacheObjectId)(cacheRemoveContent)
   }
@@ -38,15 +40,15 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
   override def getCacheRemove(
     cacheObjectId: String
   ): CacheRemove =
-    getCacheRemove(cacheObjectId, ScalaJsonCacheModule.emptyContent)
+    getCacheRemove(cacheObjectId, emptyContent)
 
   override def getCacheChangeSet(
     puts: util.Set[_ <: CacheObject],
     removes: util.Set[_ <: CacheRemove]
   ): CacheChangeSet = {
 
-    require(puts != null, "A CacheChangeSet cannot have null puts")
-    require(removes != null, "A CacheChangeSet cannot have null removes")
+    requireNotNull(puts, "A CacheChangeSet cannot have null puts")
+    requireNotNull(removes, "A CacheChangeSet cannot have null removes")
 
     ScalaCacheChangeSet(puts.asScala.toSet, removes.asScala.toSet)
   }
@@ -55,7 +57,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     cacheObjects: util.Set[_ <: CacheObject]
   ): CacheImage = {
     
-    require(cacheObjects != null, "A CacheImage cannot have null cacheObjects")
+    requireNotNull(cacheObjects, "A CacheImage cannot have null cacheObjects")
     
     ScalaCacheImage(cacheObjects.asScala.toSet)
   }
@@ -64,7 +66,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     cacheObjects: util.Set[_ <: CacheObject]
   ): Cache = {
 
-    require(cacheObjects != null, "A Cache cannot have null content")
+    requireNotNull(cacheObjects, "A Cache cannot have null content")
 
     new ScalaCache(
       cacheObjects.asScala.foldLeft(Map[String, CacheObject]()) { (m, cacheObject) =>
@@ -76,7 +78,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     cacheChangeSet: CacheChangeSet
   ): CacheChangeCalculator = {
 
-    require(cacheChangeSet != null, "A CacheChanger cannot have null content")
+    requireNotNull(cacheChangeSet, "A CacheChanger cannot have null content")
     require(!cacheChangeSet.isInstanceOf[CacheImage], "A CacheChanger cannot use a CacheImage")
 
     new ScalaCacheChangeCalculator(cacheChangeSet)
@@ -88,9 +90,9 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     cache: Cache
   ): JsonCache = {
 
-    require(cacheId != null, "A JsonCache cannot have a null id")
+    requireNotNull(cacheId, "A JsonCache cannot have a null id")
     require(subscriberBacklogLimit > 0, "A JsonCache subscriberBacklogLimit must be > 0")
-    require(cache != null, "A JsonCache cannot be created with a null Cache")
+    requireNotNull(cache, "A JsonCache cannot be created with a null Cache")
 
     new ScalaJsonCache(cacheId, subscriberBacklogLimit, cache)
   }
@@ -99,4 +101,6 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 object ScalaJsonCacheModule {
   
   val emptyContent: JsonNode = new ObjectMapper().createObjectNode()
+  
+  def requireNotNull(obj: Any, message: String): Unit = if(obj == null) throw new NullPointerException(message)
 }

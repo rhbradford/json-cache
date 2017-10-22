@@ -65,19 +65,19 @@ class CacheRemoveSpecification extends Specification {
         m.getCacheRemove(anId, null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheRemove(null, someContent)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheRemove(null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
     }
 
     def "Equal CacheRemoves are equal"() {

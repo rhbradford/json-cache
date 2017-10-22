@@ -67,7 +67,7 @@ class JsonCacheSpecification extends Specification {
         m.getJsonCache(null, 12, cache)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when: "subscriberBacklogLimit is 0"
         m.getJsonCache("id", 0, cache)
@@ -85,7 +85,32 @@ class JsonCacheSpecification extends Specification {
         m.getJsonCache("id", 10, null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
+    }
+
+    def "JsonCache throws exception when methods called with bad parameters"() {
+
+        setup:
+        def cache = m.getCache([] as Set)
+        def jsonCache = m.getJsonCache("id", 12, cache)
+
+        when: 
+        jsonCache.applyChanges(null)
+
+        then:
+        thrown(NullPointerException)
+
+        when: 
+        jsonCache.subscribe(null)
+
+        then:
+        thrown(NullPointerException)
+
+        when: 
+        jsonCache.sendImageToSubscriber(null)
+
+        then:
+        thrown(NullPointerException)
     }
     
     def "Single subscriber receives expected notifications from JsonCache"() {

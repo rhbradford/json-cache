@@ -15,9 +15,7 @@ import org.reactivestreams.Subscriber;
  * A {@link CacheChangeSetProcessor} is provided with an input {@link Publisher} by a call to 
  * {@link #connect(CacheImageSender)}.<br>
  * A subscription to the {@link CacheChangeSetProcessor} triggers it to in turn subscribe to its input publisher.<br>
- * A subscription attempted when no input publisher exists results in an {@link IllegalStateException}.      
- * A {@link CacheChangeSetProcessor} only supports a single subscription - subsequent subscription attempts result in an
- * {@link IllegalStateException}.
+ * A {@link CacheChangeSetProcessor} only supports a single subscription.
  * <p>
  * All calls to the subscription to this {@link CacheChangeSetProcessor} are forwarded in turn to its subscription to the 
  * input publisher.

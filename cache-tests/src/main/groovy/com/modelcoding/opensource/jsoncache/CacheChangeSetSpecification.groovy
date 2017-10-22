@@ -58,13 +58,13 @@ class CacheChangeSetSpecification extends Specification {
         m.getCacheChangeSet(null, removes)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheChangeSet(puts, null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
     }
     
     def "Equal CacheChangeSets are equal"() {

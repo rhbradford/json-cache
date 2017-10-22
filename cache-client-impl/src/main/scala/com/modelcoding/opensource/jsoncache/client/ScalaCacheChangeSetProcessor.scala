@@ -11,6 +11,7 @@ import org.reactivestreams.{Publisher, Subscriber, Subscription}
 import scala.collection.JavaConverters._
 
 import scala.collection.mutable
+import ScalaJsonCacheClientModule._
 
 class ScalaCacheChangeSetProcessor(
   cacheObjectSelectors: Publisher[Predicate[CacheObject]]
@@ -25,7 +26,7 @@ class ScalaCacheChangeSetProcessor(
     input: CacheImageSender
   ): Unit = {
 
-    require(input != null, "A CacheChangeSetProcessor cannot be connected with a null input")
+    requireNotNull(input, "A CacheChangeSetProcessor cannot be connected with a null input")
     if(this.input != null)
       throw new IllegalStateException("A CacheChangeSetProcessor cannot be connected more than once")
     
@@ -36,7 +37,7 @@ class ScalaCacheChangeSetProcessor(
     subscriber: Subscriber[_ >: CacheChangeSet]
   ): Unit = {
 
-    require(subscriber != null, "Cannot subscribe to a CacheChangeSetProcessor with a null subscriber")
+    requireNotNull(subscriber, "Cannot subscribe to a CacheChangeSetProcessor with a null subscriber")
     if(input == null)
       throw new IllegalStateException("Cannot subscribe to an unconnected CacheChangeSetProcessor - call connect first")
     if(this.subscriber != null)
@@ -53,7 +54,7 @@ class ScalaCacheChangeSetProcessor(
     subscriber: Subscriber[_ >: CacheChangeSet]
   ): Unit = {
     
-    require(subscriber != null, "A CacheChangeSetProcessor cannot send a cache image to a null subscriber")
+    requireNotNull(subscriber, "A CacheChangeSetProcessor cannot send a cache image to a null subscriber")
     if(input == null)
       throw new IllegalStateException("An unconnected CacheChangeSetProcessor cannot send a cache image - call connect first")
     if(this.subscriber == null)

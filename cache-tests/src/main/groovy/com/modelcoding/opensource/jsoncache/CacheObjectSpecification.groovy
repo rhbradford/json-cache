@@ -59,19 +59,19 @@ class CacheObjectSpecification extends Specification {
         m.getCacheObject(anId, aType, null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheObject(anId, null, someContent)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheObject(null, aType, someContent)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
     }
 
     def "Equal CacheObjects are equal"() {

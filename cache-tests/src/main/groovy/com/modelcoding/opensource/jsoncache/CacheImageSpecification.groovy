@@ -53,7 +53,7 @@ class CacheImageSpecification extends Specification {
         m.getCacheImage(null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
     }
     
     def "Equal CacheImages are equal"() {

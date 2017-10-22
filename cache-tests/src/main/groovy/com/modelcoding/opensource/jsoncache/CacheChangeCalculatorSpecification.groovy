@@ -57,7 +57,7 @@ class CacheChangeCalculatorSpecification extends Specification {
         m.getCacheChangeCalculator(null)
 
         then:
-        thrown(IllegalArgumentException)
+        thrown(NullPointerException)
 
         when:
         m.getCacheChangeCalculator(m.getCacheImage([] as Set))
