@@ -174,7 +174,7 @@ class ScalaCacheChangeSetProcessor(
           changeSetsSubscription.request(n)
 
         case OnNextChangeSet(changeSet) =>
-          if(changeSet.isInstanceOf[CacheImage]) {
+          if(changeSet.isCacheImage) {
             selector = pendingSelector
             pendingSelector = null
             become(running)
@@ -214,22 +214,19 @@ class ScalaCacheChangeSetProcessor(
     private def processChangeSet(changeSet: CacheChangeSet): Unit = {
 
       val removes: mutable.Set[CacheRemove] = new mutable.HashSet[CacheRemove]()
-      removes ++ changeSet.getRemoves.asScala
+      removes ++= changeSet.getRemoves.asScala
 
       val puts: mutable.Set[CacheObject] = new mutable.HashSet[CacheObject]()
       changeSet.getPuts.asScala.foreach { put: CacheObject =>
 
         if(selector != null && selector.test(put))  
-          puts + put
+          puts += put
         else
-          removes + put.asCacheRemove()
+          removes += put.asCacheRemove()
       }
 
-      val outputChangeSet: CacheChangeSet =
-        if(changeSet.isInstanceOf[CacheImage])
-          jsonCacheModule.getCacheImage(puts.asJava)
-        else
-          jsonCacheModule.getCacheChangeSet(puts.asJava, removes.asJava)
+      val outputChangeSet: CacheChangeSet = 
+        jsonCacheModule.getCacheChangeSet(puts.asJava, removes.asJava, changeSet.isCacheImage)
 
       subscriber.onNext(outputChangeSet)
     }

@@ -3,7 +3,6 @@
 package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
-import com.modelcoding.opensource.jsoncache.CacheImage;
 import com.modelcoding.opensource.jsoncache.CacheImageSender;
 import com.modelcoding.opensource.jsoncache.CacheObject;
 import com.modelcoding.opensource.jsoncache.JsonCache;
@@ -25,10 +24,11 @@ public interface JsonCacheClientModule {
      *     and a selector has been received</li> 
      *     <li>if the internal subscriber to the {@code cacheObjectSelectors} is completed before any selector
      *     has been received, then the subscriber to this {@link CacheChangeSetProcessor} is completed</li>
-     *     <li>if a new selector is received and there is no pending selector change, a {@link CacheImage} is requested 
-     *     from the {@link CacheImageSender} and the new selector becomes the pending selector change</li>
-     *     <li>the pending selector change is made the current selector on receipt of the next {@link CacheImage}</li>
-     *     <li>if another selector is received whilst waiting for a {@link CacheImage}, this latest selector becomes the 
+     *     <li>if a new selector is received and there is no pending selector change, a cache image {@link CacheChangeSet} 
+     *     is requested from the {@link CacheImageSender} and the new selector becomes the pending selector change</li>
+     *     <li>the pending selector change is made the current selector on receipt of the next {@link CacheChangeSet} 
+     *     with {@link CacheChangeSet#isCacheImage()} as {@code true}</li>
+     *     <li>if another selector is received whilst waiting for a cache image, this latest selector becomes the 
      *     pending selector change, replacing the old pending change</li>
      *     <li>on receiving any {@link CacheChangeSet}, the current selector is used to create a new {@link CacheChangeSet}
      *     for publication</li>

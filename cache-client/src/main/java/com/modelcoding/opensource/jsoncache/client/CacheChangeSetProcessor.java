@@ -3,7 +3,6 @@
 package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
-import com.modelcoding.opensource.jsoncache.CacheImage;
 import com.modelcoding.opensource.jsoncache.CacheImageSender;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -20,8 +19,8 @@ import org.reactivestreams.Subscriber;
  * All calls to the subscription to this {@link CacheChangeSetProcessor} are forwarded in turn to its subscription to the 
  * input publisher.
  * <p>
- * A received {@link CacheImage} always results in the output of another {@link CacheImage}, not just a {@link CacheChangeSet}.<br>
- * This ensures that {@link CacheImage}s will flow down through multiple connected {@link CacheChangeSetProcessor}s.     
+ * The value of {@link CacheChangeSet#isCacheImage()} on a received {@link CacheChangeSet} is always made the same on the 
+ * corresponding output {@link CacheChangeSet}.     
  */
 public interface CacheChangeSetProcessor extends CacheImageSender {
 
@@ -51,7 +50,7 @@ public interface CacheChangeSetProcessor extends CacheImageSender {
     void subscribe(Subscriber<? super CacheChangeSet> subscriber);
 
     /**
-     * Requests that a {@link CacheImage} be sent to the given {@code subscriber}.<br>
+     * Requests that a cache image {@link CacheChangeSet} be sent to the given {@code subscriber}.<br>
      * The request is passed to the input {@link CacheImageSender} provided in {@link #connect(CacheImageSender)}.<br>
      * The subscriber must be the same as that provided in {@link #subscribe(Subscriber)}.    
      *     

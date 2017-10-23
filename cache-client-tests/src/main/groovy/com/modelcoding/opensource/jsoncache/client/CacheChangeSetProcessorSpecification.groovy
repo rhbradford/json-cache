@@ -245,13 +245,15 @@ class CacheChangeSetProcessorSpecification extends Specification {
         def cacheImageSenderSubscription = Mock(Subscription) {
             2 * request(1) >>  { 
                 cacheImageSender.subscriber.onNext(
-                    m.getCacheImage(
+                    m.getCacheChangeSet(
                         [
                             m.getCacheObject("A1", "AType", asJsonNode([])),
                             m.getCacheObject("A2", "AType", asJsonNode([])),
                             m.getCacheObject("B1", "BType", asJsonNode([])),
                             m.getCacheObject("C1", "CType", asJsonNode([]))
-                        ] as Set
+                        ] as Set,
+                        [] as Set,
+                        true
                     )
                 )
             } >> {
@@ -264,7 +266,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
                         ] as Set,
                         [
                             m.getCacheRemove("A2")
-                        ] as Set
+                        ] as Set,
+                        false
                     )
                 )
             }
@@ -295,19 +298,27 @@ class CacheChangeSetProcessorSpecification extends Specification {
             !hasError
             !completed
             changeSets == [
-                m.getCacheImage(
+                m.getCacheChangeSet(
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([]))
-                    ] as Set
+                    ] as Set,
+                    [
+                        m.getCacheRemove("B1"),
+                        m.getCacheRemove("C1")
+                    ] as Set,
+                    true
                 ),
                 m.getCacheChangeSet(
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([]))
                     ] as Set,
                     [
-                        m.getCacheRemove("A2")
-                    ] as Set
+                        m.getCacheRemove("A2"),
+                        m.getCacheRemove("B2"),
+                        m.getCacheRemove("C2")
+                    ] as Set,
+                    false
                 )
             ]
         }
