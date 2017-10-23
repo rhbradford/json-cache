@@ -43,7 +43,9 @@ public interface CacheChangeSetProcessor extends CacheImageSender {
      * 
      * @param subscriber the {@link Subscriber} that will consume signals from this {@link CacheChangeSetProcessor}
      * @throws NullPointerException if {@code subscriber} is {@code null}
-     * @throws IllegalStateException if called more than once, or no input publisher is available    
+     * @throws IllegalStateException if no input publisher is available ({@link #connect(CacheImageSender)} must be called
+     *                               first);<br>or if called more than once (a {@link CacheChangeSetProcessor} only supports a 
+     *                               single subscription) 
      */
     @Override
     void subscribe(Subscriber<? super CacheChangeSet> subscriber);
@@ -51,14 +53,15 @@ public interface CacheChangeSetProcessor extends CacheImageSender {
     /**
      * Requests that a {@link CacheImage} be sent to the given {@code subscriber}.<br>
      * The request is passed to the input {@link CacheImageSender} provided in {@link #connect(CacheImageSender)}.<br>
-     * The subscriber is expected to the same as that provided in {@link #subscribe(Subscriber)}.    
+     * The subscriber must be the same as that provided in {@link #subscribe(Subscriber)}.    
      *     
      * @param subscriber the subscriber to receive the cache image.
      * @throws NullPointerException if {@code subscriber} is {@code null}
      * @throws IllegalArgumentException if {@code subscriber} is not the same the subscriber as provided in 
      *                                  {@link #subscribe(Subscriber)}
-     * @throws IllegalStateException if no input {@link CacheImageSender} is available, 
-     *                               or this {@link CacheChangeSetProcessor} has not been subscribed to first    
+     * @throws IllegalStateException if no input publisher is available ({@link #connect(CacheImageSender)} must be called
+     *                               first);<br>or if this {@link CacheChangeSetProcessor} has not yet been subscribed to
+     *                               ({@link #subscribe(Subscriber)} must have been called earlier)
      */
     @Override
     void sendImageToSubscriber(Subscriber<? super CacheChangeSet> subscriber);
