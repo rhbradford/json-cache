@@ -11,7 +11,7 @@ class ScalaCacheChangeCalculator(val getChangeSet: CacheChangeSet) extends Cache
     cache: Cache
   ): CacheChangeCalculator.ChangeResult = {
     
-    requireNotNull(cache, "Cannot calculate change from null changes")
+    requireNotNull(cache, "Cannot calculate change against null cache")
     
     var nextCache: Cache = cache
     nextCache = getChangeSet.getPuts.iterator().asScala.foldLeft(nextCache) { (c, co) => c.put(co) }

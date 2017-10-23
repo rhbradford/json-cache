@@ -48,18 +48,12 @@ public interface JsonCacheModule {
     /**
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
+     * @param isCacheImage sets the result of {@link CacheChangeSet#isCacheImage()} on the returned {@link CacheChangeSet}               
      * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
      * @throws NullPointerException if {@code puts} is {@code null}, or {@code removes} is {@code null}
      */
-    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes);
-
-    /**
-     * @param cacheObjects the objects in a {@link JsonCache} - cannot be {@code null}
-     * @return an instance of a {@link CacheImage} with the given {@code cacheObjects}
-     * @throws NullPointerException if {@code cacheObjects} is {@code null}
-     */
-    CacheImage getCacheImage(Set<? extends CacheObject> cacheObjects);
-
+    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
+    
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
      * @return an instance of a {@link Cache} containing the given {@code cacheObjects}
@@ -72,7 +66,7 @@ public interface JsonCacheModule {
      * @return an instance of a {@link CacheChangeCalculator} that will simply apply all the puts and removes from the given
      *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied
      * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
-     * @throws IllegalArgumentException if the given {@code cacheChangeSet} is an instance of a {@link CacheImage}
+     * @throws IllegalArgumentException if the given {@code cacheChangeSet} has {@link CacheChangeSet#isCacheImage()} as {@code true}
      */
     CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 

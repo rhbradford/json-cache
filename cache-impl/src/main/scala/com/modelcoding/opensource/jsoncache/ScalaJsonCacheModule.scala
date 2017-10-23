@@ -44,22 +44,14 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 
   override def getCacheChangeSet(
     puts: util.Set[_ <: CacheObject],
-    removes: util.Set[_ <: CacheRemove]
+    removes: util.Set[_ <: CacheRemove],
+    isCacheImage: Boolean
   ): CacheChangeSet = {
 
     requireNotNull(puts, "A CacheChangeSet cannot have null puts")
     requireNotNull(removes, "A CacheChangeSet cannot have null removes")
 
-    ScalaCacheChangeSet(puts.asScala.toSet, removes.asScala.toSet)
-  }
-
-  override def getCacheImage(
-    cacheObjects: util.Set[_ <: CacheObject]
-  ): CacheImage = {
-    
-    requireNotNull(cacheObjects, "A CacheImage cannot have null cacheObjects")
-    
-    ScalaCacheImage(cacheObjects.asScala.toSet)
+    ScalaCacheChangeSet(puts, removes, isCacheImage)
   }
 
   override def getCache(
@@ -79,7 +71,7 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
   ): CacheChangeCalculator = {
 
     requireNotNull(cacheChangeSet, "A CacheChanger cannot have null content")
-    require(!cacheChangeSet.isInstanceOf[CacheImage], "A CacheChanger cannot use a CacheImage")
+    require(!cacheChangeSet.isCacheImage, "A CacheChanger cannot use a cache image CacheChangeSet")
 
     new ScalaCacheChangeCalculator(cacheChangeSet)
   }

@@ -47,8 +47,9 @@ public interface Cache {
     Cache remove(CacheRemove cacheRemove);
 
     /**
-     * @return the contents of this {@link Cache} as a {@link CacheImage} with each object in the {@link Cache} as a "put".<br>
+     * @return the contents of this {@link Cache} as a {@link CacheChangeSet} with each object in the {@link Cache} as a "put",
+     *         and where {@link CacheChangeSet#isCacheImage()} is {@code true}.<br>
      *         <em>The return must not expose this {@link Cache} to mutation.</em>
      */
-    CacheImage getImage();
+    CacheChangeSet getImage();
 }

@@ -2,6 +2,7 @@
 
 package com.modelcoding.opensource.jsoncache
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
@@ -92,6 +93,23 @@ class CacheRemoveSpecification extends Specification {
         m.getCacheRemove("id", someContent) | m.getCacheRemove("id", someOtherContent)
     }
 
+    def "Equality must not rely on a specific implementation"() {
+
+        expect:
+        m.getCacheRemove("id") == new CacheRemove() {
+
+            @Override
+            String getId() {
+                "id"
+            }
+
+            @Override
+            JsonNode getContent() {
+                asJsonNode([])
+            }
+        }
+    }
+    
     def "Unequal CacheRemoves are not equal"() {
 
         expect:

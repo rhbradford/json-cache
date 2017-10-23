@@ -8,7 +8,9 @@ import org.reactivestreams.Subscriber;
 public interface CacheImageSender extends Publisher<CacheChangeSet> {
 
     /**
-     * Requests that a {@link CacheImage} be sent to the given {@code subscriber}.
+     * Requests that a {@link CacheChangeSet} representing the contents of a {@link JsonCache}
+     * (i.e. containing a "put" for each {@link CacheObject} in the cache, and {@link CacheChangeSet#isCacheImage()} 
+     * set as {@code true}) is sent to the given {@code subscriber}.
      *     
      * @param subscriber the subscriber to receive the cache image.
      * @throws NullPointerException if {@code subscriber} is {@code null}                  

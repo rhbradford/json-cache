@@ -45,23 +45,24 @@ class CacheChangeSetSpecification extends Specification {
     def "CacheChangeSet is created as expected"() {
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes)
+        def cacheChangeSet = m.getCacheChangeSet(puts, removes, true)
 
         then:
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
+        cacheChangeSet.cacheImage
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
 
         when:
-        m.getCacheChangeSet(null, removes)
+        m.getCacheChangeSet(null, removes, false)
 
         then:
         thrown(NullPointerException)
 
         when:
-        m.getCacheChangeSet(puts, null)
+        m.getCacheChangeSet(puts, null, false)
 
         then:
         thrown(NullPointerException)
@@ -70,16 +71,47 @@ class CacheChangeSetSpecification extends Specification {
     def "Equal CacheChangeSets are equal"() {
 
         expect:
-        m.getCacheChangeSet(puts, removes) == m.getCacheChangeSet(puts, removes)
-        m.getCacheChangeSet(puts, removes).hashCode() == m.getCacheChangeSet(puts, removes).hashCode()
+        m.getCacheChangeSet(p, r, ci) == m.getCacheChangeSet(p, r, ci)
+        m.getCacheChangeSet(p, r, ci).hashCode() == m.getCacheChangeSet(p, r, ci).hashCode()
+
+        where:
+        p    | r       | ci
+        puts | removes | false
+        puts | removes | true
+    }
+    
+    def "Equality must not rely on a specific implementation"() {
+        
+        expect:
+        m.getCacheChangeSet(puts, removes, false) == new CacheChangeSet() {
+
+            @Override
+            Set<? extends CacheObject> getPuts() {
+                CacheChangeSetSpecification.this.puts
+            }
+
+            @Override
+            Set<? extends CacheRemove> getRemoves() {
+                CacheChangeSetSpecification.this.removes
+            }
+
+            @Override
+            boolean isCacheImage() {
+                false
+            }
+        }
     }
     
     def "Unequal CacheChangeSets are not equal"() {
         
         expect:
-        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet(puts, [] as Set)
-        m.getCacheChangeSet(puts, removes) != m.getCacheChangeSet([] as Set, removes)
-        m.getCacheChangeSet(puts, [] as Set) != m.getCacheImage(puts)
+        m.getCacheChangeSet(p, r, ci) != m.getCacheChangeSet(p_, r_, ci_)
+
+        where:
+        p         | r       | ci    | p_   | r_        | ci_
+        puts      | removes | false | puts | [] as Set | false
+        [] as Set | removes | false | puts | removes   | false
+        puts      | removes | false | puts | removes   | true
     }
 
     def "CacheChangeSet accessors do not expose CacheChangeSet to mutation"() {
@@ -89,7 +121,7 @@ class CacheChangeSetSpecification extends Specification {
         def theRemoves = new HashSet(removes)
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes)
+        def cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
         def gotPuts = cacheChangeSet.puts
         def gotRemoves = cacheChangeSet.removes
         try {
@@ -113,5 +145,6 @@ class CacheChangeSetSpecification extends Specification {
         then:
         cacheChangeSet.puts == new HashSet(puts)
         cacheChangeSet.removes == new HashSet(removes)
+        !cacheChangeSet.cacheImage
     }
 }

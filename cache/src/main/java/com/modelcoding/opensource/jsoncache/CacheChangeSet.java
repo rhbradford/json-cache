@@ -23,19 +23,28 @@ public interface CacheChangeSet {
      *         <em>The return must not expose this {@link CacheChangeSet} to mutation.</em>
      */
     Set<? extends CacheRemove> getRemoves();
+
+    /**
+     * @return {@code true} if this {@link CacheChangeSet} contains a "put" for each object in a {@link JsonCache} 
+     *         - i.e. it is a full image, not a delta; {@code false} otherwise. 
+     */
+    boolean isCacheImage();
     
     /**
-     * {@link CacheChangeSet}s are considered equal if they have the same {@link #getPuts()} and {@link #getRemoves()}. 
+     * {@link CacheChangeSet} are considered equal if they have the same {@link #getPuts()} and {@link #getRemoves()}, 
+     * and the same {@link #isCacheImage()}. 
      * 
      * @param   obj   the reference object with which to compare.
-     * @return  {@code true} if the obj is also a {@link CacheChangeSet} with the same {@link #getPuts()} and {@link #getRemoves()}; 
+     * @return  {@code true} if the obj is also a {@link CacheChangeSet} with the same {@link #getPuts()} and {@link #getRemoves()}
+     *          and the same {@link #isCacheImage()}; 
      *          {@code false} otherwise.
      * @see     #hashCode()
      */
     boolean equals(Object obj);
    
    /** 
-    * @return  a hash code value for this {@link CacheChangeSet} which must be based on {@link #getPuts()}, {@link #getRemoves()}.
+    * @return  a hash code value for this {@link CacheChangeSet} which must be based on {@link #getPuts()}, {@link #getRemoves()}
+    *          and {@link #isCacheImage()}.
     * @see     #equals(java.lang.Object)
     */
    int hashCode();

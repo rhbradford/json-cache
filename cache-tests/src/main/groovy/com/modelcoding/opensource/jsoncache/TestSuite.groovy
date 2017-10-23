@@ -48,7 +48,6 @@ import org.junit.runners.Suite
         CacheObjectSpecification.class,
         CacheRemoveSpecification.class,
         CacheChangeSetSpecification.class,
-        CacheImageSpecification.class,
         CacheSpecification.class,
         CacheChangeCalculatorSpecification.class,
         JsonCacheSpecification.class

@@ -18,9 +18,11 @@ import org.reactivestreams.Subscription;
  * <p>
  * A {@link JsonCache} publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s to
  * {@link Subscriber}s registered using {@link #subscribe(Subscriber)}.<br>     
- * A {@link Subscriber} receives an initial {@link CacheImage} containing a {@link CacheObject} "put" for each object 
- * in the cache when publication to the subscriber is started, followed by {@link CacheChangeSet}s detailing subsequent 
- * changes made to the {@link JsonCache} thereafter.<br>
+ * A {@link Subscriber} receives an initial cache image {@link CacheChangeSet} containing a {@link CacheObject} "put" 
+ * for each object in the cache when publication to the subscriber is started. The initial {@link CacheChangeSet} has
+ * {@link CacheChangeSet#isCacheImage()} as {@code true}.<br>
+ * The initial {@link CacheChangeSet}is followed by {@link CacheChangeSet}s detailing subsequent changes made to the 
+ * {@link JsonCache} thereafter. These {@link CacheChangeSet}s hav {@link CacheChangeSet#isCacheImage()} as {@code false}.<br>
  * A subscriber registered using {@link #subscribe(Subscriber)} is notified of all changes entered <em>on the same thread</em>
  * via {@link #applyChanges(CacheChangeCalculator)} after registration.<br>
  * A {@link JsonCache} calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
@@ -53,9 +55,11 @@ public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
     /**
      * Register a {@link Subscriber} to receive {@link CacheChangeSet}s from this JsonCache.
      * <p>
-     * A {@link Subscriber} receives an initial {@link CacheImage} containing a {@link CacheObject} "put" for each object 
-     * in the cache when publication to the subscriber is started, followed by {@link CacheChangeSet}s detailing subsequent 
-     * changes made to the {@link JsonCache} thereafter.<br>
+     * A {@link Subscriber} receives an initial cache image {@link CacheChangeSet} containing a {@link CacheObject} "put" 
+     * for each object in the cache when publication to the subscriber is started. The initial {@link CacheChangeSet} has
+     * {@link CacheChangeSet#isCacheImage()} as {@code true}.<br>
+     * The initial {@link CacheChangeSet}is followed by {@link CacheChangeSet}s detailing subsequent changes made to the 
+     * {@link JsonCache} thereafter. These {@link CacheChangeSet}s hav {@link CacheChangeSet#isCacheImage()} as {@code false}.<br>
      * A {@link JsonCache} calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
      * A {@link JsonCache} stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
      * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
@@ -67,11 +71,12 @@ public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
     void subscribe(Subscriber<? super CacheChangeSet> subscriber);
 
     /**
-     * Requests that a {@link CacheImage} containing a {@link CacheObject} "put" for each object in this {@link JsonCache} 
-     * be sent to the given {@code subscriber}.
+     * Requests that a {@link CacheChangeSet} representing the contents of this {@link JsonCache}
+     * (i.e. containing a "put" for each {@link CacheObject} in the cache, and {@link CacheChangeSet#isCacheImage()} 
+     * set as {@code true}) is sent to the given {@code subscriber}.
      * <p>
      * The subscriber is notified of all prior changes entered <em>on the same thread</em> via 
-     * {@link #applyChanges(CacheChangeCalculator)} before it receives the {@link CacheImage}.
+     * {@link #applyChanges(CacheChangeCalculator)} before it receives the cache image {@link CacheChangeSet}.
      *     
      * @param subscriber the subscriber to receive the cache image.
      * @throws NullPointerException if {@code subscriber} is {@code null}

@@ -1,11 +1,13 @@
 // Author: Richard Bradford
 
 package com.modelcoding.opensource.jsoncache
+import scala.collection.JavaConverters._
 import ScalaJsonCacheModule._
 
 class ScalaCache(content: Map[String, _ <: CacheObject]) extends Cache {
 
-  override def getImage: CacheImage = ScalaCacheImage(content.values.toSet)
+  override def getImage: CacheChangeSet = 
+    ScalaCacheChangeSet(content.values.toSet.asJava, ScalaCacheChangeSet.emptyRemoves, isCacheImage = true)
 
   override def containsCacheObject(cacheObjectId: String): Boolean = {
     

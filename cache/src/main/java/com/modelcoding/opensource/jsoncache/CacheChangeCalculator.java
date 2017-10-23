@@ -36,7 +36,7 @@ public interface CacheChangeCalculator {
 
         /**
          * @return the changes actually made to create a new {@link Cache} from the previous {@link Cache}.<br>
-         *         <em>The return is never a {@link CacheImage}</em>. 
+         *         <em>The return should never have {@link CacheChangeSet#isCacheImage()} as {@code true}</em>. 
          */
         CacheChangeSet getChangeSet();
     }

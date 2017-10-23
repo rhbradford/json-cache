@@ -2,6 +2,7 @@
 
 package com.modelcoding.opensource.jsoncache
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
@@ -87,6 +88,33 @@ class CacheObjectSpecification extends Specification {
         m.getCacheObject("id", "type", someContent) | m.getCacheObject("id", "type", someOtherContent)
     }
 
+    def "Equality must not rely on a specific implementation"() {
+
+        expect:
+        m.getCacheObject("id", "type", someContent) == new CacheObject() {
+
+            @Override
+            String getId() {
+                "id"
+            }
+
+            @Override
+            String getType() {
+                "type"
+            }
+
+            @Override
+            JsonNode getContent() {
+                someContent
+            }
+
+            @Override
+            CacheRemove asCacheRemove() {
+                return null
+            }
+        }
+    }
+    
     def "Unequal CacheObjects are not equal"() {
 
         expect:
