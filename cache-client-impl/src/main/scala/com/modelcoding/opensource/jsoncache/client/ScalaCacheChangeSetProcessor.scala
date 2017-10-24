@@ -185,6 +185,7 @@ class ScalaCacheChangeSetProcessor(
         case OnNextSelector(s) =>
           pendingSelector = s
           selectorsSubscription.request(1)
+          input.sendImageToSubscriber(changeSetSubscriber)
 
         case SendCacheImageToSubscriber =>
           input.sendImageToSubscriber(changeSetSubscriber)

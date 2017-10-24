@@ -6,6 +6,7 @@ import com.modelcoding.opensource.jsoncache.CacheChangeSet;
 import com.modelcoding.opensource.jsoncache.CacheImageSender;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 /**
  * A {@link CacheChangeSetProcessor} subscribes to a stream of {@link CacheChangeSet}s, processes each one into (possibly)
@@ -19,8 +20,11 @@ import org.reactivestreams.Subscriber;
  * All calls to the subscription to this {@link CacheChangeSetProcessor} are forwarded in turn to its subscription to the 
  * input publisher.
  * <p>
+ * A {@link CacheChangeSetProcessor} calls {@link Subscriber#onComplete()} if the subscription is cancelled via 
+ * {@link Subscription#cancel()}.
+ * <p>
  * The value of {@link CacheChangeSet#isCacheImage()} on a received {@link CacheChangeSet} is always made the same on the 
- * corresponding output {@link CacheChangeSet}.     
+ * corresponding output {@link CacheChangeSet}.
  */
 public interface CacheChangeSetProcessor extends CacheImageSender {
 
@@ -39,6 +43,9 @@ public interface CacheChangeSetProcessor extends CacheImageSender {
      * Causes this {@link CacheChangeSetProcessor} to subscribe to its input {@link Publisher} provided in 
      * {@link #connect(CacheImageSender)} and begin processing {@link CacheChangeSet}s through to the given 
      * {@code subscriber}.
+     * <p>
+     * A {@link CacheChangeSetProcessor} calls {@link Subscriber#onComplete()} if the subscription is cancelled via 
+     * {@link Subscription#cancel()}.
      * 
      * @param subscriber the {@link Subscriber} that will consume signals from this {@link CacheChangeSetProcessor}
      * @throws NullPointerException if {@code subscriber} is {@code null}
