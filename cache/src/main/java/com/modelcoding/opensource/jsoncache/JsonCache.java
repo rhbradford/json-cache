@@ -2,6 +2,7 @@
 
 package com.modelcoding.opensource.jsoncache;
 
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -27,6 +28,12 @@ import org.reactivestreams.Subscription;
  * A {@link JsonCache} calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
  * A {@link JsonCache} stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
  * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
+ * <p>
+ * A {@link JsonCache} can be used as a {@link Subscriber} to a {@link Publisher} of {@link CacheChangeCalculator}s.<br>
+ * Used in this way, the termination of the subscription to {@link CacheChangeCalculator}s also terminates any
+ * {@link CacheChangeSet} subscribers attached to the {@link JsonCache}. However, a {@link JsonCache} keeps a constant 
+ * demand for {@link CacheChangeCalculator}s to ensure the input of {@link CacheChangeCalculator}s into the 
+ * {@link JsonCache} is de-coupled from the demand for {@link CacheChangeSet}s.  
  */
 public interface JsonCache extends CacheImageSender, Subscriber<CacheChangeCalculator> {
 
@@ -67,8 +74,8 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheChangeCalcu
      * A {@link JsonCache} fails all of its {@link CacheChangeSet} subscribers with the given {@code error} if its 
      * subscription to {@link CacheChangeCalculator}s fails with an error.
      * <p>
-     * A {@link JsonCache} used as a {@link Subscriber} is spent once its subscription to{@link CacheChangeCalculator}s
-     * is finished - resources are cleared up, and the {@link JsonCache} cannot be used any more.      
+     * A {@link JsonCache} is finished by calling this method. Resources are cleared up, and the {@link JsonCache} 
+     * must not be used any more.      
      * 
      * @param error an error with the subscription to {@link CacheChangeCalculator}s
      * @throws NullPointerException if {@code error} is {@code null}
@@ -80,8 +87,8 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheChangeCalcu
      * A {@link JsonCache} completes all of its {@link CacheChangeSet} subscribers if its subscription to 
      * {@link CacheChangeCalculator}s completes.
      * <p>
-     * A {@link JsonCache} used as a {@link Subscriber} is spent once its subscription to{@link CacheChangeCalculator}s
-     * is finished - resources are cleared up, and the {@link JsonCache} cannot be used any more.      
+     * A {@link JsonCache} is finished by calling this method. Resources are cleared up, and the {@link JsonCache} 
+     * must not be used any more.      
      */
     @Override
     void onComplete();

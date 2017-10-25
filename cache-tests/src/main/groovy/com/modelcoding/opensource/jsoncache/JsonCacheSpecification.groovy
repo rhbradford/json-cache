@@ -580,6 +580,8 @@ class JsonCacheSpecification extends Specification {
         then:
         subscriber1.await()
         subscriber2.await()
+        subscriber1.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
         
         when:
         jsonCache.onSubscribe(null)
@@ -588,24 +590,18 @@ class JsonCacheSpecification extends Specification {
         thrown(NullPointerException)
         
         when:
-        jsonCache.onSubscribe(subscription)
-        
-        then:
-        1 * subscription.request(1)
-        0 * subscription._
-        
-        when:
         subscriber1.expect(1)
         subscriber2.expect(1)
+        jsonCache.onSubscribe(subscription)
         jsonCache.onNext(cacheChangeCalculator)
         
         then:
-        1 * subscription.request(1)
-        0 * subscription._
         subscriber1.await()
         subscriber2.await()
         subscriber1.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
         subscriber2.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
+        2 * subscription.request(1)
+        0 * subscription._
         
         when:
         jsonCache.onComplete()
@@ -618,13 +614,6 @@ class JsonCacheSpecification extends Specification {
     def "JsonCache as a subscriber fails all its subscribers when it is failed"() {
         
         setup:
-        def object1 =
-            m.getCacheObject("Id1", "Type", someContent)
-        def object2 =
-            m.getCacheObject("Id2", "Type", someOtherContent)
-        def puts = [object1, object2] as Set
-        def removes = [] as Set
-        CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
         def cache = m.getCache([] as Set)
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber1 = new MockSubscriber()
@@ -643,13 +632,6 @@ class JsonCacheSpecification extends Specification {
         subscriber2.await()
         
         when:
-        jsonCache.onSubscribe(subscription)
-        
-        then:
-        1 * subscription.request(1)
-        0 * subscription._
-        
-        when:
         jsonCache.onError(null)
         
         then:
@@ -658,13 +640,16 @@ class JsonCacheSpecification extends Specification {
         when:
         subscriber1.expect(1)
         subscriber2.expect(1)
+        jsonCache.onSubscribe(subscription)
         jsonCache.onError(error)
         
         then:
         subscriber1.await()
-        subscriber1.hasError
         subscriber2.await()
+        subscriber1.hasError
         subscriber2.hasError
+        1 * subscription.request(1)
+        0 * subscription._
     }
     
     private static class MockSubscriber implements Subscriber<CacheChangeSet>
