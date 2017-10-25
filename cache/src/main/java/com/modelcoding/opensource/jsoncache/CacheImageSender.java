@@ -5,6 +5,12 @@ package com.modelcoding.opensource.jsoncache;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
+/**
+ * A {@link CacheImageSender} is a {@link Publisher} of {@link CacheChangeSet}s, that can also be requested to output
+ * a "cache image" {@link CacheChangeSet} as required.<br>
+ * A cache image {@link CacheChangeSet} represents the contents of a cache, with  a "put" for each {@link CacheObject} 
+ * in the cache.     
+ */
 public interface CacheImageSender extends Publisher<CacheChangeSet> {
 
     /**

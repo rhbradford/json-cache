@@ -62,17 +62,21 @@ public interface JsonCacheClientModule {
      * The view is defined by the {@code cacheObjectSelector}.<br>
      * The view is restricted by the {@code cacheObjectAuthorisor}.
      * <p>
-     * The {@link JsonCache} is provided as the input to the {@code cacheObjectSelector}.<br>
+     * The {@code input} is provided as the input to the {@code cacheObjectSelector}.<br>
      * The {@code cacheObjectSelector} is provided as the input to the {@code cacheObjectAuthorisor}.<br>
      * The {@code cacheObjectAuthorisor} is used as the output for the created {@link JsonCacheClient}.
      * 
-     * @param jsonCache the underlying source of {@link CacheChangeSet}s
+     * @param id an id for the {@link JsonCacheClient}
+     * @param input the underlying source of {@link CacheChangeSet}s
      * @param cacheObjectSelector re-processes {@link CacheChangeSet}s to define a view of the given {@code jsonCache}
      * @param cacheObjectAuthorisor re-processes {@link CacheChangeSet}s to restrict the view of the given {@code jsonCache}
      * @return a live "view" of the given {@code jsonCache}
+     * @throws NullPointerException if any of {@code id}, {@code input}, {@code cacheObjectSelectors} or 
+     *                              {@code cacheObjectAuthorisor} are {@code null}        
       */
     JsonCacheClient getJsonCacheClient(
-        JsonCache jsonCache,
+        String id,
+        CacheImageSender input,
         CacheChangeSetProcessor cacheObjectSelector,
         CacheChangeSetProcessor cacheObjectAuthorisor
     );

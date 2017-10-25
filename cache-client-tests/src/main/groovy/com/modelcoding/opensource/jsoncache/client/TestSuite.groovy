@@ -50,7 +50,8 @@ import org.junit.runners.Suite
 @RunWith(Suite.class)
 @Suite.SuiteClasses(
     [
-        CacheChangeSetProcessorSpecification.class
+        CacheChangeSetProcessorSpecification.class,
+        JsonCacheClientSpecification.class
     ]
 )
 class TestSuite {

@@ -18,17 +18,53 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
 
   private case class SendCacheImageToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
   
+  private case class CompleteAllSubscribers()
+  
+  private case class FailAllSubscribers(error: Throwable)
+  
+  private var subscription: Subscription = _
+  
   private val cacheActor: ActorRef = system.actorOf(Props(new CacheActor(backlogLimit, aCache)))
 
   override def getId: String = id
 
   override def getSubscriberBacklogLimit: Int = backlogLimit
 
-  override def applyChanges(c: CacheChangeCalculator): Unit = {
+  override def onNext(c: CacheChangeCalculator): Unit = {
     
     requireNotNull(c, "Cannot apply null changes to a JsonCache")
     
     cacheActor ! ChangeCache(c)
+    
+    val s: Subscription = this.synchronized { subscription }
+    
+    if(s != null)
+      s.request(1)
+  }
+
+  override def onSubscribe(s: Subscription): Unit = {
+    
+    requireNotNull(s, "A JsonCache cannot receive a null Subscription")
+    
+    this.synchronized { subscription = s }
+    
+    s.request(1)
+  }
+
+  override def onError(error: Throwable): Unit = {
+    
+    requireNotNull(error, "A JsonCache cannot receive a null error")
+    
+    cacheActor ! FailAllSubscribers(error)
+    
+    this.synchronized { subscription = null }
+  }
+
+  override def onComplete(): Unit = {
+    
+    cacheActor ! CompleteAllSubscribers
+    
+    this.synchronized { subscription = null }
   }
 
   override def subscribe(s: Subscriber[_ >: CacheChangeSet]): Unit = {
@@ -98,6 +134,20 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)
         publishers -= publisherActor
         subscribers -= subscriber.delegate
         subscriber.onComplete() // manual call to onComplete() - otherwise, no indication that publishing has finished
+
+      case FailAllSubscribers(error) =>
+        subscribers.keys.foreach { s => s.onError(error) }
+        publishers.keys.foreach { p => context.stop(p) }
+        context.stop(self)
+        publishers.clear()
+        subscribers.clear()
+
+      case CompleteAllSubscribers =>
+        subscribers.keys.foreach { s => s.onComplete() }
+        publishers.keys.foreach { p => context.stop(p) }
+        context.stop(self)
+        publishers.clear()
+        subscribers.clear()
     }
   }
 }

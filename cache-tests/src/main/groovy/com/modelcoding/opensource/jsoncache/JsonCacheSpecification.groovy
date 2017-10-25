@@ -99,7 +99,7 @@ class JsonCacheSpecification extends Specification {
         def jsonCache = m.getJsonCache("id", 12, cache)
 
         when: 
-        jsonCache.applyChanges(null)
+        jsonCache.onNext(null)
 
         then:
         thrown(NullPointerException)
@@ -155,7 +155,7 @@ class JsonCacheSpecification extends Specification {
         
         when: "A subsequent change is made to the cache, followed by a request for a cache image"
         subscriber.expect(2)
-        jsonCache.applyChanges(cacheChangeCalculator)
+        jsonCache.onNext(cacheChangeCalculator)
         jsonCache.sendImageToSubscriber(subscriber)
         
         then: "the subscriber receives a change set with the changes made, followed by a cache image"
@@ -230,7 +230,7 @@ class JsonCacheSpecification extends Specification {
 
         when:
         subscriber1.expect(1)
-        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(0)))
+        jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(0)))
         
         then:
         with(subscriber1) {
@@ -260,7 +260,7 @@ class JsonCacheSpecification extends Specification {
         when:
         subscriber1.expect(1)
         subscriber2.expect(1)
-        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(1)))
+        jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(1)))
         
         then:
         with(subscriber1) {
@@ -302,7 +302,7 @@ class JsonCacheSpecification extends Specification {
         subscriber1.expect(1)
         subscriber2.expect(1)
         subscriber3.expect(1)
-        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(2)))
+        jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(2)))
         
         then:
         with(subscriber1) {
@@ -351,7 +351,7 @@ class JsonCacheSpecification extends Specification {
         
         when:
         subscriber3.expect(1)
-        jsonCache.applyChanges(m.getCacheChangeCalculator(cacheChangeSet(3)))
+        jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(3)))
         
         then:
         with(subscriber3) {
@@ -427,7 +427,7 @@ class JsonCacheSpecification extends Specification {
         when: "A subscription is made, and a change made to the cache, but the subscriber is 'slow'" 
         subscriber.expect(1)
         jsonCache.subscribe(subscriber)
-        jsonCache.applyChanges(cacheChangeCalculator)
+        jsonCache.onNext(cacheChangeCalculator)
         
         then: "the notification of the initial change set and subsequent change set overfills the buffer, and the subscriber gets an error"
         with(subscriber) {
@@ -511,7 +511,7 @@ class JsonCacheSpecification extends Specification {
                     threadChanges[index].eachWithIndex { c, i ->
                         // The specification for a JsonCache guarantees that these changes MUST be received by a
                         // subscriber already registered by this thread 
-                        jsonCache.applyChanges(m.getCacheChangeCalculator(c))
+                        jsonCache.onNext(m.getCacheChangeCalculator(c))
                         if(Math.random() > 0.5)
                             Thread.yield()
                         if(i == 1)
@@ -552,6 +552,119 @@ class JsonCacheSpecification extends Specification {
             !hasError
         }
         subscriber.changeSets == [cacheImage(lastObjects) ]
+    }
+    
+    def "JsonCache as a subscriber completes all its subscribers when it is completed"() {
+        
+        setup:
+        def object1 =
+            m.getCacheObject("Id1", "Type", someContent)
+        def object2 =
+            m.getCacheObject("Id2", "Type", someOtherContent)
+        def puts = [object1, object2] as Set
+        def removes = [] as Set
+        CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
+        CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        def cache = m.getCache([] as Set)
+        def jsonCache = m.getJsonCache("id", 2, cache)
+        def subscriber1 = new MockSubscriber()
+        def subscriber2 = new MockSubscriber()
+        def subscription = Mock(Subscription)
+        
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        jsonCache.subscribe(subscriber1)
+        jsonCache.subscribe(subscriber2)
+        
+        then:
+        subscriber1.await()
+        subscriber2.await()
+        
+        when:
+        jsonCache.onSubscribe(null)
+        
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        jsonCache.onSubscribe(subscription)
+        
+        then:
+        1 * subscription.request(1)
+        0 * subscription._
+        
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        jsonCache.onNext(cacheChangeCalculator)
+        
+        then:
+        1 * subscription.request(1)
+        0 * subscription._
+        subscriber1.await()
+        subscriber2.await()
+        subscriber1.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
+        
+        when:
+        jsonCache.onComplete()
+        
+        then:
+        subscriber1.awaitComplete()
+        subscriber2.awaitComplete()
+    }
+    
+    def "JsonCache as a subscriber fails all its subscribers when it is failed"() {
+        
+        setup:
+        def object1 =
+            m.getCacheObject("Id1", "Type", someContent)
+        def object2 =
+            m.getCacheObject("Id2", "Type", someOtherContent)
+        def puts = [object1, object2] as Set
+        def removes = [] as Set
+        CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
+        def cache = m.getCache([] as Set)
+        def jsonCache = m.getJsonCache("id", 2, cache)
+        def subscriber1 = new MockSubscriber()
+        def subscriber2 = new MockSubscriber()
+        def subscription = Mock(Subscription)
+        def error = new RuntimeException("Error with input of CacheChangeCalculators")
+        
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        jsonCache.subscribe(subscriber1)
+        jsonCache.subscribe(subscriber2)
+        
+        then:
+        subscriber1.await()
+        subscriber2.await()
+        
+        when:
+        jsonCache.onSubscribe(subscription)
+        
+        then:
+        1 * subscription.request(1)
+        0 * subscription._
+        
+        when:
+        jsonCache.onError(null)
+        
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        subscriber1.expect(1)
+        subscriber2.expect(1)
+        jsonCache.onError(error)
+        
+        then:
+        subscriber1.await()
+        subscriber1.hasError
+        subscriber2.await()
+        subscriber2.hasError
     }
     
     private static class MockSubscriber implements Subscriber<CacheChangeSet>

@@ -27,10 +27,14 @@ class ScalaCacheChangeSetProcessor(
   ): Unit = {
 
     requireNotNull(input, "A CacheChangeSetProcessor cannot be connected with a null input")
-    if(this.input != null)
-      throw new IllegalStateException("A CacheChangeSetProcessor cannot be connected more than once")
     
-    this.input = input
+    this.synchronized {
+     
+      if(this.input != null)
+        throw new IllegalStateException("A CacheChangeSetProcessor cannot be connected more than once")
+
+      this.input = input
+    }
   }
 
   override def subscribe(
@@ -38,12 +42,16 @@ class ScalaCacheChangeSetProcessor(
   ): Unit = {
 
     requireNotNull(subscriber, "Cannot subscribe to a CacheChangeSetProcessor with a null subscriber")
-    if(input == null)
-      throw new IllegalStateException("Cannot subscribe to an unconnected CacheChangeSetProcessor - call connect first")
-    if(this.subscriber != null)
-      throw new IllegalStateException("Cannot subscribe more than once to a CacheChangeSetProcessor")
+    
+    this.synchronized {
+      
+      if(input == null)
+        throw new IllegalStateException("Cannot subscribe to an unconnected CacheChangeSetProcessor - call connect first")
+      if(this.subscriber != null)
+        throw new IllegalStateException("Cannot subscribe more than once to a CacheChangeSetProcessor")
 
-    this.subscriber = subscriber
+      this.subscriber = subscriber
+    }
 
     processorActor = system.actorOf(Props(new ProcessorActor()))
 
@@ -55,11 +63,15 @@ class ScalaCacheChangeSetProcessor(
   ): Unit = {
     
     requireNotNull(subscriber, "A CacheChangeSetProcessor cannot send a cache image to a null subscriber")
-    if(input == null)
-      throw new IllegalStateException("An unconnected CacheChangeSetProcessor cannot send a cache image - call connect first")
-    if(this.subscriber == null)
-      throw new IllegalStateException("An unsubscribed CacheChangeSetProcessor cannot send a cache image - call subscribe first")
-    require(this.subscriber == subscriber, "A CacheChangeSetProcessor can only send images to the subscriber given in subscribe")
+    
+    this.synchronized {
+      
+      if(input == null)
+        throw new IllegalStateException("An unconnected CacheChangeSetProcessor cannot send a cache image - call connect first")
+      if(this.subscriber == null)
+        throw new IllegalStateException("An unsubscribed CacheChangeSetProcessor cannot send a cache image - call subscribe first")
+      require(this.subscriber == subscriber, "A CacheChangeSetProcessor can only send images to the subscriber given in subscribe")
+    }
     
     processorActor ! SendCacheImageToSubscriber
   }

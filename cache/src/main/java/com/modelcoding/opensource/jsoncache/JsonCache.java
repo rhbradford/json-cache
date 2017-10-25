@@ -2,7 +2,6 @@
 
 package com.modelcoding.opensource.jsoncache;
 
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -13,7 +12,7 @@ import org.reactivestreams.Subscription;
  * <p>
  * A {@link JsonCache} contains a {@link Cache} of {@link CacheObject}s.
  * <p>
- * A {@link JsonCache} receives commands to alter the set of objects it contains via {@link #applyChanges(CacheChangeCalculator)}.<br>
+ * A {@link JsonCache} receives commands to alter the set of objects it contains via {@link #onNext(CacheChangeCalculator)}.<br>
  * The {@link CacheChangeCalculator}s received are applied in the same sequence as they were supplied.
  * <p>
  * A {@link JsonCache} publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s to
@@ -22,14 +21,14 @@ import org.reactivestreams.Subscription;
  * for each object in the cache when publication to the subscriber is started. The initial {@link CacheChangeSet} has
  * {@link CacheChangeSet#isCacheImage()} as {@code true}.<br>
  * The initial {@link CacheChangeSet}is followed by {@link CacheChangeSet}s detailing subsequent changes made to the 
- * {@link JsonCache} thereafter. These {@link CacheChangeSet}s hav {@link CacheChangeSet#isCacheImage()} as {@code false}.<br>
+ * {@link JsonCache} thereafter. These {@link CacheChangeSet}s have {@link CacheChangeSet#isCacheImage()} as {@code false}.<br>
  * A subscriber registered using {@link #subscribe(Subscriber)} is notified of all changes entered <em>on the same thread</em>
- * via {@link #applyChanges(CacheChangeCalculator)} after registration.<br>
+ * via {@link #onNext(CacheChangeCalculator)} after registration.<br>
  * A {@link JsonCache} calls {@link Subscriber#onComplete()} if a subscription is cancelled via {@link Subscription#cancel()}.<br>
  * A {@link JsonCache} stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
  * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  */
-public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
+public interface JsonCache extends CacheImageSender, Subscriber<CacheChangeCalculator> {
 
     /**
      * @return the identity of this {@link JsonCache}
@@ -46,12 +45,47 @@ public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
      * Adds the given {@code cacheChangeCalculator} to the sequence of pending changes to be applied in due course, 
      * that will alter the set of objects contained in this {@link JsonCache}.<br>
      * {@link CacheChangeCalculator}s are applied in the order received.
+     * <p>
+     * A {@link JsonCache} will immediately request another {@code cacheChangeCalculator} if subscribed. 
      * 
      * @param cacheChangeCalculator calculates the changes to be applied to this {@link JsonCache}.
      * @throws NullPointerException if {@code cacheChangeCalculator} is {@code null}
      */
-    void applyChanges(CacheChangeCalculator cacheChangeCalculator);
+    @Override
+    void onNext(CacheChangeCalculator cacheChangeCalculator);
 
+    /**
+     * A {@link JsonCache} once subscribed immediately requests a {@code cacheChangeCalculator}. 
+     * 
+     * @param subscription {@link Subscription} that allows requesting data via {@link Subscription#request(long)}
+     * @throws NullPointerException if {@code subscription} is {@code null}
+     */
+    @Override
+    void onSubscribe(Subscription subscription);
+
+    /**
+     * A {@link JsonCache} fails all of its {@link CacheChangeSet} subscribers with the given {@code error} if its 
+     * subscription to {@link CacheChangeCalculator}s fails with an error.
+     * <p>
+     * A {@link JsonCache} used as a {@link Subscriber} is spent once its subscription to{@link CacheChangeCalculator}s
+     * is finished - resources are cleared up, and the {@link JsonCache} cannot be used any more.      
+     * 
+     * @param error an error with the subscription to {@link CacheChangeCalculator}s
+     * @throws NullPointerException if {@code error} is {@code null}
+     */
+    @Override
+    void onError(Throwable error);
+
+    /**
+     * A {@link JsonCache} completes all of its {@link CacheChangeSet} subscribers if its subscription to 
+     * {@link CacheChangeCalculator}s completes.
+     * <p>
+     * A {@link JsonCache} used as a {@link Subscriber} is spent once its subscription to{@link CacheChangeCalculator}s
+     * is finished - resources are cleared up, and the {@link JsonCache} cannot be used any more.      
+     */
+    @Override
+    void onComplete();
+    
     /**
      * Register a {@link Subscriber} to receive {@link CacheChangeSet}s from this JsonCache.
      * <p>
@@ -76,7 +110,7 @@ public interface JsonCache extends Publisher<CacheChangeSet>, CacheImageSender {
      * set as {@code true}) is sent to the given {@code subscriber}.
      * <p>
      * The subscriber is notified of all prior changes entered <em>on the same thread</em> via 
-     * {@link #applyChanges(CacheChangeCalculator)} before it receives the cache image {@link CacheChangeSet}.
+     * {@link #onNext(CacheChangeCalculator)} before it receives the cache image {@link CacheChangeSet}.
      *     
      * @param subscriber the subscriber to receive the cache image.
      * @throws NullPointerException if {@code subscriber} is {@code null}

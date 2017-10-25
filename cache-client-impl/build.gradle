@@ -17,9 +17,3 @@ dependencies {
     testCompile project(":CacheClientTests")
     testCompile project(":CacheImpl")
 }
-
-test {
-    testLogging {
-        exceptionFormat = 'full'
-    }
-}

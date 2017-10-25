@@ -4,7 +4,7 @@ package com.modelcoding.opensource.jsoncache;
 
 /**
  * A {@link CacheChangeCalculator} calculates how a {@link JsonCache} is changed when a {@link CacheChangeSet} is applied - 
- * see {@link JsonCache#applyChanges(CacheChangeCalculator)}.
+ * see {@link JsonCache#onNext(CacheChangeCalculator)}.
  * <p>
  * A {@link JsonCache} applies the given {@link #getChangeSet()} to its current {@link Cache} by calling 
  * {@link #calculateChange(Cache)}. This provides a new {@link Cache} to replace the current one -  
@@ -25,7 +25,7 @@ package com.modelcoding.opensource.jsoncache;
 public interface CacheChangeCalculator {
 
     /**
-     * The results for {@link JsonCache#applyChanges(CacheChangeCalculator)}.
+     * The results for {@link JsonCache#onNext(CacheChangeCalculator)}.
      */
     interface ChangeResult {
 

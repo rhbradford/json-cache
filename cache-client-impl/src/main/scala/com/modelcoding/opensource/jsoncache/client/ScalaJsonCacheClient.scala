@@ -2,10 +2,12 @@
 
 package com.modelcoding.opensource.jsoncache.client
 import com.modelcoding.opensource.jsoncache.client.ScalaJsonCacheClientModule.requireNotNull
-import com.modelcoding.opensource.jsoncache.{CacheChangeSet, JsonCache}
+import com.modelcoding.opensource.jsoncache.{CacheChangeSet, CacheImageSender}
 import org.reactivestreams.Subscriber
 
-class ScalaJsonCacheClient(val getJsonCache: JsonCache) extends JsonCacheClient {
+class ScalaJsonCacheClient
+(val getId: String)(input: CacheImageSender, selectors: CacheChangeSetProcessor, authorisors: CacheChangeSetProcessor) 
+  extends JsonCacheClient {
 
   private var subscriber: Subscriber[_ >: CacheChangeSet] = _
   
@@ -13,12 +15,18 @@ class ScalaJsonCacheClient(val getJsonCache: JsonCache) extends JsonCacheClient 
     subscriber: Subscriber[_ >: CacheChangeSet]
   ): Unit = {
     
-    requireNotNull(subscriber, "Cannot subscribe to a ScalaJsonCacheClient with a null subscriber")
-    if(this.subscriber != null)
-      throw new IllegalStateException("Cannot subscribe more than once to a ScalaJsonCacheClient")
+    requireNotNull(subscriber, "Cannot subscribe to a JsonCacheClient with a null subscriber")
+    
+    this.synchronized {
+     
+      if(this.subscriber != null)
+        throw new IllegalStateException("Cannot subscribe more than once to a JsonCacheClient")
 
-    this.subscriber = subscriber
+      this.subscriber = subscriber
+    }
     
-    
+    authorisors.connect(selectors)
+    selectors.connect(input)
+    authorisors.subscribe(subscriber)
   }
 }
