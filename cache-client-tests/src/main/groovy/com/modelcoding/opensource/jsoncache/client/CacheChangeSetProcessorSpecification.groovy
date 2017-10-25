@@ -229,8 +229,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.awaitCompleted()
     }
 
-    @SuppressWarnings("GroovyAssignabilityCheck")
-    def "CacheChangeSetProcessor manages received selectors and filter change sets as expected"() {
+    def "CacheChangeSetProcessor manages received selectors and filters change sets as expected"() {
         
         setup:
         def selectors = new MockSelectorsPublisher()
@@ -252,7 +251,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         selectors.subscriber.onSubscribe(selectorsSubscription)
         
         then: "the CacheChangeSetProcessor requests a selector"
-        selectorsSubscription.releaseOnRequest {
+        selectorsSubscription.outputOnRequest {
             selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
         }
         subscriber.subscription == null
@@ -273,7 +272,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription.request(1)
         
         then: "the CacheChangeSetProcessor forwards the request to its input"
-        inputSubscription.releaseOnRequest {
+        inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
                     [
@@ -309,7 +308,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription.request(1)
         
         then: "the CacheChangeSetProcessor forwards the request to its input"
-        inputSubscription.releaseOnRequest {
+        inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
                     [
@@ -343,7 +342,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         
         when: "the CacheChangeSetProcessor receives another selector"
         input.expectSendImageRequest()
-        def selectorRequested = selectorsSubscription.releaseOnRequest {
+        def selectorRequested = selectorsSubscription.outputOnRequest {
             selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
         }
         subscriber.expectChangeSet()
@@ -359,7 +358,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription.request(1)
         
         then: "the CacheChangeSetProcessor forwards the request to its input"
-        inputSubscription.releaseOnRequest {
+        inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
                     [
@@ -388,7 +387,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         
         when: "the CacheChangeSetProcessor receives another selector"
         input.expectSendImageRequest()
-        selectorRequested = selectorsSubscription.releaseOnRequest {
+        selectorRequested = selectorsSubscription.outputOnRequest {
             selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("C") } as Predicate<CacheObject>)
         }
         subscriber.expectChangeSet()
@@ -404,7 +403,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription.request(1)
         
         then: "the CacheChangeSetProcessor forwards the request to its input"
-        inputSubscription.releaseOnRequest {
+        inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
                     [
@@ -473,7 +472,7 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription.request(1)
         
         then: "the CacheChangeSetProcessor forwards the request to its input"
-        inputSubscription.releaseOnRequest {
+        inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
                     [
@@ -505,25 +504,656 @@ class CacheChangeSetProcessorSpecification extends Specification {
             )
         }
     }
-    
+
     def "CacheChangeSetProcessor handles receiving more selectors whilst waiting for input subscription to be established"() {
         
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        then: "another selector is received whilst the input subscription is pending, which replaces the previous selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("B") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("B1", "BType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("A1"),
+                    m.getCacheRemove("A2"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
     }
     
     def "CacheChangeSetProcessor continues to output to its subscriber if selectors subscription completes after publishing at least one selector"() {
         
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([])),
+                    m.getCacheObject("A2", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
+
+        then: "the selectors subscription completes"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onComplete()
+        }
+        
+        when: "the subscriber requests another CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor continues to forward the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A3", "AType", asJsonNode([])),
+                        m.getCacheObject("B2", "BType", asJsonNode([])),
+                        m.getCacheObject("C2", "CType", asJsonNode([]))
+                    ] as Set,
+                    [
+                        m.getCacheRemove("A2")
+                    ] as Set,
+                    false
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A3", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("A2"),
+                    m.getCacheRemove("B2"),
+                    m.getCacheRemove("C2")
+                ] as Set,
+                false
+            )
+        }
+    }
+
+    def "CacheChangeSetProcessor subscriber receives error and input subscription is not made if selectors subscription fails with error before sending a selector"() {
+        
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def error = new RuntimeException("Error with selectors")
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector, but the selectors subscription fails with an error"
+        subscriber.expectError()
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onError(error)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the error, the CacheChangeSetProcessor does not subscriber to its input, but fails its subscriber with the error"
+        subscriber.awaitError()
+        subscriber.receivedError == error
+        input.subscriber == null
     }
     
     def "CacheChangeSetProcessor subscriber receives error and input subscription is cancelled if selectors subscription fails with error"() {
         
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        def error = new RuntimeException("Error with selectors")
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        subscriber.expectError()
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([])),
+                    m.getCacheObject("A2", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
+
+        then: "the selectors subscription fails with an error"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onError(error)
+        }
+        
+        then: "the CacheChangeSetProcessor cancels the its input subscription"
+        inputSubscription.cancelOnRequest {
+            input.subscriber.onComplete() // Expecting a JsonCache to send onComplete if cancelled
+        }
+        
+        then: "the CacheChangeSetProcessor fails its subscriber with the error"
+        subscriber.awaitError()
+        subscriber.receivedError == error
+    }
+    
+    def "CacheChangeSetProcessor subscriber receives error and input subscription is cancelled if selectors subscription fails with error - alternative"() {
+        
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        def error = new RuntimeException("Error with selectors")
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the selectors subscription fails 'out-of-the-blue'"
+        selectors.subscriber.onError(error)
+        subscriber.expectError()
+        
+        then: "the CacheChangeSetProcessor cancels the its input subscription"
+        inputSubscription.cancelOnRequest {
+            input.subscriber.onComplete() // Expecting a JsonCache to send onComplete if cancelled
+        }
+        
+        then: "the CacheChangeSetProcessor fails its subscriber with the error"
+        subscriber.awaitError()
+        subscriber.receivedError == error
     }
     
     def "CacheChangeSetProcessor subscriber receives error and selectors subscription is cancelled if input subscription fails with error"() {
         
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        def error = new RuntimeException("Error with input")
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([])),
+                    m.getCacheObject("A2", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
+        
+        when: "the subscriber requests another CacheChangeSet"
+        subscriber.subscription.request(1)
+        subscriber.expectError()
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input, but the input fails with an error"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onError(error)
+        }
+        
+        then: "the CacheChangeSetProcessor cancels the selectors subscription"
+        selectorsSubscription.cancelOnRequest {
+            // Do nothing - a publisher need not do anything on receiving cancel request other than cease sending
+        }
+        
+        then: "the CacheChangeSetProcessor fails its subscriber with the error"
+        subscriber.awaitError()
+        subscriber.receivedError == error
+    }
+
+    def "CacheChangeSetProcessor subscriber receives error and selectors subscription is cancelled if input subscription fails with error - alternative"() {
+        
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        def error = new RuntimeException("Error with input")
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([])),
+                    m.getCacheObject("A2", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
+        
+        when: "the input fails with an error 'out-of-the-blue' with no request for input pending"
+        input.subscriber.onError(error)
+        subscriber.expectError()
+        
+        then: "the CacheChangeSetProcessor cancels the selectors subscription"
+        selectorsSubscription.cancelOnRequest {
+            // Do nothing - a publisher need not do anything on receiving cancel request other than cease sending
+        }
+        
+        then: "the CacheChangeSetProcessor fails its subscriber with the error"
+        subscriber.awaitError()
+        subscriber.receivedError == error
     }
     
+    @IgnoreRest
     def "CacheChangeSetProcessor subscriber is completed when cancelled and selectors and input subscriptions are cancelled"() {
         
+        setup:
+        def selectors = new MockSelectorsPublisher()
+        def input = new MockCacheImageSender()
+        def subscriber = new MockSubscriber()
+        def selectorsSubscription = new MockSubscription()
+        def inputSubscription = new MockSubscription()
+        
+        when: "a subscription is made to the CacheChangeSetProcessor"
+        def processor = c.getCacheChangeSetProcessor(selectors)
+        processor.connect(input)
+        processor.subscribe(subscriber)
+        
+        then: "the CacheChangeSetProcessor subscribes to the selectors"
+        selectors.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the selectors subscription is established"
+        selectors.subscriber.onSubscribe(selectorsSubscription)
+        
+        then: "the CacheChangeSetProcessor requests a selector"
+        selectorsSubscription.outputOnRequest {
+            selectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        subscriber.subscription == null
+        
+        then: "on receipt of the selector, the CacheChangeSetProcessor subscribes to its input"
+        input.awaitSubscription()
+        subscriber.subscription == null
+        
+        when: "the input subscription is established"
+        input.subscriber.onSubscribe(inputSubscription)
+        
+        then: "the CacheChangeSetProcessor establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the CacheChangeSetProcessor forwards the request to its input"
+        inputSubscription.outputOnRequest {
+            input.subscriber.onNext(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    true
+                )
+            )
+        }
+        
+        then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
+        with(subscriber) {
+            awaitChangeSet()
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([])),
+                    m.getCacheObject("A2", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
+
+        when: "the subscription to the CacheChangeSetProcessor is cancelled"
+        subscriber.subscription.cancel()
+        
+        then: "the CacheChangeSetProcessor cancels the selectors subscription"
+        selectorsSubscription.cancelOnRequest {
+            // Do nothing - a publisher need not do anything on receiving cancel request other than cease sending
+        }
+        
+        then: "the CacheChangeSetProcessor cancels the its input subscription"
+        inputSubscription.cancelOnRequest {
+            input.subscriber.onComplete() // Expecting a JsonCache to send onComplete if cancelled
+        }
+        
+        then: "the subscription is completed"
+        subscriber.awaitCompleted()
     }
     
     def "CacheChangeSetProcessor forwards call for it to output a cache image to its input"() {
@@ -532,34 +1162,56 @@ class CacheChangeSetProcessorSpecification extends Specification {
     
     private static class MockSubscription implements Subscription {
 
-        private boolean requested
-        
         private final long timeout
         
         MockSubscription(long timeout = 1000) {
             this.timeout = timeout
         }
         
-        boolean releaseOnRequest(Closure code) {
-            synchronized(this) {
+        private final Object requestMonitor = new Object() 
+        private boolean requested
+
+        boolean outputOnRequest(Closure outputCode) {
+            synchronized(requestMonitor) {
                 if(!requested) {
-                    wait(timeout)
+                    requestMonitor.wait(timeout)
                     if(!requested) return false
                 }
                 requested = false
             }
-            code()
+            outputCode()
             return true
         }
         
         @Override
-        synchronized void request(final long n) {
-            requested = true
-            notify()
+        void request(final long n) {
+            synchronized(requestMonitor) {
+                requested = true
+                requestMonitor.notify()
+            }
         }
 
+        private final Object cancelRequestMonitor = new Object() 
+        private boolean cancelRequested
+
+        boolean cancelOnRequest(Closure cancelCode) {
+            synchronized(cancelRequestMonitor) {
+                if(!cancelRequested) {
+                    cancelRequestMonitor.wait(timeout)
+                    if(!cancelRequested) return false
+                }
+                cancelRequested = false
+            }
+            cancelCode()
+            return true
+        }
+        
         @Override
         void cancel() {
+            synchronized(cancelRequestMonitor) {
+                cancelRequested = true
+                cancelRequestMonitor.notify()
+            }
         }
     }
     

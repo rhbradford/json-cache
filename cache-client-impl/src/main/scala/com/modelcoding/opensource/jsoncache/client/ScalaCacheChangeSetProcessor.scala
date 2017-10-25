@@ -71,24 +71,24 @@ class ScalaCacheChangeSetProcessor(
   private case class OnNextSelector(selector: Predicate[CacheObject])
   private case class OnSelectorsFailed(t: Throwable)
   private case class OnSelectorsCompleted()
-  private case class OnChangeSetsSubscribed()
-  private case class OnNextChangeSet(changeSet: CacheChangeSet)
-  private case class OnChangeSetsFailed(t: Throwable)
-  private case class OnChangeSetsCompleted()
-  private case class CancelChangeSets()
-  private case class RequestChangeSets(n: Long)
+  private case class OnInputSubscribed()
+  private case class OnNextChangeSetFromInput(changeSet: CacheChangeSet)
+  private case class OnInputFailed(t: Throwable)
+  private case class OnInputCompleted()
+  private case class CancelOutput()
+  private case class RequestOutputChangeSets(n: Long)
   private case class SendCacheImageToSubscriber()
 
   private class ProcessorActor extends Actor {
 
     import context._
 
-    private var selectorSubscriber    : Subscriber[Predicate[CacheObject]] = _
-    private var selectorsSubscription : Subscription                       = _
-    private var changeSetSubscriber   : Subscriber[CacheChangeSet]         = _
-    private var changeSetsSubscription: Subscription                       = _
-    private var selector              : Predicate[CacheObject]             = _
-    private var pendingSelector       : Predicate[CacheObject]             = _
+    private var selectorSubscriber   : Subscriber[Predicate[CacheObject]] = _
+    private var selectorsSubscription: Subscription                       = _
+    private var inputSubscriber      : Subscriber[CacheChangeSet]         = _
+    private var inputSubscription    : Subscription                       = _
+    private var selector             : Predicate[CacheObject]             = _
+    private var pendingSelector      : Predicate[CacheObject]             = _
 
     override def receive: Receive = {
 
@@ -118,19 +118,19 @@ class ScalaCacheChangeSetProcessor(
         case OnNextSelector(s) =>
           selector = s
           selectorsSubscription.request(1)
-          subscribeToChangeSets()
-          become(subscribingToChangeSets)
+          subscribeToInput()
+          become(subscribingToInput)
 
         case SendCacheImageToSubscriber =>  
       })
     }
 
-    private def subscribingToChangeSets: PartialFunction[Any, Unit] = {
+    private def subscribingToInput: PartialFunction[Any, Unit] = {
 
       withHandlingOfFinishedStreams({
 
-        case OnChangeSetsSubscribed =>
-          subscriber.onSubscribe(new ChangeSetSubscription)
+        case OnInputSubscribed =>
+          subscriber.onSubscribe(new OutputSubscription)
           become(running)
 
         case OnNextSelector(s) =>
@@ -145,22 +145,22 @@ class ScalaCacheChangeSetProcessor(
 
       withHandlingOfFinishedStreams({
 
-        case CancelChangeSets => changeSetsSubscription.cancel()
+        case CancelOutput => onCancelOutput()
         
-        case RequestChangeSets(n) =>
-          changeSetsSubscription.request(n)
+        case RequestOutputChangeSets(n) =>
+          inputSubscription.request(n)
 
-        case OnNextChangeSet(changeSet) =>
+        case OnNextChangeSetFromInput(changeSet) =>
           processChangeSet(changeSet)
 
         case OnNextSelector(s) =>
           pendingSelector = s
           selectorsSubscription.request(1)
-          input.sendImageToSubscriber(changeSetSubscriber)
+          input.sendImageToSubscriber(inputSubscriber)
           become(runningPendingSelectorChange)
 
         case SendCacheImageToSubscriber =>
-          input.sendImageToSubscriber(changeSetSubscriber)
+          input.sendImageToSubscriber(inputSubscriber)
       })
     }
 
@@ -168,27 +168,27 @@ class ScalaCacheChangeSetProcessor(
 
       withHandlingOfFinishedStreams({
 
-        case CancelChangeSets => changeSetsSubscription.cancel()
+        case CancelOutput => onCancelOutput()
         
-        case RequestChangeSets(n) =>
-          changeSetsSubscription.request(n)
+        case RequestOutputChangeSets(n) =>
+          inputSubscription.request(n)
 
-        case OnNextChangeSet(changeSet) =>
+        case OnNextChangeSetFromInput(changeSet) =>
           if(changeSet.isCacheImage) {
             selector = pendingSelector
             pendingSelector = null
             become(running)
           }
           processChangeSet(changeSet)
-          changeSetsSubscription.request(1)
+          inputSubscription.request(1)
 
         case OnNextSelector(s) =>
           pendingSelector = s
           selectorsSubscription.request(1)
-          input.sendImageToSubscriber(changeSetSubscriber)
+          input.sendImageToSubscriber(inputSubscriber)
 
         case SendCacheImageToSubscriber =>
-          input.sendImageToSubscriber(changeSetSubscriber)
+          input.sendImageToSubscriber(inputSubscriber)
       })
     }
 
@@ -197,19 +197,27 @@ class ScalaCacheChangeSetProcessor(
 
     private def handleFinishedStreams: PartialFunction[Any, Unit] = {
 
-      case OnChangeSetsFailed(error) => onChangeSetsFailed(error)
+      case OnInputFailed(error) => onInputFailed(error)
 
-      case OnChangeSetsCompleted => onChangeSetsComplete()
+      case OnInputCompleted => onInputComplete()
 
       case OnSelectorsFailed(error) => onSelectorsFailed(error)
 
       case OnSelectorsCompleted => onSelectorsComplete()
     }
 
-    private def subscribeToChangeSets(): Unit = {
+    private def onCancelOutput(): Unit = {
+      
+      selectorsSubscription.cancel()
+      inputSubscription.cancel()
+      subscriber.onComplete()
+      context.stop(self)
+    }
+    
+    private def subscribeToInput(): Unit = {
 
-      changeSetSubscriber = new ChangeSetSubscriber
-      input.subscribe(changeSetSubscriber)
+      inputSubscriber = new InputSubscriber
+      input.subscribe(inputSubscriber)
     }
 
     private def processChangeSet(changeSet: CacheChangeSet): Unit = {
@@ -232,14 +240,14 @@ class ScalaCacheChangeSetProcessor(
       subscriber.onNext(outputChangeSet)
     }
 
-    private def onChangeSetsFailed(error: Throwable): Unit = {
+    private def onInputFailed(error: Throwable): Unit = {
 
       subscriber.onError(error)
       selectorsSubscription.cancel()
       context.stop(self)
     }
 
-    private def onChangeSetsComplete(): Unit = {
+    private def onInputComplete(): Unit = {
 
       subscriber.onComplete()
       selectorsSubscription.cancel()
@@ -255,7 +263,7 @@ class ScalaCacheChangeSetProcessor(
     private def onSelectorsFailed(error: Throwable): Unit = {
 
       subscriber.onError(error)
-      if(changeSetsSubscription != null) changeSetsSubscription.cancel()
+      if(inputSubscription != null) inputSubscription.cancel()
       context.stop(self)
     }
 
@@ -264,33 +272,32 @@ class ScalaCacheChangeSetProcessor(
       if(selector == null) {
         // Finished - not going to get a selector to use to process the change sets
         subscriber.onComplete()
-        if(changeSetsSubscription != null) changeSetsSubscription.cancel()
         context.stop(self)
       } // otherwise - continue, as there is a selector (note that this selector will not now change...)
     }
 
-    private class ChangeSetSubscription() extends Subscription {
+    private class OutputSubscription() extends Subscription {
 
-      override def cancel(): Unit = processorActor ! CancelChangeSets
+      override def cancel(): Unit = processorActor ! CancelOutput
 
-      override def request(n: Long): Unit = processorActor ! RequestChangeSets(n)
+      override def request(n: Long): Unit = processorActor ! RequestOutputChangeSets(n)
     }
     
-    private class ChangeSetSubscriber extends Subscriber[CacheChangeSet] {
+    private class InputSubscriber extends Subscriber[CacheChangeSet] {
 
-      override def onError(t: Throwable): Unit = processorActor ! OnChangeSetsFailed(t)
+      override def onError(t: Throwable): Unit = processorActor ! OnInputFailed(t)
 
-      override def onComplete(): Unit = processorActor ! OnChangeSetsCompleted
+      override def onComplete(): Unit = processorActor ! OnInputCompleted
 
       override def onNext(t: CacheChangeSet): Unit = {
 
-        processorActor ! OnNextChangeSet(t)
+        processorActor ! OnNextChangeSetFromInput(t)
       }
 
       override def onSubscribe(s: Subscription): Unit = {
 
-        changeSetsSubscription = s
-        processorActor ! OnChangeSetsSubscribed
+        inputSubscription = s
+        processorActor ! OnInputSubscribed
       }
     }
 
