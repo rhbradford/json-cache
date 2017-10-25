@@ -41,7 +41,7 @@ class ScalaCacheChangeSetProcessor(
     if(input == null)
       throw new IllegalStateException("Cannot subscribe to an unconnected CacheChangeSetProcessor - call connect first")
     if(this.subscriber != null)
-      throw new IllegalStateException("Cannot subscribe more then once to a CacheChangeSetProcessor")
+      throw new IllegalStateException("Cannot subscribe more than once to a CacheChangeSetProcessor")
 
     this.subscriber = subscriber
 

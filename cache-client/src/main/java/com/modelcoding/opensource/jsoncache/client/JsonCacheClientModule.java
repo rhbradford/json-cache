@@ -56,7 +56,22 @@ public interface JsonCacheClientModule {
         Publisher<Predicate<CacheObject>> cacheObjectSelectors
     );
 
-    JsonCacheClient getControlledCacheChangeSetSource(
+    /**
+     * Creates a {@link JsonCacheClient} that provides a live "view" of a {@link JsonCache}.
+     * <p>
+     * The view is defined by the {@code cacheObjectSelector}.<br>
+     * The view is restricted by the {@code cacheObjectAuthorisor}.
+     * <p>
+     * The {@link JsonCache} is provided as the input to the {@code cacheObjectSelector}.<br>
+     * The {@code cacheObjectSelector} is provided as the input to the {@code cacheObjectAuthorisor}.<br>
+     * The {@code cacheObjectAuthorisor} is used as the output for the created {@link JsonCacheClient}.
+     * 
+     * @param jsonCache the underlying source of {@link CacheChangeSet}s
+     * @param cacheObjectSelector re-processes {@link CacheChangeSet}s to define a view of the given {@code jsonCache}
+     * @param cacheObjectAuthorisor re-processes {@link CacheChangeSet}s to restrict the view of the given {@code jsonCache}
+     * @return a live "view" of the given {@code jsonCache}
+      */
+    JsonCacheClient getJsonCacheClient(
         JsonCache jsonCache,
         CacheChangeSetProcessor cacheObjectSelector,
         CacheChangeSetProcessor cacheObjectAuthorisor

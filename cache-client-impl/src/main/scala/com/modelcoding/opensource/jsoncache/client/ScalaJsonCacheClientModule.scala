@@ -21,7 +21,7 @@ class ScalaJsonCacheClientModule(implicit val jsonCacheModule: JsonCacheModule, 
     new ScalaCacheChangeSetProcessor(cacheObjectSelectors)
   }
 
-  override def getControlledCacheChangeSetSource(
+  override def getJsonCacheClient(
     jsonCache: JsonCache,
     cacheObjectSelector: CacheChangeSetProcessor,
     cacheObjectAuthorisor: CacheChangeSetProcessor
