@@ -72,12 +72,11 @@ public interface JsonCacheModule {
 
     /**
      * @param json JSON representation of a {@link CacheChangeSet} in the form given by {@link CacheChangeSet#asJsonNode()}
-     * @param builder the implementation to use to create {@link CacheObject} puts and {@link CacheRemove} removes            
      * @return an instance of a {@link CacheChangeSet} as defined by the given {@code json}
-     * @throws NullPointerException if {@code json} is {@code null}, or {@code builder} is {@code null}
+     * @throws NullPointerException if {@code json} is {@code null}
      * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheChangeSet#asJsonNode()}
      */
-    CacheChangeSet getCacheChangeSet(JsonNode json, JsonCacheModule builder);
+    CacheChangeSet getCacheChangeSet(JsonNode json);
     
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}

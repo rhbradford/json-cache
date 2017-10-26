@@ -21,7 +21,7 @@ object ScalaCacheChangeSet {
       isCacheImage
     ) {}
   
-  def apply(json: JsonNode)(builder: JsonCacheModule): CacheChangeSet = {
+  def apply(json: JsonNode): CacheChangeSet = {
     
     if(json.isObject) {
       val isCacheImage_json: JsonNode = json.get("isCacheImage")
@@ -32,12 +32,12 @@ object ScalaCacheChangeSet {
           if(removes_json != null && removes_json.isArray) {
             val puts: util.Set[CacheObject] = new util.HashSet[CacheObject]()
             puts_json.elements().forEachRemaining{ j => 
-              puts.add(builder.getCacheObject(j))
+              puts.add(ScalaCacheObject(j))
             }
             
             val removes: util.Set[CacheRemove] = new util.HashSet[CacheRemove]()
             removes_json.elements().forEachRemaining{ j => 
-              removes.add(builder.getCacheRemove(j))
+              removes.add(ScalaCacheRemove(j))
             }
             
             return apply(puts, removes, isCacheImage_json.asBoolean())

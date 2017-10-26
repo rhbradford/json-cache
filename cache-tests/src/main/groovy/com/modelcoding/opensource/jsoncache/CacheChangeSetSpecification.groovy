@@ -4,12 +4,15 @@ package com.modelcoding.opensource.jsoncache
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
+import net.javacrumbs.jsonunit.core.Option
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
 import spock.lang.Specification
 
 import static TestSuite.*
+import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals
+import static net.javacrumbs.jsonunit.JsonAssert.when
 
 class CacheChangeSetSpecification extends Specification {
 
@@ -60,16 +63,16 @@ class CacheChangeSetSpecification extends Specification {
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
         cacheChangeSet.cacheImage
-        cacheChangeSet.asJsonNode() == json
+        assertJsonEquals(cacheChangeSet.asJsonNode(), json, when(Option.IGNORING_ARRAY_ORDER))
         
         when:
-        cacheChangeSet = m.getCacheChangeSet(json, m)
+        cacheChangeSet = m.getCacheChangeSet(json)
         
         then:
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
         cacheChangeSet.cacheImage
-        cacheChangeSet.asJsonNode() == json
+        assertJsonEquals(cacheChangeSet.asJsonNode(), json, when(Option.IGNORING_ARRAY_ORDER))
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
@@ -87,23 +90,16 @@ class CacheChangeSetSpecification extends Specification {
         thrown(NullPointerException)
         
         when:
-        m.getCacheChangeSet(null, m)
+        m.getCacheChangeSet(null)
 
         then:
         thrown(NullPointerException)
         
         when:
-        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode(), null)
-
-        then:
-        thrown(NullPointerException)
-        
-        when:
-        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode(), m)
+        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode())
 
         then:
         thrown(IllegalArgumentException)
-        
     }
     
     def "Equal CacheChangeSets are equal"() {

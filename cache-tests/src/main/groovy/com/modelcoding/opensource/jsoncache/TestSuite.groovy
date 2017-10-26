@@ -48,9 +48,9 @@ import org.junit.runners.Suite
         CacheObjectSpecification.class,
         CacheRemoveSpecification.class,
         CacheChangeSetSpecification.class,
-//        CacheSpecification.class,
-//        CacheChangeCalculatorSpecification.class,
-//        JsonCacheSpecification.class
+        CacheSpecification.class,
+        CacheChangeCalculatorSpecification.class,
+        JsonCacheSpecification.class
     ]
 )
 class TestSuite {
