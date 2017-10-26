@@ -287,6 +287,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -324,6 +326,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A3", "AType", asJsonNode([]))
@@ -371,6 +375,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using current selector (not the pending selector), and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A4", "AType", asJsonNode([]))
@@ -415,6 +421,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using current selector (not the pending selector), and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [] as Set,
                 [
@@ -446,6 +454,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a cache image CacheChangeSet, makes the pending selector the current selector, filters and outputs a cache image CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("C1", "CType", asJsonNode([])),
@@ -488,6 +498,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("C4", "CType", asJsonNode([]))
@@ -569,6 +581,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("B1", "BType", asJsonNode([]))
@@ -644,6 +658,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -686,6 +702,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A3", "AType", asJsonNode([]))
@@ -729,8 +747,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         subscriber.subscription == null
         
         then: "on receipt of the error, the CacheChangeSetProcessor does not subscriber to its input, but fails its subscriber with the error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
         input.subscriber == null
     }
     
@@ -797,6 +819,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -821,8 +845,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the CacheChangeSetProcessor fails its subscriber with the error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "CacheChangeSetProcessor subscriber receives error and input subscription is cancelled if selectors subscription fails with error - alternative"() {
@@ -874,8 +902,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the CacheChangeSetProcessor fails its subscriber with the error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "CacheChangeSetProcessor subscriber receives error and selectors subscription is cancelled if input subscription fails with error"() {
@@ -940,6 +972,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -968,8 +1002,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the CacheChangeSetProcessor fails its subscriber with the error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
 
     def "CacheChangeSetProcessor subscriber receives error and selectors subscription is cancelled if input subscription fails with error - alternative"() {
@@ -1034,6 +1072,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -1057,8 +1097,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the CacheChangeSetProcessor fails its subscriber with the error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "CacheChangeSetProcessor subscriber is completed when cancelled and selectors and input subscriptions are cancelled"() {
@@ -1122,6 +1166,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -1149,7 +1195,11 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the subscription is completed"
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+        }
     }
     
     def "CacheChangeSetProcessor subscriber is completed when input is completed, and the selectors subscription is cancelled"() {
@@ -1213,6 +1263,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -1235,7 +1287,11 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the subscription is completed"
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+        }
     }
     
     
@@ -1301,6 +1357,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -1324,8 +1382,12 @@ class CacheChangeSetProcessorSpecification extends Specification {
         }
         
         then: "the subscription fails with error"
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "CacheChangeSetProcessor forwards call for it to output a cache image to its input"() {
@@ -1389,6 +1451,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
@@ -1433,6 +1497,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor on receipt of a CacheChangeSet, filters using selector, and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A3", "AType", asJsonNode([]))
@@ -1466,6 +1532,8 @@ class CacheChangeSetProcessorSpecification extends Specification {
         then: "the CacheChangeSetProcessor processes the cache image from the input against the selector and sends processed cache image to subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),

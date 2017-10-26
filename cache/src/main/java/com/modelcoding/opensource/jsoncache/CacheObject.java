@@ -3,6 +3,7 @@
 package com.modelcoding.opensource.jsoncache;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A {@link CacheObject} represents a "JSON object" in a {@link JsonCache}.<br>
@@ -39,6 +40,18 @@ public interface CacheObject {
      * @return a {@link CacheRemove} that can be used to remove this {@link CacheObject} from a {@link Cache}
      */
     CacheRemove asCacheRemove();
+
+    /**
+     * @return this {@link CacheObject} as JSON of the form:
+     * <pre>
+     * {<br>
+     *     "id" : {@link #getId()},<br>
+     *     "type" : {@link #getType()},<br>
+     *     "content" : {@link #getContent()}<br>
+     * }    
+     * </pre>    
+     */
+    ObjectNode asJsonNode();
 
     /**
      * {@link CacheObject}s are always considered equal if they have the same {@link #getId()}. 

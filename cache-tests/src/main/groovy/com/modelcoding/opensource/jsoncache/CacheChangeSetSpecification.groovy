@@ -2,6 +2,8 @@
 
 package com.modelcoding.opensource.jsoncache
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
@@ -46,11 +48,28 @@ class CacheChangeSetSpecification extends Specification {
 
         when:
         def cacheChangeSet = m.getCacheChangeSet(puts, removes, true)
+        def json = asJsonNode(
+            [
+                "isCacheImage": true,
+                "puts" : puts.collect { it.asJsonNode() },
+                "removes" : removes.collect { it.asJsonNode() }
+            ]
+        )
 
         then:
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
         cacheChangeSet.cacheImage
+        cacheChangeSet.asJsonNode() == json
+        
+        when:
+        cacheChangeSet = m.getCacheChangeSet(json, m)
+        
+        then:
+        cacheChangeSet.puts == puts
+        cacheChangeSet.removes == removes
+        cacheChangeSet.cacheImage
+        cacheChangeSet.asJsonNode() == json
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
@@ -66,6 +85,25 @@ class CacheChangeSetSpecification extends Specification {
 
         then:
         thrown(NullPointerException)
+        
+        when:
+        m.getCacheChangeSet(null, m)
+
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode(), null)
+
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode(), m)
+
+        then:
+        thrown(IllegalArgumentException)
+        
     }
     
     def "Equal CacheChangeSets are equal"() {
@@ -98,6 +136,11 @@ class CacheChangeSetSpecification extends Specification {
             @Override
             boolean isCacheImage() {
                 false
+            }
+
+            @Override
+            ObjectNode asJsonNode() {
+                null
             }
         }
     }

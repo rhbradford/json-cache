@@ -58,14 +58,20 @@ class MockSubscriber implements Subscriber<CacheChangeSet> {
         changeSetReceived.countDown()
     }
 
+    boolean hasError
+    
     @Override
     void onError(final Throwable t) {
+        hasError = true
         receivedError = t
         errorReceived.countDown()
     }
 
+    boolean hasCompleted
+    
     @Override
     void onComplete() {
+        hasCompleted = true
         completed.countDown()
     }
 }

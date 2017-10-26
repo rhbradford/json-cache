@@ -164,6 +164,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -201,6 +203,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -296,6 +300,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -333,6 +339,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -372,6 +380,8 @@ class JsonCacheClientSpecification extends Specification {
         )
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("B1", "BType", asJsonNode([]))
@@ -469,6 +479,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -506,6 +518,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -545,6 +559,8 @@ class JsonCacheClientSpecification extends Specification {
         )
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -643,6 +659,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -680,6 +698,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -704,8 +724,12 @@ class JsonCacheClientSpecification extends Specification {
         objectAuthorisorsSubscription.cancelOnRequest {
             // Do nothing when cancelled - an alternative allowed by Publisher specification
         }
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "JsonCacheClient subscriber receives error when the authorisors fails, and the input and selectors subscriptions are cancelled"() {
@@ -790,6 +814,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -827,6 +853,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -851,8 +879,12 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectorsSubscription.cancelOnRequest {
             // Do nothing when cancelled - an alternative allowed by Publisher specification
         }
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "JsonCacheClient subscriber receives error when the input fails, and the selectors and authorisors subscriptions are cancelled"() {
@@ -937,6 +969,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -974,6 +1008,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -998,8 +1034,12 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectorsSubscription.cancelOnRequest {
             // Do nothing when cancelled - an alternative allowed by Publisher specification
         }
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+        }
     }
     
     def "JsonCacheClient subscriber is completed when the input is completed, and the selectors and authorisors subscriptions are cancelled"() {
@@ -1083,6 +1123,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -1120,6 +1162,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -1143,7 +1187,11 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectorsSubscription.cancelOnRequest {
             // Do nothing when cancelled - an alternative allowed by Publisher specification
         }
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+        }
     }
     
     def "JsonCacheClient subscriber is completed when cancelled, and the input, selectors and authorisors subscriptions are cancelled"() {
@@ -1227,6 +1275,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
@@ -1264,6 +1314,8 @@ class JsonCacheClientSpecification extends Specification {
         then: "the JsonCacheClient on receipt of a CacheChangeSet, passes it through its processors and outputs a CacheChangeSet to the subscriber"
         with(subscriber) {
             awaitChangeSet()
+            !hasError
+            !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
                 [
                 ] as Set,
@@ -1290,7 +1342,11 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectorsSubscription.cancelOnRequest {
             // Do nothing when cancelled - an alternative allowed by Publisher specification
         }
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+        }
     }
     
     def "JsonCacheClient subscriber is completed and no input or selectors subscriptions occur if authorisors completes without publishing an authorisor"() {
@@ -1327,10 +1383,14 @@ class JsonCacheClientSpecification extends Specification {
         objectAuthorisors.subscriber.onComplete()
         
         then: "the subscriber completes, and no input or selectors subscriptions occur" 
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+            subscription == null
+        }
         objectSelectors.subscriber == null
         input.subscriber == null
-        subscriber.subscription == null
     }
     
     def "JsonCacheClient subscriber receives error and no input or selectors subscriptions occur if authorisors fails without publishing an authorisor"() {
@@ -1369,11 +1429,15 @@ class JsonCacheClientSpecification extends Specification {
         objectAuthorisors.subscriber.onError(error)
         
         then: "the subscriber receives an error, and no input or selectors subscriptions occur" 
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+            subscription == null
+        }
         objectSelectors.subscriber == null
         input.subscriber == null
-        subscriber.subscription == null
     }
     
     def "JsonCacheClient subscriber is completed, the authorisors subscription is cancelled and no input subscription occurs if selectors completes without publishing a selector"() {
@@ -1425,12 +1489,16 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectors.subscriber.onComplete()
         
         then: "the subscriber completes, the authorisors subscription is cancelled and no input subscription occurs" 
-        subscriber.awaitCompleted()
+        with(subscriber) {
+            awaitCompleted()
+            !hasError
+            hasCompleted
+            subscription == null
+        }
         objectAuthorisorsSubscription.cancelOnRequest {
             // This is checking that a cancel is generated
         }
         input.subscriber == null
-        subscriber.subscription == null
     }
     
     def "JsonCacheClient subscriber receives error, the authorisors subscription is cancelled and no input subscription occurs if selectors fails without publishing a selector"() {
@@ -1484,12 +1552,132 @@ class JsonCacheClientSpecification extends Specification {
         objectSelectors.subscriber.onError(error)
         
         then: "the subscriber receives an error, the authorisors subscription is cancelled and no input subscription occurs" 
-        subscriber.awaitError()
-        subscriber.receivedError == error
+        with(subscriber) {
+            awaitError()
+            hasError
+            !hasCompleted
+            receivedError == error
+            subscription == null
+        }
         objectAuthorisorsSubscription.cancelOnRequest {
             // This is checking that a cancel is generated
         }
         input.subscriber == null
-        subscriber.subscription == null
+    }
+    
+    def "JsonCacheClient acts as client to a JsonCache as expected"() {
+        
+        setup:
+        def objectSelectors = new MockSelectorsPublisher()
+        def objectSelectorsSubscription = new MockSubscription()
+        def objectSelectionProcessor = c.getCacheChangeSetProcessor(objectSelectors)
+        def objectAuthorisors = new MockSelectorsPublisher()
+        def objectAuthorisorsSubscription = new MockSubscription()
+        def objectAuthorisorProcessor = c.getCacheChangeSetProcessor(objectAuthorisors)
+        def input = m.getJsonCache("cacheId", 2, m.getCache([] as Set))
+        def subscriber = new MockSubscriber()
+        def client = c.getJsonCacheClient("cacheClientId", input, objectSelectionProcessor, objectAuthorisorProcessor)
+        
+        when: "a subscription is made to the JsonCacheClient"
+        client.subscribe(subscriber)
+        
+        then: "the JsonCacheClient wires together its processors and input, and subscribes first to the object authorisors"
+        objectAuthorisors.awaitSubscription()
+        
+        when: "the object authorisors subscription is established"
+        objectAuthorisors.subscriber.onSubscribe(objectAuthorisorsSubscription)
+        
+        then: "the JsonCacheClient requests an authorisor"
+        objectAuthorisorsSubscription.outputOnRequest {
+            objectAuthorisors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.endsWith("1") } as Predicate<CacheObject>)
+        }
+        
+        then: "on receipt of an authorisor, the JsonCacheClient subscribes to the object selectors"
+        objectSelectors.awaitSubscription()
+        
+        when: "the object selectors subscription is established"
+        objectSelectors.subscriber.onSubscribe(objectSelectorsSubscription)
+        
+        then: "the JsonCacheClient requests a selector"
+        objectSelectorsSubscription.outputOnRequest {
+            objectSelectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("A") } as Predicate<CacheObject>)
+        }
+        
+        then: "on receipt of a selector, the JsonCacheClient subscribes to its input, and then establishes a subscription with its subscriber"
+        subscriber.awaitSubscribed()
+        subscriber.subscription != null
+        
+        when: "the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        
+        then: "the subscriber initially receives a cache image CacheChangeSet"
+        subscriber.awaitChangeSet()
+        subscriber.receivedChangeSet == m.getCacheChangeSet(
+            [] as Set,
+            [] as Set,
+            true
+        )
+        
+        when: "a change is made to the JsonCache, and the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        input.onNext(
+            m.getCacheChangeCalculator(
+                m.getCacheChangeSet(
+                    [
+                        m.getCacheObject("A1", "AType", asJsonNode([])),
+                        m.getCacheObject("A2", "AType", asJsonNode([])),
+                        m.getCacheObject("B1", "BType", asJsonNode([])),
+                        m.getCacheObject("C1", "CType", asJsonNode([]))
+                    ] as Set,
+                    [] as Set,
+                    false
+                )
+            )
+        )
+
+        then: "the subscriber receives a CacheChangeSet detailing the changes, as viewed according to the selector and authorisor"
+        with(subscriber) {
+            awaitChangeSet()
+            !hasError
+            !hasCompleted
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("A1", "AType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("A2"),
+                    m.getCacheRemove("B1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                false
+            )
+        }
+        
+        when: "the selector is changed, and the subscriber requests a CacheChangeSet"
+        subscriber.expectChangeSet()
+        subscriber.subscription.request(1)
+        objectSelectorsSubscription.outputOnRequest {
+            objectSelectors.subscriber.onNext({ CacheObject cacheObject -> cacheObject.id.startsWith("B") } as Predicate<CacheObject>)
+        }
+        
+        then: "the subscriber receives a CacheChangeSet showing a change in the view according to the selector and authorisor"
+        with(subscriber) {
+            awaitChangeSet()
+            !hasError
+            !hasCompleted
+            receivedChangeSet == m.getCacheChangeSet(
+                [
+                    m.getCacheObject("B1", "BType", asJsonNode([]))
+                ] as Set,
+                [
+                    m.getCacheRemove("A2"),
+                    m.getCacheRemove("A1"),
+                    m.getCacheRemove("C1")
+                ] as Set,
+                true
+            )
+        }
     }
 }

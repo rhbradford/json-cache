@@ -142,53 +142,54 @@ class JsonCacheSpecification extends Specification {
         def subscriber = new MockSubscriber()
         
         when: "A new subscription is made"
-        subscriber.expect(1)
+        subscriber.expectChangeSets(1)
         jsonCache.subscribe(subscriber)
         
         then: "the subscriber first receives a change set with a put for every object in the cache at that point"
         with(subscriber) {
-            await()
+            awaitSubscription()
+            awaitChangeSets()
             changeSets == [cacheImage(preContent)]
-            !completed
+            !hasCompleted
             !hasError
         }
         
         when: "A subsequent change is made to the cache, followed by a request for a cache image"
-        subscriber.expect(2)
+        subscriber.expectChangeSets(2)
         jsonCache.onNext(cacheChangeCalculator)
         jsonCache.sendImageToSubscriber(subscriber)
         
         then: "the subscriber receives a change set with the changes made, followed by a cache image"
         with(subscriber) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet, cacheImage(postContent)]
-            !completed
+            !hasCompleted
             !hasError
         }
         
         when: "The subscription is cancelled"
-        subscriber.expect(1)
         subscriber.cancel()
         
         then: "the subscriber is completed"
         with(subscriber) {
-            await()
-            changeSets == []
-            completed
+            awaitComplete()
+            hasCompleted
             !hasError
         }
         
-        when: "A new subscription is made, and then cancelled - i.e. to access the cache contents"
+        when: "A new subscription is made to access the cache contents"
         subscriber = new MockSubscriber()
-        subscriber.expect(2)
         jsonCache.subscribe(subscriber)
+        
+        then: "subscription cancelled"
+        subscriber.awaitSubscription()
         subscriber.cancel()
         
         then: "the subscriber receives a change set with the expected puts for every object in the post-change cache"
         with(subscriber) {
-            await()
+            awaitComplete()
             changeSets == [cacheImage(postContent)]
-            completed
+            hasCompleted
             !hasError
         }
     }
@@ -217,179 +218,179 @@ class JsonCacheSpecification extends Specification {
         def subscriber3 = new MockSubscriber()
 
         when:
-        subscriber1.expect(1)
+        subscriber1.expectChangeSets(1)
         jsonCache.subscribe(subscriber1)
         
         then:
         with(subscriber1) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheImage([] as Set)]
-            !completed
+            !hasCompleted
             !hasError
         }
 
         when:
-        subscriber1.expect(1)
+        subscriber1.expectChangeSets(1)
         jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(0)))
         
         then:
         with(subscriber1) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(0)]
-            !completed
+            !hasCompleted
             !hasError
         }
         
         when:
-        subscriber2.expect(1)
+        subscriber2.expectChangeSets(1)
         jsonCache.subscribe(subscriber2)
         
         then:
         with(subscriber2) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheContent(0)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber1) {
             changeSets == [cacheChangeSet(0)]
-            !completed
+            !hasCompleted
             !hasError
         }
 
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscriber1.expectChangeSets(1)
+        subscriber2.expectChangeSets(1)
         jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(1)))
         
         then:
         with(subscriber1) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(1)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber2) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(1)]
-            !completed
+            !hasCompleted
             !hasError
         }
         
         when:
-        subscriber3.expect(1)
+        subscriber3.expectChangeSets(1)
         jsonCache.subscribe(subscriber3)
         
         then:
         with(subscriber3) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheContent(1)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber1) {
             changeSets == [cacheChangeSet(1)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber2) {
             changeSets == [cacheChangeSet(1)]
-            !completed
+            !hasCompleted
             !hasError
         }
 
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
-        subscriber3.expect(1)
+        subscriber1.expectChangeSets(1)
+        subscriber2.expectChangeSets(1)
+        subscriber3.expectChangeSets(1)
         jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(2)))
         
         then:
         with(subscriber1) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(2)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber2) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(2)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber3) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(2)]
-            !completed
+            !hasCompleted
             !hasError
         }
 
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscriber1.changeSets.clear()
+        subscriber2.changeSets.clear()
         subscriber1.cancel()
         subscriber2.cancel()
         
         then:
         with(subscriber1) {
-            await()
+            awaitComplete()
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         with(subscriber2) {
-            await()
+            awaitComplete()
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         with(subscriber3) {
             changeSets == [cacheChangeSet(2)]
-            !completed
+            !hasCompleted
             !hasError
         }
         
         when:
-        subscriber3.expect(1)
+        subscriber3.expectChangeSets(1)
         jsonCache.onNext(m.getCacheChangeCalculator(cacheChangeSet(3)))
         
         then:
         with(subscriber3) {
-            await()
+            awaitChangeSets()
             changeSets == [cacheChangeSet(3)]
-            !completed
+            !hasCompleted
             !hasError
         }
         with(subscriber1) {
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         with(subscriber2) {
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         
         when:
-        subscriber3.expect(1)
+        subscriber3.changeSets.clear()
         subscriber3.cancel()
         
         then:
         with(subscriber3) {
-            await()
+            awaitComplete()
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         with(subscriber1) {
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
         with(subscriber2) {
             changeSets == []
-            completed
+            hasCompleted
             !hasError
         }
     }
@@ -425,29 +426,31 @@ class JsonCacheSpecification extends Specification {
         }
         
         when: "A subscription is made, and a change made to the cache, but the subscriber is 'slow'" 
-        subscriber.expect(1)
+        subscriber.expectChangeSets(1)
         jsonCache.subscribe(subscriber)
         jsonCache.onNext(cacheChangeCalculator)
         
         then: "the notification of the initial change set and subsequent change set overfills the buffer, and the subscriber gets an error"
         with(subscriber) {
-            await()
+            awaitError()
             changeSets == []
-            !completed
+            !hasCompleted
             hasError
         }
         
         when: "New subscriptions are made"
         subscriber = new MockSubscriber()
-        subscriber.expect(2)
         jsonCache.subscribe(subscriber)
+        
+        then: "cancelled"
+        subscriber.awaitSubscription()
         subscriber.cancel()
         
         then: "new subscribers continue to receive change sets as expected"
         with(subscriber) {
-            await()
+            awaitComplete()
             changeSets == [cacheImage(postContent)]
-            completed
+            hasCompleted
             !hasError
         }
     }
@@ -530,7 +533,7 @@ class JsonCacheSpecification extends Specification {
         then:
         subscribers.each { subscriber ->
             subscriber.awaitComplete()
-            assert subscriber.completed
+            assert subscriber.hasCompleted
             assert !subscriber.hasError
             assert subscriber.changeSets.size() >= 1+1+numChangesAppliedPerSubscriber
             List<CacheChangeSet> receivedNonImageChangeSets = new ArrayList(subscriber.changeSets.tail()) // Removes initial cache image
@@ -540,15 +543,18 @@ class JsonCacheSpecification extends Specification {
             assert receivedNonImageChangeSets.every { cacheChangeSet -> possibleOutputChangeSets.contains(cacheChangeSet) } 
         }
         
-        when: "Final contents of JsonCache is observed"
+        when: "Final contents of JsonCache is observed by subscribing"
         def subscriber = new MockSubscriber()
         jsonCache.subscribe(subscriber)
+        
+        then: "cancelling"
+        subscriber.awaitSubscription()
         subscriber.cancel()
         
         then: "JsonCache contains only 'last' objects - all other inserts and removes have cancelled out"
         with(subscriber) {
             awaitComplete()
-            completed
+            hasCompleted
             !hasError
         }
         subscriber.changeSets == [cacheImage(lastObjects) ]
@@ -569,17 +575,23 @@ class JsonCacheSpecification extends Specification {
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber1 = new MockSubscriber()
         def subscriber2 = new MockSubscriber()
-        def subscription = Mock(Subscription)
+        def subscription = new MockSubscription()
         
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscriber1.expectChangeSets(1)
+        subscriber2.expectChangeSets(1)
         jsonCache.subscribe(subscriber1)
         jsonCache.subscribe(subscriber2)
         
         then:
-        subscriber1.await()
-        subscriber2.await()
+        subscriber1.awaitSubscription()
+        subscriber2.awaitSubscription()
+        subscriber1.awaitChangeSets()
+        subscriber2.awaitChangeSets()
+        !subscriber1.hasError
+        !subscriber2.hasError
+        !subscriber1.hasCompleted
+        !subscriber2.hasCompleted
         subscriber1.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
         subscriber2.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
         
@@ -590,18 +602,26 @@ class JsonCacheSpecification extends Specification {
         thrown(NullPointerException)
         
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscriber1.expectChangeSets(1)
+        subscriber2.expectChangeSets(1)
+        subscription.expectRequest()
         jsonCache.onSubscribe(subscription)
+        
+        then:
+        subscription.awaitRequest()
+        subscription.expectRequest()
         jsonCache.onNext(cacheChangeCalculator)
         
         then:
-        subscriber1.await()
-        subscriber2.await()
+        subscription.expectRequest()
+        subscriber1.awaitChangeSets()
+        subscriber2.awaitChangeSets()
+        !subscriber1.hasError
+        !subscriber2.hasError
+        !subscriber1.hasCompleted
+        !subscriber2.hasCompleted
         subscriber1.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
         subscriber2.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
-        2 * subscription.request(1)
-        0 * subscription._
         
         when:
         jsonCache.onComplete()
@@ -609,8 +629,12 @@ class JsonCacheSpecification extends Specification {
         then:
         subscriber1.awaitComplete()
         subscriber2.awaitComplete()
+        !subscriber1.hasError
+        !subscriber2.hasError
+        subscriber1.hasCompleted
+        subscriber2.hasCompleted
     }
-    
+
     def "JsonCache as a subscriber fails all its subscribers when it is failed"() {
         
         setup:
@@ -618,18 +642,26 @@ class JsonCacheSpecification extends Specification {
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber1 = new MockSubscriber()
         def subscriber2 = new MockSubscriber()
-        def subscription = Mock(Subscription)
+        def subscription = new MockSubscription()
         def error = new RuntimeException("Error with input of CacheChangeCalculators")
         
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscriber1.expectChangeSets(1)
+        subscriber2.expectChangeSets(1)
         jsonCache.subscribe(subscriber1)
         jsonCache.subscribe(subscriber2)
         
         then:
-        subscriber1.await()
-        subscriber2.await()
+        subscriber1.awaitSubscription()
+        subscriber2.awaitSubscription()
+        subscriber1.awaitChangeSets()
+        subscriber2.awaitChangeSets()
+        !subscriber1.hasError
+        !subscriber2.hasError
+        !subscriber1.hasCompleted
+        !subscriber2.hasCompleted
+        subscriber1.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
         
         when:
         jsonCache.onError(null)
@@ -638,18 +670,51 @@ class JsonCacheSpecification extends Specification {
         thrown(NullPointerException)
         
         when:
-        subscriber1.expect(1)
-        subscriber2.expect(1)
+        subscription.expectRequest()
         jsonCache.onSubscribe(subscription)
         jsonCache.onError(error)
         
         then:
-        subscriber1.await()
-        subscriber2.await()
+        subscription.awaitRequest()
+        subscriber1.awaitError()
+        subscriber2.awaitError()
         subscriber1.hasError
         subscriber2.hasError
-        1 * subscription.request(1)
-        0 * subscription._
+        !subscriber1.hasCompleted
+        !subscriber2.hasCompleted
+    }
+    
+    private class MockSubscription implements Subscription {
+    
+        private CountDownLatch requested
+    
+        void expectRequest() {
+            requested = new CountDownLatch(1)
+        }
+        
+        boolean awaitRequest(long milliSeconds = 1000) {
+            requested.await(milliSeconds, TimeUnit.MILLISECONDS)
+        }
+    
+        @Override
+        void request(final long n) {
+            requested.countDown()
+        }
+    
+//        private CountDownLatch cancelled
+//    
+//        void expectCancel() {
+//            cancelled = new CountDownLatch(1)
+//        }
+//        
+//        boolean awaitCancel(long milliSeconds = 1000) {
+//            cancelled.await(milliSeconds, TimeUnit.MILLISECONDS)
+//        }
+    
+        @Override
+        void cancel() {
+//            cancelled.countDown()
+        }
     }
     
     private static class MockSubscriber implements Subscriber<CacheChangeSet>
@@ -662,19 +727,23 @@ class JsonCacheSpecification extends Specification {
         private CountDownLatch specificNotifications
 
         final List<CacheChangeSet> changeSets = []
-        boolean completed
+        boolean hasCompleted
         boolean hasError
         
-        private final CountDownLatch completion = new CountDownLatch(1)
+        private final CountDownLatch completed = new CountDownLatch(1)
+        private final CountDownLatch subscribed = new CountDownLatch(1)
+        private final CountDownLatch errorReceived = new CountDownLatch(1)
 
-        void expect(int expectedNumberOfNotifications) {
-            notifications = new CountDownLatch(expectedNumberOfNotifications)
-            changeSets.clear()
-            completed = false
-            hasError = false
+        boolean awaitSubscription(long milliseconds = 1000) {
+            subscribed.await(milliseconds, TimeUnit.MILLISECONDS)
         }
 
-        boolean await(long milliseconds = 1000) {
+        void expectChangeSets(int expectedNumberOfNotifications) {
+            notifications = new CountDownLatch(expectedNumberOfNotifications)
+            changeSets.clear()
+        }
+
+        boolean awaitChangeSets(long milliseconds = 1000) {
             notifications.await(milliseconds, TimeUnit.MILLISECONDS)
         }
 
@@ -686,9 +755,13 @@ class JsonCacheSpecification extends Specification {
         boolean awaitChangeSet(long milliseconds = 1000) {
             specificNotifications.await(milliseconds, TimeUnit.MILLISECONDS)
         }
+
+        boolean awaitError(long milliseconds = 1000) {
+            errorReceived.await(milliseconds, TimeUnit.MILLISECONDS)
+        }
         
         boolean awaitComplete(long milliseconds = 1000) {
-            completion.await(milliseconds, TimeUnit.MILLISECONDS)
+            completed.await(milliseconds, TimeUnit.MILLISECONDS)
         }
         
         void cancel() {
@@ -706,8 +779,7 @@ class JsonCacheSpecification extends Specification {
             // Ensures that MockSubscriber should always receive the initial change set.
             // The initial change set always contains a put for each object currently in the JsonCache.
             makeRequest(subscription) 
-            if(cancelled)
-                subscription.cancel()
+            subscribed.countDown()
         }
 
         @Override
@@ -724,14 +796,13 @@ class JsonCacheSpecification extends Specification {
         void onError(final Throwable t) {
             hasError = true
             println t
-            notifications?.countDown()
+            errorReceived.countDown()
         }
 
         @Override
         void onComplete() {
-            completed = true
-            completion.countDown()
-            notifications?.countDown()
+            hasCompleted = true
+            completed.countDown()
         }
     }
 }

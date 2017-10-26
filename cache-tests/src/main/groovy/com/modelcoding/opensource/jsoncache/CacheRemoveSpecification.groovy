@@ -3,6 +3,8 @@
 package com.modelcoding.opensource.jsoncache
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
@@ -40,6 +42,12 @@ class CacheRemoveSpecification extends Specification {
 
         setup:
         def anId = "Id"
+        def json = asJsonNode(
+            [
+                "id": anId,
+                "content": someContent
+            ]
+        )
 
         when:
         def cacheRemove = m.getCacheRemove(anId, someContent)
@@ -48,6 +56,7 @@ class CacheRemoveSpecification extends Specification {
         cacheRemove.id == anId
         cacheRemove.content == someContent
         cacheRemove.content == sameContent
+        cacheRemove.asJsonNode() == json
 
         when:
         cacheRemove = m.getCacheRemove(anId)
@@ -55,6 +64,14 @@ class CacheRemoveSpecification extends Specification {
         then:
         cacheRemove.id == anId
         cacheRemove.content == someEmptyContent
+
+        when:
+        cacheRemove = m.getCacheRemove(json)
+
+        then:
+        cacheRemove.id == anId
+        cacheRemove.content == someContent
+        cacheRemove.asJsonNode() == json
     }
 
     def "CacheRemove cannot be created from bad parameters"() {
@@ -75,10 +92,22 @@ class CacheRemoveSpecification extends Specification {
         thrown(NullPointerException)
 
         when:
-        m.getCacheRemove(null)
+        m.getCacheRemove((String)null)
 
         then:
         thrown(NullPointerException)
+        
+        when:
+        m.getCacheRemove((JsonNode)null)
+
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        m.getCacheRemove(JsonNodeFactory.instance.objectNode())
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "Equal CacheRemoves are equal"() {
@@ -106,6 +135,11 @@ class CacheRemoveSpecification extends Specification {
             @Override
             JsonNode getContent() {
                 asJsonNode([])
+            }
+
+            @Override
+            ObjectNode asJsonNode() {
+                null
             }
         }
     }

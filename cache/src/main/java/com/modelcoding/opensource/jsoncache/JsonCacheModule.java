@@ -30,6 +30,14 @@ public interface JsonCacheModule {
     CacheObject getCacheObject(String cacheObjectId, String cacheObjectType, JsonNode cacheObjectContent);
 
     /**
+     * @param json JSON representation of a {@link CacheObject} in the form given by {@link CacheObject#asJsonNode()}
+     * @return an instance of a {@link CacheObject} as defined by the given {@code json}
+     * @throws NullPointerException if {@code json} is {@code null}
+     * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheObject#asJsonNode()}
+     */
+    CacheObject getCacheObject(JsonNode json);
+    
+    /**
      * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
      * @param cacheRemoveContent some content for the {@link CacheRemove} - cannot be {@code null}
      * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and {@code cacheRemoveContent}
@@ -46,6 +54,14 @@ public interface JsonCacheModule {
     CacheRemove getCacheRemove(String cacheObjectId);
 
     /**
+     * @param json JSON representation of a {@link CacheRemove} in the form given by {@link CacheRemove#asJsonNode()}
+     * @return an instance of a {@link CacheRemove} as defined by the given {@code json}
+     * @throws NullPointerException if {@code json} is {@code null}
+     * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheRemove#asJsonNode()}
+     */
+    CacheRemove getCacheRemove(JsonNode json);
+
+    /**
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
      * @param isCacheImage sets the result of {@link CacheChangeSet#isCacheImage()} on the returned {@link CacheChangeSet}               
@@ -53,6 +69,15 @@ public interface JsonCacheModule {
      * @throws NullPointerException if {@code puts} is {@code null}, or {@code removes} is {@code null}
      */
     CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
+
+    /**
+     * @param json JSON representation of a {@link CacheChangeSet} in the form given by {@link CacheChangeSet#asJsonNode()}
+     * @param builder the implementation to use to create {@link CacheObject} puts and {@link CacheRemove} removes            
+     * @return an instance of a {@link CacheChangeSet} as defined by the given {@code json}
+     * @throws NullPointerException if {@code json} is {@code null}, or {@code builder} is {@code null}
+     * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheChangeSet#asJsonNode()}
+     */
+    CacheChangeSet getCacheChangeSet(JsonNode json, JsonCacheModule builder);
     
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}

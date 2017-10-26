@@ -123,14 +123,14 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
       case RegisterCacheChangeSupplier(s) =>
         cacheChangeSupplier = s
-        s.request(1)
+        cacheChangeSupplier.request(1)
 
       case FailAllSubscribers(error) =>
-        subscribers.keys.foreach { s => s.onError(error) }
+        publishers.values.foreach { s => s.onError(error) }
         stopAndClearUp()
 
       case CompleteAllSubscribers =>
-        subscribers.keys.foreach { s => s.onComplete() }
+        publishers.values.foreach { s => s.onComplete() }
         stopAndClearUp()
     }
 

@@ -3,6 +3,7 @@
 package com.modelcoding.opensource.jsoncache;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * A {@link CacheRemove} represents removal of a {@link CacheObject} from a {@link JsonCache}.
@@ -24,6 +25,17 @@ public interface CacheRemove {
      *         <em>The return must not expose this {@link CacheRemove} to mutation.</em>
      */
     JsonNode getContent();
+
+    /**
+     * @return this {@link CacheRemove} as JSON of the form:
+     * <pre>
+     * {<br>
+     *     "id" : {@link #getId()},<br>
+     *     "content" : {@link #getContent()}<br>
+     * }    
+     * </pre>    
+     */
+    ObjectNode asJsonNode();
 
     /**
      * {@link CacheRemove}s are always considered equal if they have the same {@link #getId()}. 

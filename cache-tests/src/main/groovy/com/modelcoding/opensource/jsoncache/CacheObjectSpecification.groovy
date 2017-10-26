@@ -3,6 +3,8 @@
 package com.modelcoding.opensource.jsoncache
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.fasterxml.jackson.databind.node.ObjectNode
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
@@ -39,6 +41,13 @@ class CacheObjectSpecification extends Specification {
         setup:
         def anId = "Id"
         def aType = "Type"
+        def json = asJsonNode(
+            [
+                "id" : anId,
+                "type" : aType,
+                "content" : someContent
+            ]
+        )
 
         when:
         def cacheObject = m.getCacheObject(anId, aType, someContent)
@@ -48,6 +57,16 @@ class CacheObjectSpecification extends Specification {
         cacheObject.type == aType
         cacheObject.content == someContent
         cacheObject.content == sameContent
+        cacheObject.asJsonNode() == json
+        
+        when:
+        cacheObject = m.getCacheObject(json)
+        
+        then:
+        cacheObject.id == anId
+        cacheObject.type == aType
+        cacheObject.content == someContent
+        cacheObject.asJsonNode() == json
     }
 
     def "CacheObject cannot be created from bad parameters"() {
@@ -73,6 +92,18 @@ class CacheObjectSpecification extends Specification {
 
         then:
         thrown(NullPointerException)
+        
+        when:
+        m.getCacheObject(null)
+
+        then:
+        thrown(NullPointerException)
+        
+        when:
+        m.getCacheObject(JsonNodeFactory.instance.objectNode())
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
     def "Equal CacheObjects are equal"() {
@@ -110,7 +141,12 @@ class CacheObjectSpecification extends Specification {
 
             @Override
             CacheRemove asCacheRemove() {
-                return null
+                null
+            }
+
+            @Override
+            ObjectNode asJsonNode() {
+                null
             }
         }
     }
