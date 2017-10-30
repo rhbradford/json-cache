@@ -87,12 +87,12 @@ public interface JsonCacheModule {
 
     /**
      * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
-     * @return an instance of a {@link CacheChangeCalculator} that will simply apply all the puts and removes from the given
+     * @return an instance of a {@link CacheFunction} that will simply apply all the puts and removes from the given
      *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied
      * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
      * @throws IllegalArgumentException if the given {@code cacheChangeSet} has {@link CacheChangeSet#isCacheImage()} as {@code true}
      */
-    CacheChangeCalculator getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
+    CacheFunction getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 
     /**
      * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}

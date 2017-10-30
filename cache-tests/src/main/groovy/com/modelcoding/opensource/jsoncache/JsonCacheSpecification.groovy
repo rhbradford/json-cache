@@ -114,7 +114,8 @@ class JsonCacheSpecification extends Specification {
         then:
         thrown(NullPointerException)
     }
-    
+
+    @SuppressWarnings("GroovyAssignabilityCheck")
     def "Single subscriber receives expected notifications from JsonCache"() {
         
         setup:
@@ -132,12 +133,13 @@ class JsonCacheSpecification extends Specification {
             m.getCacheRemove("NotInCache")
         ] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber = new MockSubscriber()
+        def doNothingCacheFunction = Mock(CacheFunction)
         
         when: "A new subscription is made"
         subscriber.expectChangeSets(1)
@@ -189,6 +191,37 @@ class JsonCacheSpecification extends Specification {
             changeSets == [cacheImage(postContent)]
             hasCompleted
             !hasError
+        }
+        
+        when: "A subscription has been established, and requested a change set"
+        subscriber = new MockSubscriber()
+        subscriber.expectChangeSets(1)
+        jsonCache.subscribe(subscriber)
+        
+        then: "when the subscriber has received the initial cache image: a cache function that makes no changes is entered and then a cache image requested on the same thread"
+        subscriber.awaitSubscription()
+        subscriber.awaitChangeSets()
+        subscriber.changeSets == [cacheImage(postContent)]
+        subscriber.expectChangeSets(1)
+        jsonCache.onNext(doNothingCacheFunction)
+        jsonCache.sendImageToSubscriber(subscriber)
+        
+        then: "the cache function is executed (which makes no changes), and only the requested cache image CacheChangeSet is output to the subscriber"
+        subscriber.awaitChangeSets()
+        subscriber.changeSets == [cacheImage(postContent)]
+        1 * doNothingCacheFunction.execute(_) >> { Cache c -> 
+            new CacheFunction.Result() {
+        
+                @Override
+                Cache getCache() {
+                    c
+                }
+        
+                @Override
+                CacheChangeSet getChangeSet() {
+                    m.getCacheChangeSet([] as Set, [] as Set, false)
+                }
+            }
         }
     }
 
@@ -410,7 +443,7 @@ class JsonCacheSpecification extends Specification {
             m.getCacheRemove("NotInCache")
         ] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
@@ -568,7 +601,7 @@ class JsonCacheSpecification extends Specification {
         def puts = [object1, object2] as Set
         def removes = [] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def cache = m.getCache([] as Set)
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber1 = new MockSubscriber()

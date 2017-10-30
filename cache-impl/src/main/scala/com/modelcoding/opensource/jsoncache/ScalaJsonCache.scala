@@ -6,15 +6,17 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props, Terminated}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, OverflowStrategy}
 import org.reactivestreams.{Subscriber, Subscription}
+
 import scala.collection.mutable
 import ScalaJsonCacheModule._
+import com.modelcoding.opensource.jsoncache.CacheFunction.Result
 
 class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit system: ActorSystem)
   extends JsonCache {
 
   private case class RegisterCacheChangeSupplier(subscription: Subscription)
   private case class PublishToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
-  private case class ChangeCache(cacheChangeCalculator: CacheChangeCalculator)
+  private case class ChangeCache(cacheChangeCalculator: CacheFunction)
   private case class SendCacheImageToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
   private case class CompleteAllSubscribers()
   private case class FailAllSubscribers(error: Throwable)
@@ -25,7 +27,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
   override def getSubscriberBacklogLimit: Int = backlogLimit
 
-  override def onNext(c: CacheChangeCalculator): Unit = {
+  override def onNext(c: CacheFunction): Unit = {
 
     requireNotNull(c, "Cannot apply null changes to a JsonCache")
 
@@ -96,10 +98,12 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
     override def receive: Receive = {
 
-      case ChangeCache(cacheChangeCalculator) =>
-        val result: CacheChangeCalculator.ChangeResult = cacheChangeCalculator.calculateChange(cache)
-        cache = result.getCache
-        publishers.keys.foreach { publisher => publisher ! result.getChangeSet }
+      case ChangeCache(cacheFunction) =>
+        val result: Result = cacheFunction.execute(cache)
+        if(cache ne result.getCache) {
+          cache = result.getCache
+          publishers.keys.foreach { publisher => publisher ! result.getChangeSet }
+        }
         if(cacheChangeSupplier != null) cacheChangeSupplier.request(1)
 
       case SendCacheImageToSubscriber(subscriber) =>

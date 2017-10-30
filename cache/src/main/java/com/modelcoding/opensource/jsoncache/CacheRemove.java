@@ -19,7 +19,7 @@ public interface CacheRemove {
 
     /**
      * A hook to allow for cache changing strategies that compare changes against existing objects
-     * - see {@link CacheChangeCalculator}. 
+     * - see {@link CacheFunction}. 
      * 
      * @return the details of this {@link CacheRemove} as JSON.<br>
      *         <em>The return must not expose this {@link CacheRemove} to mutation.</em>

@@ -95,10 +95,10 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 
   override def getCacheChangeCalculator(
     cacheChangeSet: CacheChangeSet
-  ): CacheChangeCalculator = {
+  ): CacheFunction = {
 
-    requireNotNull(cacheChangeSet, "A CacheChanger cannot have null content")
-    require(!cacheChangeSet.isCacheImage, "A CacheChanger cannot use a cache image CacheChangeSet")
+    requireNotNull(cacheChangeSet, "A cache change calculator cannot have null content")
+    require(!cacheChangeSet.isCacheImage, "A cache change calculator cannot use a cache image CacheChangeSet")
 
     new ScalaCacheChangeCalculator(cacheChangeSet)
   }

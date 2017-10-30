@@ -9,7 +9,7 @@ import spock.lang.Specification
 
 import static TestSuite.*
 
-class CacheChangeCalculatorSpecification extends Specification {
+class CacheFunctionSpecification extends Specification {
 
     @Rule
     private ExternalResource setup = perTestMethodSetup
@@ -31,27 +31,7 @@ class CacheChangeCalculatorSpecification extends Specification {
     @Shared
         someOtherContent = asJsonNode(otherContent)
 
-    def "CacheChangeCalculator is created as expected"() {
-
-        setup:
-        def puts = [
-            m.getCacheObject("Id1", "Type", someContent),
-            m.getCacheObject("Id2", "Type", someOtherContent)
-        ] as Set
-        def removes = [
-            m.getCacheRemove("Id3"),
-            m.getCacheRemove("Id4", someContent)
-        ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
-
-        when:
-        def cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
-
-        then:
-        cacheChangeCalculator.changeSet == cacheChangeSet
-    }
-
-    def "CacheChangeCalculator cannot be created from bad parameters"() {
+    def "A cache change calculator cannot be created from bad parameters"() {
 
         when:
         m.getCacheChangeCalculator(null)
@@ -66,7 +46,7 @@ class CacheChangeCalculatorSpecification extends Specification {
         thrown(IllegalArgumentException)
     }
 
-    def "CacheChangeCalculator creates the expected results when applied to a Cache"() {
+    def "A cache change calculator creates the expected results when applied to a Cache"() {
 
         setup:
         def object1 =
@@ -83,13 +63,13 @@ class CacheChangeCalculatorSpecification extends Specification {
             m.getCacheRemove("NotInCache")
         ] as Set
         CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
-        CacheChangeCalculator cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
 
         when:
-        def results = cacheChangeCalculator.calculateChange(cache)
+        def results = cacheChangeCalculator.execute(cache)
 
         then:
         !results.cache.is(cache)
