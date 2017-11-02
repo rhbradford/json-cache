@@ -6,7 +6,7 @@ import {SyntheticEvent} from "react"
 
 export enum States { Disconnected, Connecting, Connected, Disconnecting }
 
-interface CacheConnectorProps {
+export interface CacheConnectorProps {
     connectorUrl: string,
     connectorState: States,
     onConnect: (url: string) => void
