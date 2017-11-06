@@ -3,7 +3,6 @@
 import * as React from "react"
 import {storiesOf} from "@storybook/react"
 
-//import "../app/semantic.slate.min.css"
 import "../node_modules/ag-grid/dist/styles/ag-grid.css"
 import "../node_modules/ag-grid/dist/styles/theme-dark.css"
 

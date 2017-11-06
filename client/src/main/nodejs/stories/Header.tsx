@@ -4,7 +4,6 @@ import * as React from "react"
 import {storiesOf} from "@storybook/react"
 import {action} from "@storybook/addon-actions"
 
-//import "../app/semantic.slate.min.css"
 import Header from "../app/views/components/Header"
 import {States} from "../app/views/components/CacheConnector"
 
