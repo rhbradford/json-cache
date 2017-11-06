@@ -1,7 +1,7 @@
 // Author: Richard Bradford
 
-import reducer, {flattenCacheObject, initialState} from "./reducers"
-import TypeKeys, {CacheRemove} from "./types"
+import reducer, {flattenCacheObject, ImmutableState, initialState, State} from "./reducers"
+import TypeKeys, {CacheObject, CacheRemove} from "./types"
 import operations from "./operations"
 import {Map} from "immutable"
 
@@ -89,11 +89,39 @@ const cacheObject_C2 = {
     content: ["other", "things"]
 }
 const flattened_cacheObject_C2 = flattenCacheObject(cacheObject_C2)
+const cacheObject_D1 = {
+    id:      "D1",
+    type:    "TypeD",
+    content: "text"
+}
+const flattened_cacheObject_D1 = flattenCacheObject(cacheObject_D1)
+const exampleState: ImmutableState = Map({
+    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
+    cacheObjectsByType: Map({
+        TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
+        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+        TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
+    }),
+    cacheObjectData: Map({
+        TypeA: Map({
+            A_1: flattened_cacheObject_A1,
+            A_2: flattened_cacheObject_A2
+        }),
+        TypeB: Map({
+            B1: flattened_cacheObject_B1,
+            B2: flattened_cacheObject_B2
+        }),
+        TypeC: Map({
+            C1: flattened_cacheObject_C1,
+            C2: flattened_cacheObject_C2
+        })
+    }) 
+} as State)
 
 describe("cacheObjectData reducer", () => {
 
     describe("flattenCacheObject function", () => {
-        
+
         test("flattens cacheObject with content as object using keys from content", () => {
 
             expect(flattenCacheObject(cacheObject_A1)).toEqual({
@@ -108,8 +136,8 @@ describe("cacheObjectData reducer", () => {
         test("flattens cacheObject with content that is not an object using JSON string for content", () => {
 
             expect(flattenCacheObject(cacheObject_C1)).toEqual({
-                id:       "C1",
-                type:     "TypeC",
+                id:      "C1",
+                type:    "TypeC",
                 content: JSON.stringify(cacheObject_C1.content)
             })
         })
@@ -122,64 +150,264 @@ describe("cacheObjectData reducer", () => {
 
     test("should add puts to initial state", () => {
 
+        const inputState = initialState
         const changes = {
-            
-            puts: [
+
+            puts:    [
                 cacheObject_A1,
-                cacheObject_A2,
                 cacheObject_B1,
-                cacheObject_B2,
                 cacheObject_C1,
+                cacheObject_A2,
+                cacheObject_B2,
                 cacheObject_C2
             ],
             removes: [] as Array<CacheRemove>
         }
-        
         const operation = operations.onChangeSetReceived(changes)
-        
-        let state = initialState
-        
-        state = reducer(state, operation)
-        
-        expect(state.cacheObjectTypes).toEqual(["TypeA", "TypeB", "TypeC"])
-        expect(state.cacheObjectsByType).toEqual(Map({
-            TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
-            TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
-            TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
-        }))
-        expect(state.cacheObjectData).toEqual(Map({
-            TypeA: Map({
-                A_1: flattened_cacheObject_A1,
-                A_2: flattened_cacheObject_A2
+        const expectedState = exampleState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+    })
+
+    test("should return larger array of types if puts add new types to state", () => {
+
+        const inputState = exampleState
+        const changes = {
+
+            puts:    [
+                cacheObject_D1
+            ],
+            removes: [] as Array<CacheRemove>
+        }
+        const operation = operations.onChangeSetReceived(changes)
+        const expectedState = Map({
+            cacheObjectTypes:   ["TypeA", "TypeB", "TypeC", "TypeD"],
+            cacheObjectsByType: Map({
+                TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
+                TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2],
+                TypeD: [flattened_cacheObject_D1]
             }),
-            TypeB: Map({
-                B1: flattened_cacheObject_B1,
-                B2: flattened_cacheObject_B2
-            }),
-            TypeC: Map({
-                C1: flattened_cacheObject_C1,
-                C2: flattened_cacheObject_C2
+            cacheObjectData:    Map({
+                TypeA: Map({
+                    A_1: flattened_cacheObject_A1,
+                    A_2: flattened_cacheObject_A2
+                }),
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C1: flattened_cacheObject_C1,
+                    C2: flattened_cacheObject_C2
+                }),
+                TypeD: Map({
+                    D1: flattened_cacheObject_D1
+                })
             })
-        }))
+        } as State) as ImmutableState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+
+        // Arrays of objects for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectsByType").get("TypeA")).toBe(inputState.get("cacheObjectsByType").get("TypeA"))
+        expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
+        expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
     })
 
     test("should remove removes from state", () => {
-        
+
+        const inputState = exampleState
+        const changes = {
+
+            puts:    [] as Array<CacheObject>,
+            removes: [
+                {
+                    id: "A_1"
+                },
+                {
+                    id: "C1"
+                }
+            ]
+        }
+        const operation = operations.onChangeSetReceived(changes)
+        const expectedState = Map({
+                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
+                    cacheObjectsByType: Map({
+                        TypeA: [flattened_cacheObject_A2],
+                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                        TypeC: [flattened_cacheObject_C2]
+                    }),
+                    cacheObjectData: Map({
+                        TypeA: Map({
+                            A_2: flattened_cacheObject_A2
+                        }),
+                        TypeB: Map({
+                            B1: flattened_cacheObject_B1,
+                            B2: flattened_cacheObject_B2
+                        }),
+                        TypeC: Map({
+                            C2: flattened_cacheObject_C2
+                        })
+                    }) 
+                } as State) as ImmutableState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+
+        // Array of types should be re-used as is if no changes to types present have occurred 
+        expect(state.get("cacheObjectTypes")).toBe(inputState.get("cacheObjectTypes"))
+
+        // Arrays of objects for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
     })
 
     test("should handle removes that are for objects not present in state", () => {
-        
+
+        const inputState = exampleState
+        const changes = {
+
+            puts:    [] as Array<CacheObject>,
+            removes: [
+                {
+                    id: "XX"
+                },
+                {
+                    id: "YY"
+                }
+            ]
+        }
+        const operation = operations.onChangeSetReceived(changes)
+        const expectedState = Map({
+                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
+                    cacheObjectsByType: Map({
+                        TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
+                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                        TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
+                    }),
+                    cacheObjectData: Map({
+                        TypeA: Map({
+                            A_1: flattened_cacheObject_A1,
+                            A_2: flattened_cacheObject_A2
+                        }),
+                        TypeB: Map({
+                            B1: flattened_cacheObject_B1,
+                            B2: flattened_cacheObject_B2
+                        }),
+                        TypeC: Map({
+                            C1: flattened_cacheObject_C1,
+                            C2: flattened_cacheObject_C2
+                        })
+                    }) 
+                } as State) as ImmutableState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+
+        // Array of types should be re-used as is if no changes to types present have occurred 
+        expect(state.get("cacheObjectTypes")).toBe(inputState.get("cacheObjectTypes"))
+
+        // Arrays of objects for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectsByType").get("TypeA")).toBe(inputState.get("cacheObjectsByType").get("TypeA"))
+        expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
+        expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
     })
 
-    test("should always return objects for each type as array sorted by object id", () => {
-        
+    test("should return smaller array of types if removes result in no objects for a previous type", () => {
+
+        const inputState = exampleState
+        const changes = {
+
+            puts:    [] as Array<CacheObject>,
+            removes: [
+                {
+                    id: "A_1"
+                },
+                {
+                    id: "A_2"
+                }
+            ]
+        }
+        const operation = operations.onChangeSetReceived(changes)
+        const expectedState = Map({
+                    cacheObjectTypes: ["TypeB", "TypeC"],    
+                    cacheObjectsByType: Map({
+                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                        TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
+                    }).toJS(),
+                    cacheObjectData: Map({
+                        TypeB: Map({
+                            B1: flattened_cacheObject_B1,
+                            B2: flattened_cacheObject_B2
+                        }),
+                        TypeC: Map({
+                            C1: flattened_cacheObject_C1,
+                            C2: flattened_cacheObject_C2
+                        })
+                    }) 
+                } as State) as ImmutableState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+
+        // Arrays of objects for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
+        expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
     })
 
-    test("should return same array of types if types do not change after processing change set", () => {
-        
-    })
+    test("should handle full combinations of puts and removes", () => {
 
-    test("should return same array of objects for a type if objects for that type are not changed after processing change set", () => {
-        
+        const inputState = exampleState
+        const changes = {
+
+            puts:    [
+                cacheObject_D1,
+                cacheObject_B1_update,
+                cacheObject_C1_update,
+                cacheObject_A1_update
+            ],
+            removes: [
+                {
+                    id: "C2"
+                }       
+            ]
+        }
+        const operation = operations.onChangeSetReceived(changes)
+        const expectedState = Map({
+                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC","TypeD"],    
+                    cacheObjectsByType: Map({
+                        TypeA: [flattened_cacheObject_A1_update, flattened_cacheObject_A2],
+                        TypeB: [flattened_cacheObject_B1_update, flattened_cacheObject_B2],
+                        TypeC: [flattened_cacheObject_C1_update],
+                        TypeD: [flattened_cacheObject_D1]
+                    }),
+                    cacheObjectData: Map({
+                        TypeA: Map({
+                            A_1: flattened_cacheObject_A1_update,
+                            A_2: flattened_cacheObject_A2
+                        }),
+                        TypeB: Map({
+                            B1: flattened_cacheObject_B1_update,
+                            B2: flattened_cacheObject_B2
+                        }),
+                        TypeC: Map({
+                            C1: flattened_cacheObject_C1_update
+                        }),
+                        TypeD: Map({
+                            D1: flattened_cacheObject_D1
+                        })
+                    }) 
+                } as State) as ImmutableState
+
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
     })
 })

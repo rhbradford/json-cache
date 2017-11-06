@@ -1,7 +1,6 @@
 // Author: Richard Bradford
 
 import {Map} from "immutable"
-import * as _ from "lodash"
 
 import TypeKeys, {CacheObject, FlattenedCacheObject} from "./types"
 import {ActionTypes} from "./actions"
@@ -16,12 +15,17 @@ export interface State {
     cacheObjectsByType: Map<Type,Array<FlattenedCacheObject>>
 }
 
-export const initialState: State = {
+export interface ImmutableState extends Map<string, any> {
     
+    get<K extends keyof State>(key: K): State[K]
+    set<K extends keyof State, V extends State[K]>(key: K, value: V): ImmutableState
+}
+
+export const initialState: ImmutableState = Map({
     cacheObjectTypes:   [],
     cacheObjectData:    Map(),
     cacheObjectsByType: Map()
-}
+} as State)
 
 export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObject => {
 
@@ -63,55 +67,76 @@ export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObje
 }
  
 
-const changeSetReceivedReducer = (state: State = initialState, action: ActionTypes): State => {
+const changeSetReceivedReducer = (state: ImmutableState = initialState, action: ActionTypes): ImmutableState => {
  
     switch(action.type) {
         
         case TypeKeys.CHANGE_SET_RECEIVED:
-            let objectsByType = state.cacheObjectsByType
-            let types = state.cacheObjectTypes
-            let objectData = state.cacheObjectData
+            let nextState = state
+            let objectsByType = state.get("cacheObjectsByType")
+            let types = state.get("cacheObjectTypes")
+            let objectData = state.get("cacheObjectData")
 
-            const typesSeen: Set<string> = new Set()
+            const typesTouched: Set<string> = new Set()
+            const typesToBeRemoved: Set<string> = new Set()
+            const typesToBeAdded: Set<string> = new Set()
             const { puts, removes } = action.changes
 
             for(let put of puts) {
                 
                 const type = put.type
-                typesSeen.add(type)
+                typesTouched.add(type)
+                typesToBeRemoved.delete(type)
+                
+                if(!objectData.has(type))
+                    typesToBeAdded.add(type)
+                
                 objectData = objectData.setIn([type, put.id], flattenCacheObject(put))
             }
             
             for(let remove of removes) {
                 
-                for(let type in objectData.keys()) {
+                objectData.keySeq().forEach(type => {
                     
                     if(objectData.hasIn([type, remove.id])) {
                         
-                        typesSeen.add(type)
+                        typesTouched.add(type)
+                
                         objectData = objectData.removeIn([type, remove.id])
+                
+                        if(objectData.get(type).isEmpty()) {
+                            
+                            typesTouched.delete(type)
+                            typesToBeRemoved.add(type)
+                            typesToBeAdded.delete(type)
+                            
+                            objectData = objectData.remove(type)
+                        }
                     }
-                }
+                })  
+            }
+
+            if(typesToBeAdded.size > 0 || typesToBeRemoved.size > 0)
+                types = objectData.keySeq().toArray().sort();
+            
+            for(let type of typesToBeRemoved) {
+                
+                objectsByType = objectsByType.remove(type)
             }
             
-            if(!_.isEqual(new Set(state.cacheObjectTypes), typesSeen)) {
-
-                types = Array.from(typesSeen).sort()
-            }
-
-            for(let type of typesSeen) {
+            for(let type of typesTouched) {
                 
                 const sortedIds = objectData.get(type).keySeq().toArray().sort() 
                 const objects = sortedIds.map(id => { return objectData.getIn([type, id]) })
+                
                 objectsByType = objectsByType.set(type, objects)
             }
             
-            return { 
-                cacheObjectData: objectData,
-                cacheObjectsByType: objectsByType,
-                cacheObjectTypes: types
-            }
+            nextState = nextState.set("cacheObjectData", objectData)
+            nextState = nextState.set("cacheObjectsByType", objectsByType)
+            nextState = nextState.set("cacheObjectTypes", types)
             
+            return nextState            
         default:
             return state
     }
