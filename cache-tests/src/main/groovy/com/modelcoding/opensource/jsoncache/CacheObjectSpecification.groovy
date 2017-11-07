@@ -140,6 +140,11 @@ class CacheObjectSpecification extends Specification {
             }
 
             @Override
+            CacheObject asUpdatedCacheObject(final JsonNode content) {
+                null
+            }
+
+            @Override
             CacheRemove asCacheRemove() {
                 null
             }
@@ -173,5 +178,28 @@ class CacheObjectSpecification extends Specification {
         
         then:
         cacheRemove.id == anId
+    }
+    
+    def "CacheObject returns an updated CacheObject as expected"() {
+        
+        setup:
+        def anId = "Id"
+        def aType = "Type"
+        def cacheObject = m.getCacheObject(anId, aType, someContent)
+        
+        when:
+        def updatedCacheObject = cacheObject.asUpdatedCacheObject(someOtherContent)
+        
+        then:
+        with(updatedCacheObject) {
+            id == anId
+            type == aType
+        }
+        updatedCacheObject.content == someOtherContent
+        with(cacheObject) {
+            id == anId
+            type == aType
+        }
+        cacheObject.content == someContent
     }
 }

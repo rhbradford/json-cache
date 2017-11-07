@@ -39,16 +39,7 @@ public interface JsonCacheModule {
     
     /**
      * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
-     * @param cacheRemoveContent some content for the {@link CacheRemove} - cannot be {@code null}
-     * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and {@code cacheRemoveContent}
-     * @throws NullPointerException if {@code cacheObjectId} is {@code null}, or {@code cacheRemoveContent} is {@code null}
-     */
-    CacheRemove getCacheRemove(String cacheObjectId, JsonNode cacheRemoveContent);
-
-    /**
-     * @param cacheObjectId an id for the {@link CacheRemove} - cannot be {@code null}
-     * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId} and with an empty 
-     *         {@link com.fasterxml.jackson.databind.node.ObjectNode} as its {@link CacheRemove#getContent()}
+     * @return an instance of a {@link CacheRemove} with the given {@code cacheObjectId}
      * @throws NullPointerException if {@code cacheObjectId} is {@code null}
      */
     CacheRemove getCacheRemove(String cacheObjectId);

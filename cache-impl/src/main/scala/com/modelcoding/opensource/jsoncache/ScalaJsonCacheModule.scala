@@ -5,7 +5,7 @@ package com.modelcoding.opensource.jsoncache
 import java.util
 
 import akka.actor.ActorSystem
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.databind.JsonNode
 
 import scala.collection.JavaConverters._
 
@@ -36,20 +36,13 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
   }
 
   override def getCacheRemove(
-    cacheObjectId: String,
-    cacheRemoveContent: JsonNode
+    cacheObjectId: String
   ): CacheRemove = {
 
     requireNotNull(cacheObjectId, "A CacheRemove cannot have a null id")
-    requireNotNull(cacheRemoveContent, "A CacheRemove cannot have null content")
 
-    ScalaCacheRemove(cacheObjectId)(cacheRemoveContent)
+    ScalaCacheRemove(cacheObjectId)
   }
-
-  override def getCacheRemove(
-    cacheObjectId: String
-  ): CacheRemove =
-    getCacheRemove(cacheObjectId, emptyContent)
 
   override def getCacheRemove(
     json: JsonNode
@@ -118,8 +111,6 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
 }
 
 object ScalaJsonCacheModule {
-  
-  val emptyContent: JsonNode = new ObjectMapper().createObjectNode()
   
   def requireNotNull(obj: Any, message: String): Unit = if(obj == null) throw new NullPointerException(message)
 }

@@ -43,7 +43,7 @@ class CacheChangeSetSpecification extends Specification {
     @Shared
         removes = [
             m.getCacheRemove("Id3"),
-            m.getCacheRemove("Id4", someContent)
+            m.getCacheRemove("Id4")
         ] as Set
     
     

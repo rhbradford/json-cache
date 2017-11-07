@@ -37,6 +37,13 @@ public interface CacheObject {
     JsonNode getContent();
 
     /**
+     * @param content new content for a {@link CacheObject} with the same {@link #getId()} and {@link #getType()} as this {@link CacheObject}
+      * @return a new {@link CacheObject} with the same {@link #getId()} and {@link #getType()} as this {@link CacheObject},
+     *          but with the given {@code content} as its {@link #getContent()} 
+     */
+    CacheObject asUpdatedCacheObject(JsonNode content);
+    
+    /**
      * @return a {@link CacheRemove} that can be used to remove this {@link CacheObject} from a {@link Cache}
      */
     CacheRemove asCacheRemove();
