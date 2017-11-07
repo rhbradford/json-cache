@@ -27,18 +27,18 @@ export const initialState: ImmutableState = Map({
     cacheObjectsByType: Map()
 } as State)
 
+const isObject = (o: any): boolean => {
+    
+    return (typeof o === 'object' && !Array.isArray(o) && o !== null)
+}
+
+const isArray = (o: any): boolean => {
+    
+    return Array.isArray(o)
+}
+
 export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObject => {
 
-    const isObject = (o: any): boolean => {
-        
-        return (typeof o === 'object' && !Array.isArray(o) && o !== null)
-    }
-    
-    const isArray = (o: any): boolean => {
-        
-        return Array.isArray(o)
-    }
-    
     const fco: FlattenedCacheObject = {
         id: cacheObject.id,
         type: cacheObject.type

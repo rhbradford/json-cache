@@ -3,12 +3,12 @@
 import TypeKeys from "./types"
 import {ActionTypes} from "./actions"
 
-interface State {
+export interface State {
     
     selectedCacheObjectType: string
 }
 
-const initialState: State = {
+export const initialState: State = {
     
     selectedCacheObjectType: undefined
 }

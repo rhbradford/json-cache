@@ -4,7 +4,7 @@
   "description": "Example client that can be used to view contents of a JsonCache exposed via a WebSocket",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --showConfig",
     "build": "webpack",
     "storybook": "start-storybook -p 9001 -c storybook"
   },

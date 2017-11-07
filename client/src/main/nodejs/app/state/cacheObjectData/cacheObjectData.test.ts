@@ -118,11 +118,11 @@ const exampleState: ImmutableState = Map({
     }) 
 } as State)
 
-describe("cacheObjectData reducer", () => {
+describe("reducer", () => {
 
     describe("flattenCacheObject function", () => {
 
-        test("flattens cacheObject with content as object using keys from content", () => {
+        test("should flatten using keys from content for a cacheObject with content as object", () => {
 
             expect(flattenCacheObject(cacheObject_A1)).toEqual({
                 id:       "A_1",
@@ -133,7 +133,7 @@ describe("cacheObjectData reducer", () => {
             })
         })
 
-        test("flattens cacheObject with content that is not an object using JSON string for content", () => {
+        test("should flatten as JSON string for content for a cacheObject with content that is not an object", () => {
 
             expect(flattenCacheObject(cacheObject_C1)).toEqual({
                 id:      "C1",

@@ -2,6 +2,7 @@
 
 plugins {
     id 'java'
+    id 'com.moowork.node' version "1.2.0"
 }
 
 task webpack(type: Exec) {
@@ -14,4 +15,16 @@ task webpack(type: Exec) {
 }
 
 jar.dependsOn webpack
+
+node {
+    workDir = file("$buildDir/nodejs")
+    nodeModulesDir = file("$projectDir/src/main/nodejs")
+}
+
+task testJS(type: NodeTask, dependsOn: ['npmInstall'], description: 'run JS tests') {
+    script = file("$projectDir/src/main/nodejs/node_modules/jest/bin/jest.js")
+    workingDir = file("$projectDir/src/main/nodejs")
+}
+
+test.dependsOn testJS
 
