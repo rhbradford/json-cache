@@ -4,8 +4,8 @@ import * as React from "react"
 import {Form, Dropdown, Button} from "semantic-ui-react"
 
 export interface CacheObjectTypeSelectorProps {
-    types:    string[],
-    onSelect: (value: string) => void
+    readonly types:    string[],
+    readonly onSelect: (value: string) => void
 }
 
 const CacheObjectTypeSelector = ({ types, onSelect }: CacheObjectTypeSelectorProps) => {

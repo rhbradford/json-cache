@@ -10,9 +10,9 @@ export type Id = string
 
 export interface State {
     
-    cacheObjectTypes: Array<Type>,
-    cacheObjectData: Map<Type,Map<Id,FlattenedCacheObject>>,
-    cacheObjectsByType: Map<Type,Array<FlattenedCacheObject>>
+    readonly cacheObjectTypes: Array<Type>,
+    readonly cacheObjectData: Map<Type,Map<Id,FlattenedCacheObject>>,
+    readonly cacheObjectsByType: Map<Type,Array<FlattenedCacheObject>>
 }
 
 export interface ImmutableState extends Map<string, any> {
@@ -38,11 +38,9 @@ const isArray = (o: any): boolean => {
 }
 
 export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObject => {
-
-    const fco: FlattenedCacheObject = {
-        id: cacheObject.id,
-        type: cacheObject.type
-    }
+    
+    // noinspection JSMismatchedCollectionQueryUpdate
+    const keys: { [others: string]: any } = {}
     
     if(isObject(cacheObject.content)) {
         
@@ -52,18 +50,22 @@ export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObje
                 
                 let value = cacheObject.content[key]
                 if(isArray(value) || isObject(value))
-                    fco[key] = JSON.stringify(value)
+                    keys[key] = JSON.stringify(value)
                 else
-                    fco[key] = value
+                    keys[key] = value
             }
         }
         
     } else {
         
-        fco["content"] = JSON.stringify(cacheObject.content)
+        keys["content"] = JSON.stringify(cacheObject.content)
     }
     
-    return fco
+    return {
+        id: cacheObject.id,
+        type: cacheObject.type,
+        ...keys
+    }
 }
  
 
@@ -79,6 +81,7 @@ const changeSetReceivedReducer = (state: ImmutableState = initialState, action: 
 
             const typesTouched: Set<string> = new Set()
             const typesToBeRemoved: Set<string> = new Set()
+            // noinspection JSMismatchedCollectionQueryUpdate
             const typesToBeAdded: Set<string> = new Set()
             const { puts, removes } = action.changes
 

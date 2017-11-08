@@ -4,13 +4,13 @@ import TypeKeys, {CacheChangeSet} from "./types"
 
 export interface OtherAction {
     
-    type: TypeKeys.OTHER_ACTION
+    readonly type: TypeKeys.OTHER_ACTION
 }
 
 export interface ChangeSetReceivedAction {
 
-    type: TypeKeys.CHANGE_SET_RECEIVED,
-    changes: CacheChangeSet
+    readonly type: TypeKeys.CHANGE_SET_RECEIVED,
+    readonly changes: CacheChangeSet
 }
 
 export type ActionTypes = 

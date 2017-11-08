@@ -4,13 +4,13 @@ import TypeKeys from "./types"
 
 export interface OtherAction {
     
-    type: TypeKeys.OTHER_ACTION
+    readonly type: TypeKeys.OTHER_ACTION
 }
 
 export interface TypeSelectedAction {
 
-    type: TypeKeys.TYPE_SELECTED,
-    cacheObjectType: string
+    readonly type: TypeKeys.TYPE_SELECTED,
+    readonly cacheObjectType: string
 }
 
 export type ActionTypes = 

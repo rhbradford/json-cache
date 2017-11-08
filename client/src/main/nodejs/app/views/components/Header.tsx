@@ -8,8 +8,8 @@ import {default as CacheObjectTypeSelector, CacheObjectTypeSelectorProps} from "
 
 export interface HeaderProps {
     
-    cacheConnectorProps: CacheConnectorProps,
-    cacheObjectTypeSelectorProps: CacheObjectTypeSelectorProps
+    readonly cacheConnectorProps: CacheConnectorProps,
+    readonly cacheObjectTypeSelectorProps: CacheObjectTypeSelectorProps
 }
 
 const Header = (headerProps: HeaderProps) => {

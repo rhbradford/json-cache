@@ -2,27 +2,27 @@
 
 export interface CacheObject {
     
-    id: string,
-    type: string,
-    content: any
+    readonly id: string,
+    readonly type: string,
+    readonly content: any
 }
 
 export interface CacheRemove {
     
-    id: string
+    readonly id: string
 }
 
 export interface CacheChangeSet {
     
-    puts: Array<CacheObject>,
-    removes: Array<CacheRemove>
+    readonly puts: Array<CacheObject>,
+    readonly removes: Array<CacheRemove>
 }
 
 export interface FlattenedCacheObject {
     
-    id: string,
-    type: string,
-    [others: string] : any
+    readonly id: string,
+    readonly type: string,
+    readonly [others: string] : any
 }
 
 enum TypeKeys {

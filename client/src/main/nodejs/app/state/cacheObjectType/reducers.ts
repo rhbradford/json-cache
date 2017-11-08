@@ -5,7 +5,7 @@ import {ActionTypes} from "./actions"
 
 export interface State {
     
-    selectedCacheObjectType: string
+    readonly selectedCacheObjectType: string
 }
 
 export const initialState: State = {

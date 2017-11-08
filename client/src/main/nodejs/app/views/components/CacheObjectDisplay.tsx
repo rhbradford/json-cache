@@ -5,8 +5,8 @@ import {AgGridReact} from "ag-grid-react"
 
 interface CacheObjectDisplayProps {
 
-    columnDefs: any[],
-    rowData: any[]
+    readonly columnDefs: any[],
+    readonly rowData: any[]
 }
 
 const CacheObjectDisplay = ({columnDefs, rowData} : CacheObjectDisplayProps) => {
