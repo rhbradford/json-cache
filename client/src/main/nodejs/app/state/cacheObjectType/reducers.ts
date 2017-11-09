@@ -5,12 +5,12 @@ import {ActionTypes} from "./actions"
 
 export interface State {
     
-    readonly selectedCacheObjectType: string
+    readonly selectedType: string
 }
 
 export const initialState: State = {
     
-    selectedCacheObjectType: undefined
+    selectedType: undefined
 }
 
 const typeSelectedReducer = (state: State = initialState, action: ActionTypes): State => {
@@ -19,7 +19,7 @@ const typeSelectedReducer = (state: State = initialState, action: ActionTypes): 
         
         case TypeKeys.TYPE_SELECTED:
             return { 
-                selectedCacheObjectType: action.cacheObjectType 
+                selectedType: action.cacheObjectType 
             }
             
         default:

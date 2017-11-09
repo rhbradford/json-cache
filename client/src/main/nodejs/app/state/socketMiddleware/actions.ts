@@ -38,6 +38,13 @@ export interface DisconnectedAction extends WithURL, Action {
     readonly type: TypeKeys.DISCONNECTED
 }
 
+export interface ErrorOccurredAction extends WithURL, Action {
+
+    readonly type: TypeKeys.ERROR_OCCURRED
+    readonly code: number
+    readonly msg: string
+}
+
 export interface MessageReceivedAction extends WithURL, Action {
 
     readonly type: TypeKeys.MESSAGE_RECEIVED
@@ -57,6 +64,7 @@ export type ActionTypes =
     | DisconnectAction
     | DisconnectingAction
     | DisconnectedAction
+    | ErrorOccurredAction
     | SendMessageAction
     | MessageReceivedAction
     | OtherAction
@@ -97,6 +105,14 @@ const onDisconnected = (url: string): DisconnectedAction => ({
     url
 })
 
+const onErrorOccurred = (url: string, code: number, msg: string): ErrorOccurredAction => ({
+    
+    type: TypeKeys.ERROR_OCCURRED,
+    url,
+    code,
+    msg
+})
+
 const onMessageReceived = (url: string, msg: Message): MessageReceivedAction => ({
     
     type: TypeKeys.MESSAGE_RECEIVED,
@@ -119,6 +135,7 @@ export default {
     disconnect,
     onDisconnecting,
     onDisconnected,
+    onErrorOccurred,
     onMessageReceived,
     sendMessage
 }

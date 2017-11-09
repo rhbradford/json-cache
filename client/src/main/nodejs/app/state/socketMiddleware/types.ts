@@ -46,6 +46,14 @@ export interface Message {
     readonly content: any
 }
 
+export enum ConnectionStatus {
+    
+    CONNECTING = "CONNECTING",
+    CONNECTED = "CONNECTED",
+    DISCONNECTING = "DISCONNECTING",
+    DISCONNECTED = "DISCONNECTED"
+}
+
 enum TypeKeys {
 
     CONNECT = "CONNECT",
@@ -54,6 +62,8 @@ enum TypeKeys {
     DISCONNECT = "DISCONNECT",
     DISCONNECTING = "DISCONNECTING",
     DISCONNECTED = "DISCONNECTED",
+    
+    ERROR_OCCURRED = "ERROR_OCCURRED",
     
     MESSAGE_RECEIVED = "MESSAGE_RECEIVED",
     SEND_MESSAGE = "SEND_MESSAGE",

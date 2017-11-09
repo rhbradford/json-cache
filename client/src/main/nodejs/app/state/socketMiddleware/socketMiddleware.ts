@@ -15,6 +15,8 @@ const onOpen = (sockets: Map<string, Socket>, store: MiddlewareAPI<void>, params
 const onClose = (store: MiddlewareAPI<void>, params: ConnectionParams) => (evt: CloseEvent)  => {
     
     store.dispatch(actions.onDisconnected(params.url))
+    if(evt.code !== 1000)
+        store.dispatch(actions.onErrorOccurred(params.url, evt.code, evt.reason))
 }
 
 // noinspection JSUnusedLocalSymbols
@@ -37,13 +39,13 @@ const disconnect = (sockets: Map<string, Socket>, store: MiddlewareAPI<void>, so
     store.dispatch(actions.onDisconnecting(url))
 }
 
+export const sockets = new Map<string, Socket>()
+
 export const socketMiddleware: (socketProvider: SocketProvider) => Middleware = (socketProvider: SocketProvider) =>  
     <S>(store: MiddlewareAPI<S>) => (next: Dispatch<S>) => <A extends Action>(a: A): A => {
     
-    const sockets = new Map<string, Socket>()
-
     // noinspection JSUnusedLocalSymbols
-        const isActionTypes = (a: any): a is ActionTypes => { return true }     
+    const isActionTypes = (a: any): a is ActionTypes => { return true }     
         
     if(isActionTypes(a)) {
         

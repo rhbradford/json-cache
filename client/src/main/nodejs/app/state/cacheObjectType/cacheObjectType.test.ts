@@ -14,11 +14,11 @@ describe("reducer", () => {
     test("should set the selected type", () =>{
         
         const inputState = {
-            selectedCacheObjectType: "TypeA"
+            selectedType: "TypeA"
         } as State
         const operation = operations.onTypeSelected("TypeB")
         const expectedState = {
-            selectedCacheObjectType: "TypeB"
+            selectedType: "TypeB"
         } as State
         
         const state = reducer(inputState, operation)
