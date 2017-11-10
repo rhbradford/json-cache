@@ -69,7 +69,7 @@ export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObje
 }
  
 
-const changeSetReceivedReducer = (state: ImmutableState = initialState, action: ActionTypes): ImmutableState => {
+const reducer = (state: ImmutableState = initialState, action: ActionTypes): ImmutableState => {
  
     switch(action.type) {
         
@@ -145,4 +145,4 @@ const changeSetReceivedReducer = (state: ImmutableState = initialState, action: 
     }
 }
 
-export default changeSetReceivedReducer
+export default reducer

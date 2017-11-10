@@ -5,21 +5,21 @@ import {ActionTypes} from "./actions"
 
 export interface State {
     
-    readonly selectedType: string
+    readonly filter: string
 }
 
 export const initialState: State = {
     
-    selectedType: undefined
+    filter: ""
 }
 
 const reducer = (state: State = initialState, action: ActionTypes): State => {
  
     switch(action.type) {
         
-        case TypeKeys.TYPE_SELECTED:
+        case TypeKeys.FILTER_SET:
             return { 
-                selectedType: action.cacheObjectType 
+                filter: action.cacheObjectFilter 
             }
             
         default:

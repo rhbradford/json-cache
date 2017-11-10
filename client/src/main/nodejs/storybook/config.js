@@ -8,6 +8,7 @@ import "../app/semantic.slate.min.css"
 function loadStories() {
     require('../stories/CacheObjectTypeSelector.tsx')
     require('../stories/CacheConnector.tsx')
+    require('../stories/CacheObjectFilter.tsx')
     require('../stories/CacheObjectDisplay.tsx')
     require('../stories/Header.tsx')
     // You can require as many stories as you need.

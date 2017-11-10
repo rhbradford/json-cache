@@ -21,7 +21,13 @@ storiesOf("Header", module)
             cacheObjectTypeSelectorProps={
                 {
                     types: ["TypeA", "TypeB"],
-                    onSelect: action("onCacheObjectTypeSelect")
+                    onSelect: action("onSelect")
+                }
+            }
+            cacheObjectFilterProps={
+                {
+                    filter: ".*",
+                    onFilterSet: action("onFilterSet")
                 }
             }
         />

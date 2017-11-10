@@ -17,7 +17,7 @@ export const initialState: State = {
     errorInfo: undefined
 }
 
-const cacheConnectionReducer = (state: State = initialState, action: ActionTypes): State => {
+const reducer = (state: State = initialState, action: ActionTypes): State => {
 
     switch(action.type) {
 
@@ -70,4 +70,4 @@ const cacheConnectionReducer = (state: State = initialState, action: ActionTypes
     }
 }
 
-export default cacheConnectionReducer
+export default reducer
