@@ -61,6 +61,7 @@ describe('socketMiddleware', () => {
         expect(socket).toBeDefined()
 
         expect(store.getActions()).toEqual([
+            actions.connect("url"),
             actions.onConnecting("url")
         ])
     })
@@ -74,35 +75,42 @@ describe('socketMiddleware', () => {
         // Disconnect sent to middleware which has not yet had a connect... 
         store.dispatch(actions.disconnect("url"))
 
-        // ... should emit nothing and do nothing
-        expect(store.getActions()).toEqual([])
+        // ... should do nothing
+        expect(store.getActions()).toEqual([
+            actions.disconnect("url")
+        ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
 
+        store.clearActions()
         // Send message sent to middleware which has not yet had a connect...
         store.dispatch(actions.sendMessage("url", { type: "MyMsg", content: "stuff" }))
 
-        // ... should emit nothing and do nothing
-        expect(store.getActions()).toEqual([])
+        // ... should do nothing
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url", { type: "MyMsg", content: "stuff" })
+        ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
         
+        store.clearActions()
         // Request middleware to connect
         store.dispatch(actions.connect("url"))
         
         const socket = sockets.get("url")
         expect(socket).toBeDefined()
         expect(store.getActions()).toEqual([
+            actions.connect("url"),
             actions.onConnecting("url"),
         ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
 
+        store.clearActions()
         // Simulate successful connection        
         socket.onopen({ type: "onopen" } as Event)
 
         expect(store.getActions()).toEqual([
-            actions.onConnecting("url"),
             actions.onConnected("url")
         ])
         expect(socketSend.mock.calls.length).toBe(0)
@@ -117,7 +125,9 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(1)
         expect(socketSend.mock.calls[0].length).toBe(1)
         expect(socketSend.mock.calls[0][0]).toEqual(JSON.stringify(msg))
-        expect(store.getActions()).toEqual([])
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url", msg)
+        ])
         
         store.clearActions()
         resetMocks()
@@ -141,6 +151,7 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(1)
         expect(store.getActions()).toEqual([
+            actions.disconnect("url"),
             actions.onDisconnecting("url"),
         ])
         
@@ -160,12 +171,14 @@ describe('socketMiddleware', () => {
         store.dispatch(actions.sendMessage("url", { type: "MyMsg", content: "stuff" }))
 
         // ... should emit nothing and do nothing
-        expect(store.getActions()).toEqual([])
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url", { type: "MyMsg", content: "stuff" })
+        ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
     })
     
-    test("should close socket and emit onErrorOccurred when error occurs", () => {
+    test("should close socket and emit onErrorOccurred when errorMsg occurs", () => {
         
         reset()
 
@@ -177,16 +190,17 @@ describe('socketMiddleware', () => {
         let socket = sockets.get("url")
         expect(socket).toBeDefined()
         expect(store.getActions()).toEqual([
+            actions.connect("url"),
             actions.onConnecting("url"),
         ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
 
+        store.clearActions()
         // Simulate unsuccessful connection        
         socket.onerror({ type: "onerror" } as Event)
 
         expect(store.getActions()).toEqual([
-            actions.onConnecting("url"),
             actions.onDisconnecting("url")
         ])
         expect(socketSend.mock.calls.length).toBe(0)
@@ -201,23 +215,24 @@ describe('socketMiddleware', () => {
         socket = sockets.get("url")
         expect(socket).toBeDefined()
         expect(store.getActions()).toEqual([
+            actions.connect("url"),
             actions.onConnecting("url"),
         ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
 
+        store.clearActions()
         // Simulate successful connection        
         socket.onopen({ type: "onopen" } as Event)
 
         expect(store.getActions()).toEqual([
-            actions.onConnecting("url"),
             actions.onConnected("url")
         ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
         
         store.clearActions()
-        // Simulate an error
+        // Simulate an errorMsg
         socket.onerror({ type: "onerror" } as Event)
         socket.onclose({ type: "onclose", code: 1001, reason: "server failed"} as CloseEvent)
 
@@ -242,16 +257,17 @@ describe('socketMiddleware', () => {
         const socket1 = sockets.get("url1")
         expect(socket1).toBeDefined()
         expect(store.getActions()).toEqual([
+            actions.connect("url1"),
             actions.onConnecting("url1"),
         ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
 
+        store.clearActions()
         // url1 - Simulate successful connection        
         socket1.onopen({ type: "onopen" } as Event)
 
         expect(store.getActions()).toEqual([
-            actions.onConnecting("url1"),
             actions.onConnected("url1")
         ])
         expect(socketSend.mock.calls.length).toBe(0)
@@ -264,6 +280,7 @@ describe('socketMiddleware', () => {
         const socket2 = sockets.get("url2")
         expect(socket2).toBeDefined()
         expect(store.getActions()).toEqual([
+            actions.connect("url2"),
             actions.onConnecting("url2"),
         ])
         expect(socketSend.mock.calls.length).toBe(0)
@@ -278,7 +295,9 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(1)
         expect(socketSend.mock.calls[0].length).toBe(1)
         expect(socketSend.mock.calls[0][0]).toEqual(JSON.stringify(msg))
-        expect(store.getActions()).toEqual([])
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url1", msg)
+        ])
         
         store.clearActions()
         resetMocks()
@@ -302,6 +321,7 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(1)
         expect(store.getActions()).toEqual([
+            actions.disconnect("url1"),
             actions.onDisconnecting("url1"),
         ])
         
@@ -326,7 +346,9 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(1)
         expect(socketSend.mock.calls[0].length).toBe(1)
         expect(socketSend.mock.calls[0][0]).toEqual(JSON.stringify(msg))
-        expect(store.getActions()).toEqual([])
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url2", msg)
+        ])
         
         store.clearActions()
         resetMocks()
@@ -336,6 +358,7 @@ describe('socketMiddleware', () => {
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(1)
         expect(store.getActions()).toEqual([
+            actions.disconnect("url2"),
             actions.onDisconnecting("url2"),
         ])
         
@@ -351,12 +374,15 @@ describe('socketMiddleware', () => {
         ])
 
         store.clearActions()
-        // Send message sent to middleware which has disconnected...
+        // Send to middleware which has disconnected...
         store.dispatch(actions.sendMessage("url2", { type: "MyMsg", content: "stuff" }))
         store.dispatch(actions.sendMessage("url1", { type: "MyMsg", content: "stuff" }))
 
-        // ... should emit nothing and do nothing
-        expect(store.getActions()).toEqual([])
+        // ... should do nothing
+        expect(store.getActions()).toEqual([
+            actions.sendMessage("url2", { type: "MyMsg", content: "stuff" }),
+            actions.sendMessage("url1", { type: "MyMsg", content: "stuff" })
+        ])
         expect(socketSend.mock.calls.length).toBe(0)
         expect(socketClose.mock.calls.length).toBe(0)
     })

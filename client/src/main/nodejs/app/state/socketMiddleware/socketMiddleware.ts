@@ -44,6 +44,8 @@ export const sockets = new Map<string, Socket>()
 export const socketMiddleware: (socketProvider: SocketProvider) => Middleware = (socketProvider: SocketProvider) =>  
     <S>(store: MiddlewareAPI<S>) => (next: Dispatch<S>) => <A extends Action>(a: A): A => {
     
+    const result = next(a)
+    
     // noinspection JSUnusedLocalSymbols
     const isActionTypes = (a: any): a is ActionTypes => { return true }     
         
@@ -87,13 +89,10 @@ export const socketMiddleware: (socketProvider: SocketProvider) => Middleware = 
                 if(socket) socket.send(JSON.stringify(action.msg))
             }    
             break
-            
-            default:
-                return next(a)
         }
     }    
     
-    return a
+    return result
 }
 
 export const webSocketProvider: SocketProvider = (params, eventhandlers) => {

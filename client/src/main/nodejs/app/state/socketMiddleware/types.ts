@@ -46,6 +46,12 @@ export interface Message {
     readonly content: any
 }
 
+export interface ConnectionErrorInfo {
+    
+    readonly errorMsg: string,
+    readonly errorCode: number
+}
+
 export enum ConnectionStatus {
     
     CONNECTING = "CONNECTING",

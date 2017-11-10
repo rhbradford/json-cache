@@ -1,6 +1,6 @@
 // Author: Richard Bradford
 
-import TypeKeys, {ConnectionParams, Message, WithURL} from "./types"
+import TypeKeys, {ConnectionErrorInfo, ConnectionParams, Message, WithURL} from "./types"
 import {Action} from "redux"
 
 export interface OtherAction extends Action {
@@ -38,11 +38,9 @@ export interface DisconnectedAction extends WithURL, Action {
     readonly type: TypeKeys.DISCONNECTED
 }
 
-export interface ErrorOccurredAction extends WithURL, Action {
+export interface ErrorOccurredAction extends WithURL, ConnectionErrorInfo, Action {
 
     readonly type: TypeKeys.ERROR_OCCURRED
-    readonly code: number
-    readonly msg: string
 }
 
 export interface MessageReceivedAction extends WithURL, Action {
@@ -105,12 +103,12 @@ const onDisconnected = (url: string): DisconnectedAction => ({
     url
 })
 
-const onErrorOccurred = (url: string, code: number, msg: string): ErrorOccurredAction => ({
+const onErrorOccurred = (url: string, errorCode: number, errorMsg: string): ErrorOccurredAction => ({
     
     type: TypeKeys.ERROR_OCCURRED,
     url,
-    code,
-    msg
+    errorCode,
+    errorMsg
 })
 
 const onMessageReceived = (url: string, msg: Message): MessageReceivedAction => ({

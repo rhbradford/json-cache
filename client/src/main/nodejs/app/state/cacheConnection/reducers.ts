@@ -1,22 +1,20 @@
 // Author: Richard Bradford
 
-import TypeKeys, {ConnectionStatus} from "../socketMiddleware/types"
+import TypeKeys, {ConnectionErrorInfo, ConnectionStatus} from "../socketMiddleware/types"
 import {ActionTypes} from "../socketMiddleware/actions"
-import {ActionTypes as URLActionTypes} from "./actions"
-import {TypeKeys as URLTypeKeys} from "./types"
 
 export interface State {
 
     readonly url: string
     readonly status: ConnectionStatus
-    readonly error: string
+    readonly errorInfo: ConnectionErrorInfo
 }
 
 export const initialState: State = {
 
-    url:    undefined,
-    status: ConnectionStatus.DISCONNECTED,
-    error:  undefined
+    url:       "",
+    status:    ConnectionStatus.DISCONNECTED,
+    errorInfo: undefined
 }
 
 const cacheConnectionReducer = (state: State = initialState, action: ActionTypes): State => {
@@ -25,42 +23,46 @@ const cacheConnectionReducer = (state: State = initialState, action: ActionTypes
 
         case TypeKeys.DISCONNECTED:
             return {
+                ...state,
                 url:    action.url,
-                status: ConnectionStatus.DISCONNECTED,
-                ...state
+                status: ConnectionStatus.DISCONNECTED
             }
 
         case TypeKeys.CONNECT:
             return {
-                url: action.url,
-                ...state
+                ...state,
+                url:       action.url,
+                errorInfo: undefined
             }
 
         case TypeKeys.CONNECTING:
             return {
+                ...state,
                 url:    action.url,
-                status: ConnectionStatus.CONNECTING,
-                error:  undefined
+                status: ConnectionStatus.CONNECTING
             }
 
         case TypeKeys.CONNECTED:
             return {
+                ...state,
                 url:    action.url,
-                status: ConnectionStatus.CONNECTED,
-                ...state
+                status: ConnectionStatus.CONNECTED
             }
 
         case TypeKeys.DISCONNECTING:
             return {
+                ...state,
                 url:    action.url,
-                status: ConnectionStatus.DISCONNECTING,
-                ...state
+                status: ConnectionStatus.DISCONNECTING
             }
 
         case TypeKeys.ERROR_OCCURRED:
             return {
-                error: action.msg,
-                ...state
+                ...state,
+                errorInfo: {
+                    errorMsg: action.errorMsg,
+                    errorCode: action.errorCode
+                }
             }
 
         default:
@@ -68,23 +70,4 @@ const cacheConnectionReducer = (state: State = initialState, action: ActionTypes
     }
 }
 
-const urlReducer = (state: State = initialState, action: URLActionTypes): State => {
-    
-    switch(action.type) {
-        
-        case URLTypeKeys.SET_URL:
-            return {
-                url: action.url,
-                ...state
-            }            
-
-        default:
-            return state
-    }
-}
-
-export default {
-    
-    urlReducer,
-    cacheConnectionReducer
-}
+export default cacheConnectionReducer
