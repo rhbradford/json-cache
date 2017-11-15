@@ -1,6 +1,6 @@
 // Author: Richard Bradford
 
-import reducer, {flattenCacheObject, ImmutableState, initialState, State} from "./reducers"
+import reducer, {flattenCacheObject, State, initialState, StateData} from "./reducers"
 import TypeKeys, {CacheObject, CacheRemove} from "./types"
 import operations from "./operations"
 import {Map} from "immutable"
@@ -166,7 +166,7 @@ const cacheObject_D1 = {
     content: "text"
 }
 const flattened_cacheObject_D1 = flattenCacheObject(cacheObject_D1)
-const exampleState: ImmutableState = Map({
+const exampleState: State = Map({
     cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
     cacheObjectsByType:       Map({
         TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
@@ -192,7 +192,7 @@ const exampleState: ImmutableState = Map({
             C2: flattened_cacheObject_C2
         })
     })
-} as State)
+} as StateData)
 
 const cacheObject_E1 = {
     id:      "E1",
@@ -333,7 +333,7 @@ describe("reducer", () => {
                     D1: flattened_cacheObject_D1
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state = reducer(inputState, operation)
 
@@ -390,7 +390,7 @@ describe("reducer", () => {
                     C2: flattened_cacheObject_C2
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state = reducer(inputState, operation)
 
@@ -450,7 +450,7 @@ describe("reducer", () => {
                     C2: flattened_cacheObject_C2
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state = reducer(inputState, operation)
 
@@ -506,7 +506,7 @@ describe("reducer", () => {
                     C2: flattened_cacheObject_C2
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state = reducer(inputState, operation)
 
@@ -569,7 +569,7 @@ describe("reducer", () => {
                     D1: flattened_cacheObject_D1
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state = reducer(inputState, operation)
 
@@ -636,7 +636,7 @@ describe("reducer", () => {
                     E3: flattened_cacheObject_E3
                 })
             })
-        } as State) as ImmutableState
+        } as StateData) as State
 
         const state1 = reducer(inputState, operation1)
         const state2 = reducer(state1, operation2)

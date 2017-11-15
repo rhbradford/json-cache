@@ -8,7 +8,7 @@ import {ActionTypes} from "./actions"
 export type Type = string
 export type Id = string
 
-export interface State {
+export interface StateData {
 
     readonly cacheObjectTypes: Array<Type>,
     readonly cacheObjectData: ImmutableMap<Type, ImmutableMap<Id, FlattenedCacheObject>>,
@@ -16,19 +16,19 @@ export interface State {
     readonly cacheObjectColumnsByType: ImmutableMap<Type, Array<FlattenedCacheObjectColumn>>
 }
 
-export interface ImmutableState extends ImmutableMap<string, any> {
+export interface State extends ImmutableMap<string, any> {
 
-    get<K extends keyof State>(key: K): State[K]
+    get<K extends keyof StateData>(key: K): StateData[K]
 
-    set<K extends keyof State, V extends State[K]>(key: K, value: V): ImmutableState
+    set<K extends keyof StateData, V extends StateData[K]>(key: K, value: V): State
 }
 
-export const initialState: () => ImmutableState = () => ImmutableMap({
+export const initialState: () => State = () => ImmutableMap({
     cacheObjectTypes:         [],
     cacheObjectData:          ImmutableMap(),
     cacheObjectsByType:       ImmutableMap(),
     cacheObjectColumnsByType: ImmutableMap()
-} as State)
+} as StateData)
 
 const isObject = (o: any): boolean => {
 
@@ -72,7 +72,7 @@ export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObje
     }
 }
 
-const reducer = (state: ImmutableState = initialState(), action: ActionTypes): ImmutableState => {
+const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
     switch(action.type) {
 

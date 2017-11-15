@@ -11,8 +11,8 @@ interface CacheObjectDisplayProps {
 
 const CacheObjectDisplay: React.SFC<CacheObjectDisplayProps> = ({columnDefs, rowData} : CacheObjectDisplayProps) => {
     const gridStyle = {
-        height: document.body.offsetHeight,
-        width: "100%"
+        height: "200px",
+        width: "200px"
     }
     
     return (

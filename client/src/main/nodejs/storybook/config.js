@@ -11,6 +11,7 @@ function loadStories() {
     require('../stories/CacheObjectFilter.tsx')
     require('../stories/CacheObjectDisplay.tsx')
     require('../stories/Header.tsx')
+    require('../stories/CacheObjectDisplayContainer.tsx')
     // You can require as many stories as you need.
 }
 
