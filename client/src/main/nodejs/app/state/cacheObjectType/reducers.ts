@@ -8,12 +8,12 @@ export interface State {
     readonly selectedType: string
 }
 
-export const initialState: State = {
+export const initialState: () => State = () => ({
     
     selectedType: undefined
-}
+})
 
-const reducer = (state: State = initialState, action: ActionTypes): State => {
+const reducer = (state: State = initialState(), action: ActionTypes): State => {
  
     switch(action.type) {
         

@@ -10,14 +10,14 @@ export interface State {
     readonly errorInfo: ConnectionErrorInfo
 }
 
-export const initialState: State = {
+export const initialState: () => State = () => ({
 
     url:       "",
     status:    ConnectionStatus.DISCONNECTED,
     errorInfo: undefined
-}
+})
 
-const reducer = (state: State = initialState, action: ActionTypes): State => {
+const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
     switch(action.type) {
 

@@ -9,13 +9,13 @@ describe("reducer", () => {
     
     test("should return the initial state", () => {
 
-        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState)
+        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState())
     })
     
     test("should set the connection url and reset errorInfo when connect invoked", () => {
         
         const inputState = {
-            ...initialState,
+            ...initialState(),
             errorInfo: {
                 errorMsg:  "bad thing happened",
                 errorCode: 1001
@@ -35,7 +35,7 @@ describe("reducer", () => {
     test("should set status when connecting", () => {
         
         const inputState = {
-            ...initialState,
+            ...initialState(),
             url: "url"
         } as State
         const operation = actions.onConnecting("url")

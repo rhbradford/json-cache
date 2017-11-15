@@ -2,26 +2,23 @@
 
 import * as React from "react"
 import {Sticky, Grid} from "semantic-ui-react"
-
-import CacheConnector, {CacheConnectorProps} from "./CacheConnector"
-import CacheObjectTypeSelector, {CacheObjectTypeSelectorProps} from "./CacheObjectTypeSelector"
-import CacheObjectFilter, {CacheObjectFilterProps} from "./CacheObjectFilter"
+import {ReactElement} from "react"
 
 export interface HeaderProps {
 
-    readonly cacheConnectorProps: CacheConnectorProps,
-    readonly cacheObjectTypeSelectorProps: CacheObjectTypeSelectorProps
-    readonly cacheObjectFilterProps: CacheObjectFilterProps
+    readonly cacheConnector: ReactElement<any>,
+    readonly cacheObjectTypeSelector: ReactElement<any>
+    readonly cacheObjectFilter: ReactElement<any>
 }
 
-const Header = (headerProps: HeaderProps) => {
-
+const Header: React.SFC<HeaderProps> = ({ cacheConnector, cacheObjectTypeSelector, cacheObjectFilter }: HeaderProps) => {
+    
     return <Sticky>
         <Grid>
             <Grid.Row stretched stackable>
-                <Grid.Column width={8}><CacheConnector {...headerProps.cacheConnectorProps}/></Grid.Column>
-                <Grid.Column width={3}><CacheObjectTypeSelector {...headerProps.cacheObjectTypeSelectorProps}/></Grid.Column>
-                <Grid.Column width={5}><CacheObjectFilter {...headerProps.cacheObjectFilterProps}/></Grid.Column>
+                <Grid.Column width={8}>{cacheConnector}</Grid.Column>
+                <Grid.Column width={3}>{cacheObjectTypeSelector}</Grid.Column>
+                <Grid.Column width={5}>{cacheObjectFilter}</Grid.Column>
             </Grid.Row>
         </Grid>
     </Sticky>

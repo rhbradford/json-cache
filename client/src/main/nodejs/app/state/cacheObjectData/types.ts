@@ -25,9 +25,16 @@ export interface FlattenedCacheObject {
     readonly [others: string] : any
 }
 
+export interface FlattenedCacheObjectColumn {
+    
+    readonly headerName: string,
+    readonly field: string
+}
+
 enum TypeKeys {
 
     CHANGE_SET_RECEIVED = "CHANGE_SET_RECEIVED",
+    CLEAR_DATA = "CLEAR_DATA",    
     OTHER_ACTION = "__any_other_action_type"
 }
 

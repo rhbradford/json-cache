@@ -5,30 +5,21 @@ import {storiesOf} from "@storybook/react"
 import {action} from "@storybook/addon-actions"
 
 import Header from "../app/views/components/Header"
-import {States} from "../app/views/components/CacheConnector"
+import CacheConnector, {States} from "../app/views/components/CacheConnector"
+import CacheObjectTypeSelector from "../app/views/components/CacheObjectTypeSelector"
+import CacheObjectFilter from "../app/views/components/CacheObjectFilter"
 
 storiesOf("Header", module)
     .add("Example", () => (
-        <Header 
-            cacheConnectorProps={ 
-                {
-                    connectorUrl: "",
-                    connectorState: States.Disconnected,
-                    onConnect: action("onConnect"),
-                    onDisconnect: action("onDisconnect")
-                }
+        <Header
+            cacheConnector={
+                <CacheConnector connectorUrl="" connectorState={States.Disconnected} onConnect={action("onConnect")} onDisconnect={action("onDisconnect")}/>
             }
-            cacheObjectTypeSelectorProps={
-                {
-                    types: ["TypeA", "TypeB"],
-                    onSelect: action("onSelect")
-                }
+            cacheObjectTypeSelector={
+                <CacheObjectTypeSelector types={["TypeA", "TypeB"]} onSelect={action("onSelect")}/>
             }
-            cacheObjectFilterProps={
-                {
-                    filter: ".*",
-                    onFilterSet: action("onFilterSet")
-                }
+            cacheObjectFilter={
+                <CacheObjectFilter filter=".*" onFilterSet={action("onFilterSet")}/>
             }
         />
     ))

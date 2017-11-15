@@ -9,7 +9,7 @@ interface CacheObjectDisplayProps {
     readonly rowData: any[]
 }
 
-const CacheObjectDisplay = ({columnDefs, rowData} : CacheObjectDisplayProps) => {
+const CacheObjectDisplay: React.SFC<CacheObjectDisplayProps> = ({columnDefs, rowData} : CacheObjectDisplayProps) => {
     const gridStyle = {
         height: document.body.offsetHeight,
         width: "100%"

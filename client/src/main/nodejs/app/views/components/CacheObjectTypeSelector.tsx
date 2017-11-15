@@ -1,21 +1,21 @@
 // Author: Richard Bradford
 
 import * as React from "react"
-import {Form, Dropdown, Button} from "semantic-ui-react"
+import {Dropdown, Button} from "semantic-ui-react"
 
 export interface CacheObjectTypeSelectorProps {
     readonly types:    string[],
     readonly onSelect: (value: string) => void
 }
 
-const CacheObjectTypeSelector = ({ types, onSelect }: CacheObjectTypeSelectorProps) => {
+const CacheObjectTypeSelector: React.SFC<CacheObjectTypeSelectorProps> = ({ types, onSelect }) => {
 
     const opts = types.map(type => ({ text: type, value: type }))
 
     if(opts.length === 0)
-        return <Button>No types available</Button> 
+        return <Button fluid>No types available</Button> 
     else
-        return <Dropdown button options={opts} defaultValue={opts[0].value} onChange={(e, data) => onSelect(data.value as string)}/> 
+        return <Dropdown fluid button options={opts} defaultValue={opts[0].value} onChange={(e, data) => onSelect(data.value as string)}/> 
 }
 
 export default CacheObjectTypeSelector

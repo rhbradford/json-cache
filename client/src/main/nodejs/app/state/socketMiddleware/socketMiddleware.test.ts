@@ -2,7 +2,7 @@
 
 import configureMockStore, {MockStore} from "redux-mock-store"
 import actions from "./actions"
-import {sockets as middlewareSockets, socketMiddleware} from "./socketMiddleware"
+import {socketMiddleware} from "./socketMiddleware"
 import {Socket, SocketProvider} from "./types"
 
 const sockets = new Map<string, Socket>()
@@ -28,7 +28,7 @@ const socketProvider: SocketProvider = (params, eventhandlers) => {
 
 const reset = () => {
     
-    middlewareSockets.clear()
+    // middlewareSockets.clear()
     sockets.clear()
     resetMocks()
 }
@@ -39,8 +39,8 @@ const resetMocks = () => {
     socketClose.mockClear()
 }
 
-const middlewares = [socketMiddleware(socketProvider)]
-const mockStore = configureMockStore(middlewares)
+// const middlewares = [socketMiddleware(socketProvider)]
+// const mockStore = configureMockStore(middlewares)
 
 describe('socketMiddleware', () => {
 
@@ -48,6 +48,8 @@ describe('socketMiddleware', () => {
 
         reset()
 
+        const middlewares = [socketMiddleware(socketProvider)]
+        const mockStore = configureMockStore(middlewares)
         const store = mockStore({})
 
         const action = actions.connect("url")
@@ -70,6 +72,8 @@ describe('socketMiddleware', () => {
 
         reset()
 
+        const middlewares = [socketMiddleware(socketProvider)]
+        const mockStore = configureMockStore(middlewares)
         const store = mockStore({})
 
         // Disconnect sent to middleware which has not yet had a connect... 
@@ -182,6 +186,8 @@ describe('socketMiddleware', () => {
         
         reset()
 
+        const middlewares = [socketMiddleware(socketProvider)]
+        const mockStore = configureMockStore(middlewares)
         let store = mockStore({})
 
         // Request middleware to connect
@@ -249,6 +255,8 @@ describe('socketMiddleware', () => {
         
         reset()
 
+        const middlewares = [socketMiddleware(socketProvider)]
+        const mockStore = configureMockStore(middlewares)
         const store: MockStore<{}> = mockStore({})
 
         // url1 - Request middleware to connect

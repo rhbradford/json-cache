@@ -1,7 +1,7 @@
 // Author: Richard Bradford
 
 import {State} from "./reducers"
-import {FlattenedCacheObject} from "./types"
+import {FlattenedCacheObject, FlattenedCacheObjectColumn} from "./types"
 
 const cacheObjectTypes = (state: State): Array<string> => {
     
@@ -13,8 +13,14 @@ const cacheObjectsForType = (state: State, type: string): Array<FlattenedCacheOb
     return state.cacheObjectsByType.get(type)
 }
 
+const cacheObjectColumnsForType = (state: State, type: string): Array<FlattenedCacheObjectColumn> => {
+    
+    return state.cacheObjectColumnsByType.get(type)
+}
+
 export default {
     
     cacheObjectTypes,
-    cacheObjectsForType
+    cacheObjectsForType,
+    cacheObjectColumnsForType
 }

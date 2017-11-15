@@ -8,7 +8,7 @@ describe("reducer", () => {
 
     test("should return the initial state", () => {
 
-        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState)
+        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState())
     })
     
     test("should set the filter", () =>{

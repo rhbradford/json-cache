@@ -20,14 +20,14 @@ interface CacheObjectFilterState {
 class CacheObjectFilter extends React.Component<CacheObjectFilterProps, CacheObjectFilterState> {
 
     inputRef: any
-    
+
     constructor(props: CacheObjectFilterProps) {
         super(props)
 
         this.state = {
             filter:        this.props.filter,
             editingFilter: this.props.filter,
-            state:         States.Set
+            state:         States.Editing
         }
 
         this.handleFilterChange = this.handleFilterChange.bind(this)
@@ -62,14 +62,11 @@ class CacheObjectFilter extends React.Component<CacheObjectFilterProps, CacheObj
         this.setState({
             state: States.Editing
         })
+        this.inputRef.focus()
     }
-    
+
     handleRef = (c: any) => {
         this.inputRef = c
-    }
-    
-    focus = () => {
-        this.inputRef.focus()
     }
 
     render() {
@@ -92,7 +89,6 @@ class CacheObjectFilter extends React.Component<CacheObjectFilterProps, CacheObj
             <Button icon={<Icon name="edit"/>} onClick={(e, d) => {
                 e.preventDefault()
                 this.handleEdit()
-                this.focus()
             }}/>
         )
 
@@ -111,7 +107,7 @@ class CacheObjectFilter extends React.Component<CacheObjectFilterProps, CacheObj
                                 placeholder="Filter"
                                 action={editingButtons}
                                 onChange={this.handleFilterChange}
-                       />
+                            />
                         </Form.Field>
                     </Form>
                 )

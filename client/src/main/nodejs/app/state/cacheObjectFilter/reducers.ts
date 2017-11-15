@@ -8,12 +8,12 @@ export interface State {
     readonly filter: string
 }
 
-export const initialState: State = {
+export const initialState: () => State = () => ({
     
     filter: ""
-}
+})
 
-const reducer = (state: State = initialState, action: ActionTypes): State => {
+const reducer = (state: State = initialState(), action: ActionTypes): State => {
  
     switch(action.type) {
         

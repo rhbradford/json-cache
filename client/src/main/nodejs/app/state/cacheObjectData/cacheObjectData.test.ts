@@ -5,6 +5,28 @@ import TypeKeys, {CacheObject, CacheRemove} from "./types"
 import operations from "./operations"
 import {Map} from "immutable"
 
+const object_A_Columns = [
+    {
+        headerName: "id",
+        field:      "id"
+    },
+    {
+        headerName: "location",
+        field:      "location"
+    },
+    {
+        headerName: "price",
+        field:      "price"
+    },
+    {
+        headerName: "product",
+        field:      "product"
+    },
+    {
+        headerName: "type",
+        field:      "type"
+    }
+]
 const cacheObject_A1 = {
     id:      "A_1",
     type:    "TypeA",
@@ -44,6 +66,25 @@ const cacheObject_A2 = {
     }
 }
 const flattened_cacheObject_A2 = flattenCacheObject(cacheObject_A2)
+
+const object_B_Columns = [
+    {
+        headerName: "age",
+        field:      "age"
+    },
+    {
+        headerName: "id",
+        field:      "id"
+    },
+    {
+        headerName: "name",
+        field:      "name"
+    },
+    {
+        headerName: "type",
+        field:      "type"
+    }
+]
 const cacheObject_B1 = {
     id:      "B1",
     type:    "TypeB",
@@ -71,6 +112,21 @@ const cacheObject_B2 = {
     }
 }
 const flattened_cacheObject_B2 = flattenCacheObject(cacheObject_B2)
+
+const object_C_Columns = [
+    {
+        headerName: "content",
+        field:      "content"
+    },
+    {
+        headerName: "id",
+        field:      "id"
+    },
+    {
+        headerName: "type",
+        field:      "type"
+    }
+]
 const cacheObject_C1 = {
     id:      "C1",
     type:    "TypeC",
@@ -89,6 +145,21 @@ const cacheObject_C2 = {
     content: ["other", "things"]
 }
 const flattened_cacheObject_C2 = flattenCacheObject(cacheObject_C2)
+
+const object_D_Columns = [
+    {
+        headerName: "content",
+        field:      "content"
+    },
+    {
+        headerName: "id",
+        field:      "id"
+    },
+    {
+        headerName: "type",
+        field:      "type"
+    }
+]
 const cacheObject_D1 = {
     id:      "D1",
     type:    "TypeD",
@@ -96,13 +167,18 @@ const cacheObject_D1 = {
 }
 const flattened_cacheObject_D1 = flattenCacheObject(cacheObject_D1)
 const exampleState: ImmutableState = Map({
-    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
-    cacheObjectsByType: Map({
+    cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
+    cacheObjectsByType:       Map({
         TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
         TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
         TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
     }),
-    cacheObjectData: Map({
+    cacheObjectColumnsByType: Map({
+        TypeA: object_A_Columns,
+        TypeB: object_B_Columns,
+        TypeC: object_C_Columns
+    }),
+    cacheObjectData:          Map({
         TypeA: Map({
             A_1: flattened_cacheObject_A1,
             A_2: flattened_cacheObject_A2
@@ -115,8 +191,52 @@ const exampleState: ImmutableState = Map({
             C1: flattened_cacheObject_C1,
             C2: flattened_cacheObject_C2
         })
-    }) 
+    })
 } as State)
+
+const cacheObject_E1 = {
+    id:      "E1",
+    type:    "TypeE",
+    content: {
+        name: "Fred"
+    }
+}
+const flattened_cacheObject_E1 = flattenCacheObject(cacheObject_E1)
+const cacheObject_E2 = {
+    id:      "E2",
+    type:    "TypeE",
+    content: {
+        name: "Wilma",
+        age:  72
+    }
+}
+const flattened_cacheObject_E2 = flattenCacheObject(cacheObject_E2)
+const cacheObject_E3 = {
+    id:      "E3",
+    type:    "TypeE",
+    content: {
+        age: 18
+    }
+}
+const flattened_cacheObject_E3 = flattenCacheObject(cacheObject_E3)
+const object_E_Columns = [
+    {
+        headerName: "age",
+        field:      "age"
+    },
+    {
+        headerName: "id",
+        field:      "id"
+    },
+    {
+        headerName: "name",
+        field:      "name"
+    },
+    {
+        headerName: "type",
+        field:      "type"
+    }
+]
 
 describe("reducer", () => {
 
@@ -145,12 +265,12 @@ describe("reducer", () => {
 
     test("should return the initial state", () => {
 
-        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState)
+        expect(reducer(undefined, { type: TypeKeys.OTHER_ACTION })).toEqual(initialState())
     })
 
     test("should add puts to initial state", () => {
 
-        const inputState = initialState
+        const inputState = initialState()
         const changes = {
 
             puts:    [
@@ -183,14 +303,20 @@ describe("reducer", () => {
         }
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
-            cacheObjectTypes:   ["TypeA", "TypeB", "TypeC", "TypeD"],
-            cacheObjectsByType: Map({
+            cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeD"],
+            cacheObjectsByType:       Map({
                 TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
                 TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
                 TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2],
                 TypeD: [flattened_cacheObject_D1]
             }),
-            cacheObjectData:    Map({
+            cacheObjectColumnsByType: Map({
+                TypeA: object_A_Columns,
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns,
+                TypeD: object_D_Columns
+            }),
+            cacheObjectData:          Map({
                 TypeA: Map({
                     A_1: flattened_cacheObject_A1,
                     A_2: flattened_cacheObject_A2
@@ -217,6 +343,11 @@ describe("reducer", () => {
         expect(state.get("cacheObjectsByType").get("TypeA")).toBe(inputState.get("cacheObjectsByType").get("TypeA"))
         expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
         expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
+
+        // Arrays of object columns for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectColumnsByType").get("TypeA")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeA"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeB")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeB"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeC")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeC"))
     })
 
     test("should remove removes from state", () => {
@@ -236,25 +367,30 @@ describe("reducer", () => {
         }
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
-                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
-                    cacheObjectsByType: Map({
-                        TypeA: [flattened_cacheObject_A2],
-                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
-                        TypeC: [flattened_cacheObject_C2]
-                    }),
-                    cacheObjectData: Map({
-                        TypeA: Map({
-                            A_2: flattened_cacheObject_A2
-                        }),
-                        TypeB: Map({
-                            B1: flattened_cacheObject_B1,
-                            B2: flattened_cacheObject_B2
-                        }),
-                        TypeC: Map({
-                            C2: flattened_cacheObject_C2
-                        })
-                    }) 
-                } as State) as ImmutableState
+            cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
+            cacheObjectsByType:       Map({
+                TypeA: [flattened_cacheObject_A2],
+                TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C2]
+            }),
+            cacheObjectColumnsByType: Map({
+                TypeA: object_A_Columns,
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns
+            }),
+            cacheObjectData:          Map({
+                TypeA: Map({
+                    A_2: flattened_cacheObject_A2
+                }),
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C2: flattened_cacheObject_C2
+                })
+            })
+        } as State) as ImmutableState
 
         const state = reducer(inputState, operation)
 
@@ -265,6 +401,11 @@ describe("reducer", () => {
 
         // Arrays of objects for types should be re-used as is if no changes for that type have occurred
         expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
+
+        // Arrays of object columns for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectColumnsByType").get("TypeA")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeA"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeB")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeB"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeC")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeC"))
     })
 
     test("should handle removes that are for objects not present in state", () => {
@@ -284,27 +425,32 @@ describe("reducer", () => {
         }
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
-                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC"],    
-                    cacheObjectsByType: Map({
-                        TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
-                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
-                        TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
-                    }),
-                    cacheObjectData: Map({
-                        TypeA: Map({
-                            A_1: flattened_cacheObject_A1,
-                            A_2: flattened_cacheObject_A2
-                        }),
-                        TypeB: Map({
-                            B1: flattened_cacheObject_B1,
-                            B2: flattened_cacheObject_B2
-                        }),
-                        TypeC: Map({
-                            C1: flattened_cacheObject_C1,
-                            C2: flattened_cacheObject_C2
-                        })
-                    }) 
-                } as State) as ImmutableState
+            cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
+            cacheObjectsByType:       Map({
+                TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
+                TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
+            }),
+            cacheObjectColumnsByType: Map({
+                TypeA: object_A_Columns,
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns
+            }),
+            cacheObjectData:          Map({
+                TypeA: Map({
+                    A_1: flattened_cacheObject_A1,
+                    A_2: flattened_cacheObject_A2
+                }),
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C1: flattened_cacheObject_C1,
+                    C2: flattened_cacheObject_C2
+                })
+            })
+        } as State) as ImmutableState
 
         const state = reducer(inputState, operation)
 
@@ -317,6 +463,11 @@ describe("reducer", () => {
         expect(state.get("cacheObjectsByType").get("TypeA")).toBe(inputState.get("cacheObjectsByType").get("TypeA"))
         expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
         expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
+
+        // Arrays of object columns for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectColumnsByType").get("TypeA")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeA"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeB")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeB"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeC")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeC"))
     })
 
     test("should return smaller array of types if removes result in no objects for a previous type", () => {
@@ -336,22 +487,26 @@ describe("reducer", () => {
         }
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
-                    cacheObjectTypes: ["TypeB", "TypeC"],    
-                    cacheObjectsByType: Map({
-                        TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
-                        TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
-                    }).toJS(),
-                    cacheObjectData: Map({
-                        TypeB: Map({
-                            B1: flattened_cacheObject_B1,
-                            B2: flattened_cacheObject_B2
-                        }),
-                        TypeC: Map({
-                            C1: flattened_cacheObject_C1,
-                            C2: flattened_cacheObject_C2
-                        })
-                    }) 
-                } as State) as ImmutableState
+            cacheObjectTypes:         ["TypeB", "TypeC"],
+            cacheObjectsByType:       Map({
+                TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2]
+            }).toJS(),
+            cacheObjectColumnsByType: Map({
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns
+            }),
+            cacheObjectData:          Map({
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C1: flattened_cacheObject_C1,
+                    C2: flattened_cacheObject_C2
+                })
+            })
+        } as State) as ImmutableState
 
         const state = reducer(inputState, operation)
 
@@ -360,6 +515,10 @@ describe("reducer", () => {
         // Arrays of objects for types should be re-used as is if no changes for that type have occurred
         expect(state.get("cacheObjectsByType").get("TypeB")).toBe(inputState.get("cacheObjectsByType").get("TypeB"))
         expect(state.get("cacheObjectsByType").get("TypeC")).toBe(inputState.get("cacheObjectsByType").get("TypeC"))
+
+        // Arrays of object columns for types should be re-used as is if no changes for that type have occurred
+        expect(state.get("cacheObjectColumnsByType").get("TypeB")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeB"))
+        expect(state.get("cacheObjectColumnsByType").get("TypeC")).toBe(inputState.get("cacheObjectColumnsByType").get("TypeC"))
     })
 
     test("should handle full combinations of puts and removes", () => {
@@ -376,36 +535,124 @@ describe("reducer", () => {
             removes: [
                 {
                     id: "C2"
-                }       
+                }
             ]
         }
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
-                    cacheObjectTypes: ["TypeA", "TypeB", "TypeC","TypeD"],    
-                    cacheObjectsByType: Map({
-                        TypeA: [flattened_cacheObject_A1_update, flattened_cacheObject_A2],
-                        TypeB: [flattened_cacheObject_B1_update, flattened_cacheObject_B2],
-                        TypeC: [flattened_cacheObject_C1_update],
-                        TypeD: [flattened_cacheObject_D1]
-                    }),
-                    cacheObjectData: Map({
-                        TypeA: Map({
-                            A_1: flattened_cacheObject_A1_update,
-                            A_2: flattened_cacheObject_A2
-                        }),
-                        TypeB: Map({
-                            B1: flattened_cacheObject_B1_update,
-                            B2: flattened_cacheObject_B2
-                        }),
-                        TypeC: Map({
-                            C1: flattened_cacheObject_C1_update
-                        }),
-                        TypeD: Map({
-                            D1: flattened_cacheObject_D1
-                        })
-                    }) 
-                } as State) as ImmutableState
+            cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeD"],
+            cacheObjectsByType:       Map({
+                TypeA: [flattened_cacheObject_A1_update, flattened_cacheObject_A2],
+                TypeB: [flattened_cacheObject_B1_update, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C1_update],
+                TypeD: [flattened_cacheObject_D1]
+            }),
+            cacheObjectColumnsByType: Map({
+                TypeA: object_A_Columns,
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns,
+                TypeD: object_D_Columns
+            }),
+            cacheObjectData:          Map({
+                TypeA: Map({
+                    A_1: flattened_cacheObject_A1_update,
+                    A_2: flattened_cacheObject_A2
+                }),
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1_update,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C1: flattened_cacheObject_C1_update
+                }),
+                TypeD: Map({
+                    D1: flattened_cacheObject_D1
+                })
+            })
+        } as State) as ImmutableState
 
+        const state = reducer(inputState, operation)
+
+        expect(state.toJS()).toEqual(expectedState.toJS())
+    })
+
+    test("should accumulate columns as content for a type alters over successive puts", () => {
+
+        const inputState = exampleState
+        const change1 = {
+
+            puts:    [
+                cacheObject_E1
+            ],
+            removes: [] as Array<CacheRemove>
+        }
+        const change2 = {
+
+            puts:    [
+                cacheObject_E2
+            ],
+            removes: [] as Array<CacheRemove>
+        }
+        const change3 = {
+
+            puts:    [
+                cacheObject_E3
+            ],
+            removes: [] as Array<CacheRemove>
+        }
+        const operation1 = operations.onChangeSetReceived(change1)
+        const operation2 = operations.onChangeSetReceived(change2)
+        const operation3 = operations.onChangeSetReceived(change3)
+        const expectedState = Map({
+            cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeE"],
+            cacheObjectsByType:       Map({
+                TypeA: [flattened_cacheObject_A1, flattened_cacheObject_A2],
+                TypeB: [flattened_cacheObject_B1, flattened_cacheObject_B2],
+                TypeC: [flattened_cacheObject_C1, flattened_cacheObject_C2],
+                TypeE: [flattened_cacheObject_E1, flattened_cacheObject_E2, flattened_cacheObject_E3]
+            }),
+            cacheObjectColumnsByType: Map({
+                TypeA: object_A_Columns,
+                TypeB: object_B_Columns,
+                TypeC: object_C_Columns,
+                TypeE: object_E_Columns
+            }),
+            cacheObjectData:          Map({
+                TypeA: Map({
+                    A_1: flattened_cacheObject_A1,
+                    A_2: flattened_cacheObject_A2
+                }),
+                TypeB: Map({
+                    B1: flattened_cacheObject_B1,
+                    B2: flattened_cacheObject_B2
+                }),
+                TypeC: Map({
+                    C1: flattened_cacheObject_C1,
+                    C2: flattened_cacheObject_C2
+                }),
+                TypeE: Map({
+                    E1: flattened_cacheObject_E1,
+                    E2: flattened_cacheObject_E2,
+                    E3: flattened_cacheObject_E3
+                })
+            })
+        } as State) as ImmutableState
+
+        const state1 = reducer(inputState, operation1)
+        const state2 = reducer(state1, operation2)
+        const state3 = reducer(state2, operation3)
+
+        expect(state3.toJS()).toEqual(expectedState.toJS())
+
+        // If no new columns seen, object columns should be returned as is
+        expect(state3.get("cacheObjectColumnsByType").get("TypeE")).toBe(state2.get("cacheObjectColumnsByType").get("TypeE"))
+    })
+
+    test("should clear data when requested", () => {
+
+        const inputState = exampleState
+        const operation = operations.clearData()
+        const expectedState = initialState()
         const state = reducer(inputState, operation)
 
         expect(state.toJS()).toEqual(expectedState.toJS())

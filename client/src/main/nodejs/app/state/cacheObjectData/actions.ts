@@ -13,8 +13,14 @@ export interface ChangeSetReceivedAction {
     readonly changes: CacheChangeSet
 }
 
+export interface ClearDataAction {
+
+    readonly type: TypeKeys.CLEAR_DATA
+}
+
 export type ActionTypes = 
     | ChangeSetReceivedAction
+    | ClearDataAction
     | OtherAction
 
 const onChangeSetReceived = (changes: CacheChangeSet): ChangeSetReceivedAction => ({
@@ -23,7 +29,13 @@ const onChangeSetReceived = (changes: CacheChangeSet): ChangeSetReceivedAction =
     changes
 })
 
+const clearData = (): ClearDataAction => ({
+    
+    type: TypeKeys.CLEAR_DATA
+})
+
 export default {
 
-    onChangeSetReceived
+    onChangeSetReceived,
+    clearData
 }
