@@ -5,6 +5,7 @@ import {connect} from "react-redux"
 import {State} from "../../state"
 import {selectors} from "../../state/cacheObjectData"
 import CacheObjectDisplay from "../components/CacheObjectDisplay"
+import withHeight from "../higherOrderComponents/WithHeight"
 
 const mapStateToProps = (state: State) => {
 
@@ -18,5 +19,5 @@ const mapStateToProps = (state: State) => {
     }
 }
 
-export default connect(mapStateToProps)(CacheObjectDisplay)
+export default connect(mapStateToProps)(withHeight()(CacheObjectDisplay))
 

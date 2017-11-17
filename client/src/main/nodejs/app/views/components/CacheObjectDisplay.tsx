@@ -6,13 +6,15 @@ import {AgGridReact} from "ag-grid-react"
 interface CacheObjectDisplayProps {
 
     readonly columnDefs: any[],
-    readonly rowData: any[]
+    readonly rowData: any[],
+    readonly height?: number
 }
 
-const CacheObjectDisplay: React.SFC<CacheObjectDisplayProps> = ({columnDefs, rowData} : CacheObjectDisplayProps) => {
+const CacheObjectDisplay: React.SFC<CacheObjectDisplayProps> = ({columnDefs, rowData, height} : CacheObjectDisplayProps) => {
+    
     const gridStyle = {
-        height: "200px",
-        width: "200px"
+        height: height+"px",
+        width: "100%"
     }
     
     return (
