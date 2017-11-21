@@ -100,9 +100,19 @@ interface GoldenLayoutContext {
     store: any
 }
 
-class GoldenLayoutWrapper extends React.Component<{dataProvider: React.ComponentClass<{}> | (() => React.ReactElement<{}>)}, {}> {
+interface GoldenLayoutWrapperProps {
+    dataProvider: React.ComponentClass<{}> | (() => React.ReactElement<{}>)
+}
 
+class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> {
+
+    layoutDiv: any
     layout: any
+    
+    constructor(props: GoldenLayoutWrapperProps) {
+        super(props)
+        this.updateSize = this.updateSize.bind(this)
+    }
     
     componentDidMount() {
         // Build basic golden-layout config
@@ -136,23 +146,32 @@ class GoldenLayoutWrapper extends React.Component<{dataProvider: React.Component
             return Wrapped
         }
 
-        let layout = new GoldenLayout(config, this.layout)
-        layout.registerComponent('TestDataProviderContainer',
+        this.layout = new GoldenLayout(config, this.layoutDiv)
+        this.layout.registerComponent('TestDataProviderContainer',
             wrapComponent(this.props.dataProvider, this.context.store)
         )
-        layout.registerComponent('TestComponentContainer',
+        this.layout.registerComponent('TestComponentContainer',
             wrapComponent(CacheObjectDisplayContainer, this.context.store)
         )
-        layout.init()
+        this.layout.init()
 
-        window.addEventListener('resize', () => {
-            layout.updateSize()
-        })
+        window.addEventListener('resize', this.updateSize)
+    }
+    
+    updateSize() {
+        
+        this.layout.updateSize()
+    }
+    
+    componentWillUnmount() {
+        
+        this.layout.destroy()
+        window.removeEventListener('resize', this.updateSize)
     }
 
     render() {
         return (
-            <div className='goldenLayout' style={{height: "100vh"}} ref={input => this.layout = input}/>
+            <div className='goldenLayout' style={{height: "100vh"}} ref={e => this.layoutDiv = e}/>
         )
     }
 
@@ -237,12 +256,10 @@ storiesOf("CacheObjectDisplayContainer", module)
     })
     .add("Large number of rows", () => {
         store.dispatch(DataOps.clearData())
-        return (<LargeDataWrapper/>)
-    })
-    .add("Reflex test", () => {
-        store.dispatch(DataOps.clearData())
         return (
-            <div/>
+            <div style={{height: "100vh"}}>
+            <GoldenLayoutWrapper dataProvider={LargeDataWrapper}/>
+            </div>
         )
     })
 

@@ -13,7 +13,7 @@ interface CacheObjectDisplayProps {
 const CacheObjectDisplay: React.SFC<CacheObjectDisplayProps> = ({columnDefs, rowData, height} : CacheObjectDisplayProps) => {
     
     const gridStyle = {
-        height: "100px",
+        height: "100%",
         width: "100%"
     }
     
