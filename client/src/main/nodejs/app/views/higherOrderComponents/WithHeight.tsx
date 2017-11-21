@@ -1,22 +1,25 @@
 // Author: Richard Bradford
 
 import * as React from "react"
+import {isUndefined} from "util"
 
-interface State {
+interface InjectedProps {
 
-    height: number,
+    height?: number
+}
+
+interface State extends InjectedProps {
+
     trackingHeight: number,
+    hiddenElementHeightSetting: string,
     offsetElement: Element
+    willHaveOffset: boolean
 }
 
 interface ExternalProps {
 
     offsetElement?: Element
-}
-
-interface InjectedProps {
-
-    height?: number
+    willHaveOffset?: boolean
 }
 
 interface Options {
@@ -37,7 +40,8 @@ const withHeight = ({ trackingIntervalMs }: Options = { trackingIntervalMs: 50 }
 
             static displayName = `WithHeight(${InnerComponent.displayName})`
 
-            divElement: Element
+            hiddenElement: Element
+            componentElement: Element
             timer: number
 
             constructor(props: ResultProps) {
@@ -47,63 +51,94 @@ const withHeight = ({ trackingIntervalMs }: Options = { trackingIntervalMs: 50 }
                 this.state = {
                     height: undefined,
                     trackingHeight: undefined,
-                    offsetElement: props.offsetElement
+                    hiddenElementHeightSetting: "100vh",
+                    offsetElement: props.offsetElement,
+                    willHaveOffset: (!isUndefined(props.willHaveOffset)) ? props.willHaveOffset : false
                 }
 
-                this.checkHeight = this.checkHeight.bind(this)
+                // this.checkHeight = this.checkHeight.bind(this)
+                // this.setHeight = this.setHeight.bind(this)
             }
 
-            componentWillReceiveProps(nextProps: Readonly<ResultProps>) {
-                
-                if(nextProps.offsetElement !== this.props.offsetElement) this.setState({
-                    offsetElement: nextProps.offsetElement
-                })
-            }
+            // setHeight(element: Element) {
+            //    
+            //     const offsetHeight = this.state.offsetElement ? this.state.offsetElement.clientHeight : 0
+            //     const trackingHeight = element.clientHeight
+            //     if(trackingHeight != this.state.trackingHeight) {
+            //         const bcrect = element.getBoundingClientRect()
+            //         const height = bcrect.top < 0 ? bcrect.height - offsetHeight : bcrect.height - bcrect.top - offsetHeight
+            //         this.setState({
+            //             height,
+            //             trackingHeight: height,
+            //             hiddenElementHeightSetting: "100%"
+            //         })
+            //     }
+            // }
+            //
+            // componentWillReceiveProps(nextProps: Readonly<ResultProps>) {
+            //    
+            //     if(nextProps.offsetElement !== this.props.offsetElement) this.setState({
+            //         offsetElement: nextProps.offsetElement
+            //     })
+            // }
 
             componentDidMount() {
 
-                const offsetHeight = this.state.offsetElement ? this.state.offsetElement.clientHeight : 0
-                const trackingHeight = this.divElement.clientHeight - offsetHeight  
-                const bcrect = this.divElement.getBoundingClientRect()
-                const height = bcrect.top < 0 ? bcrect.height - offsetHeight : bcrect.height - bcrect.top - offsetHeight
-                this.setState({ height, trackingHeight });
-
-                this.timer = window.setInterval(this.checkHeight, trackingIntervalMs)
+                this.setState({
+                    height: this.componentElement.clientHeight
+                })
+                
+                // if(!this.state.willHaveOffset || (this.state.willHaveOffset && this.state.offsetElement)) 
+                //     this.setHeight(this.hiddenElement)
+                //
+                // this.timer = window.setInterval(this.checkHeight, trackingIntervalMs)
             }
 
-            componentWillUnmount() {
-
-                window.clearInterval(this.timer)
-            }
-
-            checkHeight() {
-
-                const offsetHeight = this.state.offsetElement ? this.state.offsetElement.clientHeight : 0
-                const trackingHeight = this.divElement.clientHeight - offsetHeight  
-                if(this.state.trackingHeight != trackingHeight) {
-                    const bcrect = this.divElement.getBoundingClientRect()
-                    const height = bcrect.top < 0 ? bcrect.height - offsetHeight : bcrect.height - bcrect.top - offsetHeight
-                    this.setState({
-                        height,
-                        trackingHeight
-                    })
-                }
-            }
+            // componentWillUnmount() {
+            //
+            //     window.clearInterval(this.timer)
+            // }
+            //
+            // checkHeight() {
+            //
+            //     if(!this.state.willHaveOffset || !isUndefined(this.state.height)) 
+            //         this.setHeight(this.componentElement)
+            //     else if(this.state.willHaveOffset && this.state.offsetElement) 
+            //         this.setHeight(this.hiddenElement)
+            // }
 
             render() {
 
                 let component = this.state.height ? <InnerComponent {...this.props} {...this.state} /> : <div/>
 
                 return (
-                    <div>
-                        <div ref={(divElement) => this.divElement = divElement}
+                    <div style={{
+                        display: "flex", 
+                        flex: "1 1 0%", 
+                        height: "100%", 
+                        width: "100%",
+                        minHeight: "100%",
+                        flexDirection: "column",
+                        position: "relative",
+                        outline: "none",
+                        top: 0, 
+                        bottom: 0
+                    }}>
+                        {/*<div ref={(e) => this.hiddenElement = e}*/}
+                             {/*style={{*/}
+                                 {/*float:  "left",*/}
+                                 {/*height: this.state.hiddenElementHeightSetting,*/}
+                                 {/*width:  "0%"*/}
+                             {/*}}/>*/}
+                        <div ref={(e) => this.componentElement = e} 
                              style={{
-                                 float:  "left",
-                                 height: "100vh",
-                                 width:  "0%"
-                             }}/>
-                        <div style={{ width: "100%" }}>{component}</div>
-                        <div style={{ clear: "both" }}/>
+                                 position: "relative",
+                                 flex: "1 1 0%",
+                                 width: "100%" 
+                             }}>
+                            {/*{component}*/}
+                        </div>
+                        {/*<div style={{ clear: "both" }}/>*/}
                     </div>
                 )
             }

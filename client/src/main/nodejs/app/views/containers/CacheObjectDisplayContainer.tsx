@@ -19,5 +19,5 @@ const mapStateToProps = (state: State) => {
     }
 }
 
-export default connect(mapStateToProps)(withHeight()(CacheObjectDisplay))
+export default connect(mapStateToProps)(CacheObjectDisplay)
 

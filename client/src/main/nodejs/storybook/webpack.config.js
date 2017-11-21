@@ -1,8 +1,18 @@
 // Author: Richard Bradford
+const webpack = require('webpack')
 
 const path = require('path');
 
 module.exports = {
+    plugins: [
+        // Necessary b/c golden-layout depends on all 3 of these libs via UMD globals
+        new webpack.ProvidePlugin({
+            React: 'react',
+            ReactDOM: 'react-dom',
+            $: 'jquery',
+            jQuery: 'jquery'
+        })
+    ],
     resolve: {
         extensions: ['.js', '.ts', '.tsx']
     },

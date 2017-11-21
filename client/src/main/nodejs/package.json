@@ -14,6 +14,7 @@
     "@storybook/addon-actions": "^3.2.14",
     "@storybook/react": "^3.2.14",
     "@types/jest": "^21.1.5",
+    "@types/prop-types": "^15.5.2",
     "@types/react": "^16.0.21",
     "@types/react-dom": "^16.0.2",
     "@types/react-redux": "^5.0.12",
@@ -41,15 +42,17 @@
     "ws": "^3.3.1"
   },
   "dependencies": {
-    "ag-grid": "^14.1.1",
-    "ag-grid-react": "^14.0.0",
+    "ag-grid": "^14.2.0",
+    "ag-grid-react": "^14.2.0",
     "babel-runtime": "^6.26.0",
+    "golden-layout": "^1.5.9",
     "immutable": "^3.8.2",
+    "prop-types": "^15.6.0",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "react-dom-factories": "^1.0.2",
-    "react-height": "^3.0.0",
     "react-redux": "^5.0.6",
+    "react-reflex": "^2.0.11",
     "redux": "^3.7.2",
     "semantic-ui-css": "^2.2.12",
     "semantic-ui-react": "^0.76.0"
