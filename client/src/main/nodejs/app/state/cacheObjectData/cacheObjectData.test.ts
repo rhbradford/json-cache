@@ -161,7 +161,7 @@ const object_E_Columns = [
 
 const exampleState: State = Map({
     cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
-    cacheObjectContentTypes: Map({
+    cacheObjectContentTypes:  Map({
         TypeA: CacheObjectContentType.object,
         TypeB: CacheObjectContentType.object,
         TypeC: CacheObjectContentType.array
@@ -193,7 +193,7 @@ const exampleState: State = Map({
 } as StateData)
 
 const fullExampleState = (): State => {
-    
+
     const inputState = initialState()
     const changes = {
 
@@ -213,7 +213,7 @@ const fullExampleState = (): State => {
 }
 
 const removeKeysCache = (state: State): State => {
-    
+
     return state.set("cacheObjectContentKeysCache", undefined)
 }
 
@@ -242,7 +242,7 @@ describe("reducer", () => {
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeD"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeA: CacheObjectContentType.object,
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array,
@@ -312,7 +312,7 @@ describe("reducer", () => {
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeA: CacheObjectContentType.object,
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array
@@ -375,7 +375,7 @@ describe("reducer", () => {
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeA", "TypeB", "TypeC"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeA: CacheObjectContentType.object,
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array
@@ -442,7 +442,7 @@ describe("reducer", () => {
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeB", "TypeC"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array
             }),
@@ -499,7 +499,7 @@ describe("reducer", () => {
         const operation = operations.onChangeSetReceived(changes)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeD"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeA: CacheObjectContentType.object,
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array,
@@ -569,7 +569,7 @@ describe("reducer", () => {
         const operation3 = operations.onChangeSetReceived(change3)
         const expectedState = Map({
             cacheObjectTypes:         ["TypeA", "TypeB", "TypeC", "TypeE"],
-            cacheObjectContentTypes: Map({
+            cacheObjectContentTypes:  Map({
                 TypeA: CacheObjectContentType.object,
                 TypeB: CacheObjectContentType.object,
                 TypeC: CacheObjectContentType.array,

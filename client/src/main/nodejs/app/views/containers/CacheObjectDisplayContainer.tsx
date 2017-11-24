@@ -13,8 +13,9 @@ const mapStateToProps = (state: State) => {
 
     return {
 
-        columns: selectors.cacheObjectColumnsForType(cacheObjectData, type),
-        rowData: selectors.cacheObjectsForType(cacheObjectData, type)
+        objectType: selectors.cacheObjectContentType(cacheObjectData, type),
+        columns:    selectors.cacheObjectColumns(cacheObjectData, type),
+        rowData:    selectors.cacheObjects(cacheObjectData, type)
     }
 }
 

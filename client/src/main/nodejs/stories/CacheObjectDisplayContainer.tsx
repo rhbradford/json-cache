@@ -28,12 +28,14 @@ const rootReducer = (state: State, action: any): State => {
     })
 }
 
+const theType = "ComplexObject"
+
 const store = createStore(
     rootReducer,
     {
         cacheObjectData: undefined,
         cacheObjectType: {
-            selectedType: "X"
+            selectedType: theType
         }
     } as State,
     devToolsEnhancer({})
@@ -44,15 +46,15 @@ const tickData: CacheChangeSet = {
     puts:    [
         {
             id:      "object_1",
-            type:    "X",
+            type:    theType,
             content: {
-                name: "Fred",
+                name: "Frederick",
                 age:  24
             }
         },
         {
             id:      "object_2",
-            type:    "X",
+            type:    theType,
             content: {
                 name: "Wilma",
                 age:  25
@@ -71,15 +73,15 @@ const tockData: CacheChangeSet = {
     puts:    [
         {
             id:      "object_1",
-            type:    "X",
+            type:    theType,
             content: {
-                name: "Fred",
+                name: "Frederick",
                 age:  32
             }
         },
         {
             id:      "object_2",
-            type:    "X",
+            type:    theType,
             content: {
                 name: "Wilma",
                 age:  33
@@ -87,7 +89,7 @@ const tockData: CacheChangeSet = {
         },
         {
             id:      "object_3",
-            type:    "X",
+            type:    theType,
             content: {
                 name: "Baby",
                 age:  1
