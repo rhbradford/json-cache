@@ -20,11 +20,11 @@ export interface CacheChangeSet {
 
 export enum CacheObjectContentType {
     
-    string,
-    number,
-    boolean,
-    array,
-    object
+    string = "string",
+    number = "number",
+    boolean = "boolean",
+    array = "array",
+    object = "object"
 }
 
 export interface CacheObjectColumn {

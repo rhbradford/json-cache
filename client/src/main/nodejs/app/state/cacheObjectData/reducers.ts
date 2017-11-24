@@ -13,7 +13,6 @@ export type Id = string
 export interface StateData {
 
     readonly cacheObjectData: ImmutableMap<Type, ImmutableMap<Id, CacheObject>>,
-
     readonly cacheObjectTypes: Array<Type>,
     readonly cacheObjectContentTypes: ImmutableMap<Type, CacheObjectContentType>
     readonly cacheObjectContentKeysCache: ImmutableMap<Type, Set<string>>
