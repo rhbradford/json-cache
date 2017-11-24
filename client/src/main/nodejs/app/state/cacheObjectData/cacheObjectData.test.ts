@@ -1,32 +1,12 @@
 // Author: Richard Bradford
 
 import reducer, {flattenCacheObject, State, initialState, StateData} from "./reducers"
-import TypeKeys, {CacheObject, CacheRemove} from "./types"
+import TypeKeys from "./types"
 import operations from "./operations"
 import {Map} from "immutable"
+import {CacheObject, CacheRemove} from "../../model/types"
 
-const object_A_Columns = [
-    {
-        headerName: "id",
-        field:      "id"
-    },
-    {
-        headerName: "location",
-        field:      "location"
-    },
-    {
-        headerName: "price",
-        field:      "price"
-    },
-    {
-        headerName: "product",
-        field:      "product"
-    },
-    {
-        headerName: "type",
-        field:      "type"
-    }
-]
+const object_A_Columns = ["id", "location", "price", "product", "type"]
 const cacheObject_A1 = {
     id:      "A_1",
     type:    "TypeA",
@@ -67,24 +47,7 @@ const cacheObject_A2 = {
 }
 const flattened_cacheObject_A2 = flattenCacheObject(cacheObject_A2)
 
-const object_B_Columns = [
-    {
-        headerName: "age",
-        field:      "age"
-    },
-    {
-        headerName: "id",
-        field:      "id"
-    },
-    {
-        headerName: "name",
-        field:      "name"
-    },
-    {
-        headerName: "type",
-        field:      "type"
-    }
-]
+const object_B_Columns = ["age", "id", "name", "type"]
 const cacheObject_B1 = {
     id:      "B1",
     type:    "TypeB",
@@ -113,20 +76,7 @@ const cacheObject_B2 = {
 }
 const flattened_cacheObject_B2 = flattenCacheObject(cacheObject_B2)
 
-const object_C_Columns = [
-    {
-        headerName: "content",
-        field:      "content"
-    },
-    {
-        headerName: "id",
-        field:      "id"
-    },
-    {
-        headerName: "type",
-        field:      "type"
-    }
-]
+const object_C_Columns = ["content", "id", "type"]
 const cacheObject_C1 = {
     id:      "C1",
     type:    "TypeC",
@@ -146,20 +96,7 @@ const cacheObject_C2 = {
 }
 const flattened_cacheObject_C2 = flattenCacheObject(cacheObject_C2)
 
-const object_D_Columns = [
-    {
-        headerName: "content",
-        field:      "content"
-    },
-    {
-        headerName: "id",
-        field:      "id"
-    },
-    {
-        headerName: "type",
-        field:      "type"
-    }
-]
+const object_D_Columns = ["content", "id", "type"]
 const cacheObject_D1 = {
     id:      "D1",
     type:    "TypeD",
@@ -219,24 +156,7 @@ const cacheObject_E3 = {
     }
 }
 const flattened_cacheObject_E3 = flattenCacheObject(cacheObject_E3)
-const object_E_Columns = [
-    {
-        headerName: "age",
-        field:      "age"
-    },
-    {
-        headerName: "id",
-        field:      "id"
-    },
-    {
-        headerName: "name",
-        field:      "name"
-    },
-    {
-        headerName: "type",
-        field:      "type"
-    }
-]
+const object_E_Columns = ["age", "id", "name", "type"]
 
 describe("reducer", () => {
 

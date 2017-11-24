@@ -5,7 +5,6 @@ import {connect} from "react-redux"
 import {State} from "../../state"
 import {selectors} from "../../state/cacheObjectData"
 import CacheObjectDisplay from "../components/CacheObjectDisplay"
-import withHeight from "../higherOrderComponents/WithHeight"
 
 const mapStateToProps = (state: State) => {
 
@@ -14,8 +13,8 @@ const mapStateToProps = (state: State) => {
 
     return {
 
-        columnDefs: selectors.cacheObjectColumnsForType(cacheObjectData, type),
-        rowData:    selectors.cacheObjectsForType(cacheObjectData, type)
+        columns: selectors.cacheObjectColumnsForType(cacheObjectData, type),
+        rowData: selectors.cacheObjectsForType(cacheObjectData, type)
     }
 }
 

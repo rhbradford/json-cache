@@ -1,6 +1,7 @@
 // Author: Richard Bradford
 
-import TypeKeys, {CacheChangeSet} from "./types"
+import TypeKeys from "./types"
+import {CacheChangeSet} from "../../model/types"
 
 export interface OtherAction {
     

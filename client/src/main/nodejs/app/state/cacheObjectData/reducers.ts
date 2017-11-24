@@ -2,7 +2,9 @@
 
 import {Map as ImmutableMap} from "immutable"
 
-import TypeKeys, {CacheObject, FlattenedCacheObject, FlattenedCacheObjectColumn} from "./types"
+import {CacheObject, CacheObjectColumn, CacheObjectContentType} from "../../model/types"
+import {cacheObjectContentType, cacheObjectColumnContentType} from "../../model/utils"
+import TypeKeys from "./types"
 import {ActionTypes} from "./actions"
 
 export type Type = string
@@ -10,10 +12,13 @@ export type Id = string
 
 export interface StateData {
 
+    readonly cacheObjectData: ImmutableMap<Type, ImmutableMap<Id, CacheObject>>,
+
     readonly cacheObjectTypes: Array<Type>,
-    readonly cacheObjectData: ImmutableMap<Type, ImmutableMap<Id, FlattenedCacheObject>>,
-    readonly cacheObjectsByType: ImmutableMap<Type, Array<FlattenedCacheObject>>
-    readonly cacheObjectColumnsByType: ImmutableMap<Type, Array<FlattenedCacheObjectColumn>>
+    readonly cacheObjectContentTypes: ImmutableMap<Type, CacheObjectContentType>
+    readonly cacheObjectContentKeysCache: ImmutableMap<Type, Set<string>>
+    readonly cacheObjectsByType: ImmutableMap<Type, Array<CacheObject>>
+    readonly cacheObjectColumnsByType: ImmutableMap<Type, Array<CacheObjectColumn>>
 }
 
 export interface State extends ImmutableMap<string, any> {
@@ -24,53 +29,13 @@ export interface State extends ImmutableMap<string, any> {
 }
 
 export const initialState: () => State = () => ImmutableMap({
-    cacheObjectTypes:         [],
-    cacheObjectData:          ImmutableMap(),
-    cacheObjectsByType:       ImmutableMap(),
-    cacheObjectColumnsByType: ImmutableMap()
+    cacheObjectData:             ImmutableMap(),
+    cacheObjectTypes:            [],
+    cacheObjectContentTypes:     ImmutableMap(),
+    cacheObjectContentKeysCache: ImmutableMap(),
+    cacheObjectsByType:          ImmutableMap(),
+    cacheObjectColumnsByType:    ImmutableMap()
 } as StateData)
-
-const isObject = (o: any): boolean => {
-
-    return (typeof o === 'object' && !Array.isArray(o) && o !== null)
-}
-
-const isArray = (o: any): boolean => {
-
-    return Array.isArray(o)
-}
-
-export const flattenCacheObject = (cacheObject: CacheObject): FlattenedCacheObject => {
-
-    // noinspection JSMismatchedCollectionQueryUpdate
-    const keys: { [others: string]: any } = {}
-
-    if(isObject(cacheObject.content)) {
-
-        for(let key in cacheObject.content) {
-
-            if(cacheObject.content.hasOwnProperty(key)) {
-
-                let value = cacheObject.content[key]
-                if(isArray(value) || isObject(value))
-                    keys[key] = JSON.stringify(value)
-                else
-                    keys[key] = value
-            }
-        }
-
-    }
-    else {
-
-        keys["content"] = JSON.stringify(cacheObject.content)
-    }
-
-    return {
-        id:   cacheObject.id,
-        type: cacheObject.type,
-        ...keys
-    }
-}
 
 const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
@@ -78,10 +43,12 @@ const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
         case TypeKeys.CHANGE_SET_RECEIVED:
             let nextState = state
-            let objectsByType = state.get("cacheObjectsByType")
-            let types = state.get("cacheObjectTypes")
             let objectData = state.get("cacheObjectData")
+            let types = state.get("cacheObjectTypes")
+            let contentTypes = state.get("cacheObjectContentTypes")
+            let objectsByType = state.get("cacheObjectsByType")
             let columnsByType = state.get("cacheObjectColumnsByType")
+            let keysCache = state.get("cacheObjectContentKeysCache")
 
             const typesTouched: Set<string> = new Set()
             const typesToBeRemoved: Set<string> = new Set()
@@ -89,11 +56,11 @@ const reducer = (state: State = initialState(), action: ActionTypes): State => {
             const typesToBeAdded: Set<string> = new Set()
             const { puts, removes } = action.changes
 
-            const keysCache = new Map<string, Set<string>>()
-
             for(let put of puts) {
 
                 const type = put.type
+                const contentType = cacheObjectContentType(put)
+
                 typesTouched.add(type)
                 typesToBeRemoved.delete(type)
 
@@ -103,51 +70,66 @@ const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
                     newType = true
                     typesToBeAdded.add(type)
-                }
 
-                objectData = objectData.setIn([type, put.id], flattenCacheObject(put))
+                    contentTypes = contentTypes.set(type, contentType)
+                    if(contentType != CacheObjectContentType.object) {
 
-                const fco = objectData.getIn([type, put.id])
-                const fcoKeys: Array<string> = Object.keys(fco)
-                const fcoKeysAsString = fcoKeys.toString()
+                        const column = {
 
-                if(newType) {
-
-                    const columnDefs: Array<FlattenedCacheObjectColumn> = fcoKeys.sort().map(key => {
-                        return {
-                            headerName: key,
-                            field:      key
-                        }
-                    })
-
-                    keysCache.set(type, new Set([fcoKeysAsString]))
-                    columnsByType = columnsByType.set(type, columnDefs)
-                }
-                else {
-
-                    if(!keysCache.has(type) || !keysCache.get(type).has(fcoKeysAsString)) {
-
-                        const columnDefs = columnsByType.get(type)
-                        const currentKeys = columnDefs.map(columnDef => columnDef.field)
-
-                        const allKeys = new Set(currentKeys)
-                        for(let key of fcoKeys) {
-                            allKeys.add(key)
+                            name: "content",
+                            type: contentType
                         }
 
-                        if(allKeys.size != currentKeys.length) {
+                        columnsByType = columnsByType.set(type, [column])
+                    }
+                }
 
-                            const newColumnDefs = Array.from(allKeys).sort().map(key => ({
-                                headerName: key,
-                                field:      key
-                            }))
+                objectData = objectData.setIn([type, put.id], put)
 
-                            columnsByType = columnsByType.set(type, newColumnDefs)
+                if(contentType == CacheObjectContentType.object) {
 
-                            if(keysCache.has(type))
-                                keysCache.get(type).add(fcoKeysAsString)
-                            else
-                                keysCache.set(type, new Set([fcoKeysAsString]))
+                    const keys: Array<string> = Object.keys(put.content)
+                    const keysAsString = keys.toString()
+
+                    if(newType) {
+
+                        const columns: Array<CacheObjectColumn> = keys.sort().map(key =>
+                            ({
+                                name: key,
+                                type: cacheObjectColumnContentType(put.content[key])
+                            })
+                        )
+
+                        keysCache = keysCache.set(type, new Set([keysAsString]))
+                        columnsByType = columnsByType.set(type, columns)
+                    }
+                    else {
+
+                        if(!keysCache.get(type).has(keysAsString)) {
+
+                            const keysAsStringSet = keysCache.get(type)
+                            keysAsStringSet.add(keysAsString)
+                            keysCache = keysCache.set(type, keysAsStringSet)
+
+                            const columns = columnsByType.get(type)
+                            const currentKeys = columns.map(column => column.name)
+
+                            const allKeys = new Set(currentKeys)
+                            for(let key of keys) {
+                                allKeys.add(key)
+                            }
+
+                            if(allKeys.size != currentKeys.length) {
+
+                                const newColumns = Array.from(allKeys).sort().map(key =>
+                                    ({
+                                        name: key,
+                                        type: cacheObjectColumnContentType(put.content[key])
+                                    })
+                                )
+
+                                columnsByType = columnsByType.set(type, newColumns)
+                            }
                         }
                     }
                 }
@@ -182,6 +164,8 @@ const reducer = (state: State = initialState(), action: ActionTypes): State => {
 
                 objectsByType = objectsByType.remove(type)
                 columnsByType = columnsByType.remove(type)
+                contentTypes = contentTypes.remove(type)
+                keysCache = keysCache.remove(type)
             }
 
             for(let type of typesTouched) {
@@ -198,6 +182,8 @@ const reducer = (state: State = initialState(), action: ActionTypes): State => {
             nextState = nextState.set("cacheObjectTypes", types)
             nextState = nextState.set("cacheObjectColumnsByType", columnsByType)
             nextState = nextState.set("cacheObjectsByType", objectsByType)
+            nextState = nextState.set("cacheObjectContentTypes", contentTypes)
+            nextState = nextState.set("cacheObjectContentKeysCache", keysCache)
 
             return nextState
 

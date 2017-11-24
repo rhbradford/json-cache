@@ -7,22 +7,17 @@ import "../node_modules/ag-grid/dist/styles/ag-grid.css"
 import "../node_modules/ag-grid/dist/styles/theme-dark.css"
 
 import CacheObjectDisplay from "../app/views/components/CacheObjectDisplay"
-import withHeight from "../app/views/higherOrderComponents/WithHeight"
 
-const columnDefs = [
-    { headerName: "Id", field: "id" },
-    { headerName: "Type", field: "type" },
-    { headerName: "Price", field: "price" }
-]
+const columns = ["id", "type", "price", "details"]
 
 const rowData = [
-    { id: "Object1", type: "Order", price: 23.56 },
-    { id: "Object2", type: "Order", price: -67.998 }
+    { id: "Object1", type: "Order", price: 23.56, details: JSON.stringify({ product: "XYZ", category: "End" }) },
+    { id: "Object2", type: "Order", price: -67.998, details: { product: "ABC", category: "Start" } }
 ]
-
-const WithHeightCacheObjectDisplay = withHeight()(CacheObjectDisplay)
 
 storiesOf("CacheObjectDisplay", module)
     .add("Basic", () => (
-        <WithHeightCacheObjectDisplay columnDefs={columnDefs} rowData={rowData}/>
+        <div style={{ height: "200px" }}>
+            <CacheObjectDisplay columns={columns} rowData={rowData}/>
+        </div>
     ))

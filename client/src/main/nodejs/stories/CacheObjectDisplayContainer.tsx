@@ -17,8 +17,9 @@ import "../node_modules/golden-layout/src/css/goldenlayout-dark-theme.css"
 
 import {State} from "../app/state"
 import DataReducer, {operations as DataOps} from "../app/state/cacheObjectData"
-import {CacheChangeSet, CacheRemove} from "../app/state/cacheObjectData/types"
+import {CacheChangeSet} from "../app/model/types"
 import CacheObjectDisplayContainer from "../app/views/containers/CacheObjectDisplayContainer"
+import {CacheRemove} from "../app/model/types"
 
 const rootReducer = (state: State, action: any): State => {
     return ({
@@ -122,11 +123,13 @@ class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> 
                 content: [
                     {
                         type:      'react-component',
-                        component: 'TestDataProviderContainer'
+                        component: 'TestDataProviderContainer',
+                        title: 'DataProvider'
                     },
                     {
                         type:      'react-component',
-                        component: 'TestComponentContainer'
+                        component: 'TestComponentContainer',
+                        title: 'CacheObjectDisplay'
                     }
                 ]
             }]
@@ -175,17 +178,12 @@ class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> 
         )
     }
 
+    // ContextTypes must be defined in order to pass the redux store to exist in
+    // "this.context".
     static contextTypes: React.ValidationMap<any> = {
         store: PropTypes.object
     }
 }
-
-// ContextTypes must be defined in order to pass the redux store to exist in
-// "this.context". The redux store is given to GoldenLayoutWrapper from its
-// surrounding <Provider> in index.jsx.
-// GoldenLayoutWrapper.contextTypes = {
-//     store: React.PropTypes.object.isRequired
-// }
 
 const DataChangerWrapper = () => {
 
@@ -205,16 +203,15 @@ const DataChangerWrapper = () => {
 
 class LargeDataWrapper extends React.Component<{}, {}> {
 
-    offsetElement: Element
-
     render() {
         const things = ["Cup", "Spoon", "Saucer"]
 
-        const put = (id: number) => ({
-            id:      `${id}`,
+        const put = (i: number) => ({
+            id:      `${i}`,
             type:    "X",
             content: {
-                stuff: things[id % 3]
+                stuff: things[i % 3],
+                nums: i
             }
         })
 
