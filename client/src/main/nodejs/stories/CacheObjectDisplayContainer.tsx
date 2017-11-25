@@ -5,7 +5,7 @@ import {Provider} from "react-redux"
 import {createStore} from "redux"
 import {devToolsEnhancer} from "redux-devtools-extension"
 import {storiesOf} from "@storybook/react"
-import {Grid, Button, Sticky, Ref} from "semantic-ui-react"
+import {Grid, Button, Sticky, Ref, Menu} from "semantic-ui-react"
 const GoldenLayout = require("golden-layout")
 import * as PropTypes from 'prop-types'
 
@@ -176,7 +176,7 @@ class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> 
 
     render() {
         return (
-            <div className='goldenLayout' style={{height: "100vh"}} ref={e => this.layoutDiv = e}/>
+            <div className='goldenLayout' style={{position:"absolute", height:"100%", width:"100%"}} ref={e => this.layoutDiv = e}/>
         )
     }
 
@@ -210,7 +210,7 @@ class LargeDataWrapper extends React.Component<{}, {}> {
 
         const put = (i: number) => ({
             id:      `${i}`,
-            type:    "X",
+            type:    theType,
             content: {
                 stuff: things[i % 3],
                 nums: i
@@ -256,8 +256,15 @@ storiesOf("CacheObjectDisplayContainer", module)
     .add("Large number of rows", () => {
         store.dispatch(DataOps.clearData())
         return (
-            <div style={{height: "100vh"}}>
+            <div style={{height: "100vh", width:"100vw", display:"flex", flexFlow:"column"}}>
+                <div style={{flex:"0 1 0%"}}>
+                    <Menu>
+                        <Menu.Item name="menuItem"/>
+                    </Menu>
+                </div>
+            <div style={{flex:"1 1 0%", position:"relative"}}>    
             <GoldenLayoutWrapper dataProvider={LargeDataWrapper}/>
+            </div>
             </div>
         )
     })

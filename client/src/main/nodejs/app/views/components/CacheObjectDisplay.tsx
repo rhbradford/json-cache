@@ -103,6 +103,7 @@ class CacheObjectDisplay extends React.Component<CacheObjectDisplayProps, CacheO
                     columnDefs: this.createColumnDefs(nextProps.objectType, nextProps.columns)
                 },
                 () => {
+                    this.gridApi.sizeColumnsToFit()
                     this.sizeColumns()
                 }
             )
