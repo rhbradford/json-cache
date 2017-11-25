@@ -120,18 +120,23 @@ class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> 
     componentDidMount() {
         // Build basic golden-layout config
         const config = {
+            settings: {
+                showCloseIcon: false  
+            },
             content: [{
                 type:    'row',
                 content: [
                     {
                         type:      'react-component',
                         component: 'TestDataProviderContainer',
-                        title: 'DataProvider'
+                        title: 'DataProvider',
+                        isClosable: false
                     },
                     {
                         type:      'react-component',
                         component: 'TestComponentContainer',
-                        title: 'CacheObjectDisplay'
+                        title: 'CacheObjectDisplay',
+                        isClosable: false
                     }
                 ]
             }]
@@ -257,7 +262,7 @@ storiesOf("CacheObjectDisplayContainer", module)
         store.dispatch(DataOps.clearData())
         return (
             <div style={{height: "100vh", width:"100vw", display:"flex", flexFlow:"column"}}>
-                <div style={{flex:"0 1 0%"}}>
+                <div style={{flex:"0 1 0%", paddingBottom:"8px"}}>
                     <Menu>
                         <Menu.Item name="menuItem"/>
                     </Menu>
