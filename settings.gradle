@@ -11,9 +11,9 @@ def modules = [
     ':cache-client-tests'   : 'CacheClientTests',
     ':client'               : 'Client',
     ':server'               : 'Server',
-    ':websocket-cache'      : 'WebSocketCache',
-    ':websocket-cache-impl' : 'WebSocketCacheImpl',
-    ':websocket-cache-tests': 'WebSocketCacheTests'
+//    ':websocket-cache'      : 'WebSocketCache',
+//    ':websocket-cache-impl' : 'WebSocketCacheImpl',
+//    ':websocket-cache-tests': 'WebSocketCacheTests'
 ]
 
 modules.each { p, name ->

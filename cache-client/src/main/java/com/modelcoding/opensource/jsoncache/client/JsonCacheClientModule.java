@@ -35,7 +35,7 @@ public interface JsonCacheClientModule {
      *     <li>each output {@link CacheChangeSet} created always contains all the removes from the input {@link CacheChangeSet}</li>
      *     <li>each put from an input {@link CacheChangeSet} is passed to the current selector</li>
      *     <li>if a put is selected, the put is added to the puts for the output {@link CacheChangeSet}</li>
-     *     <li>if a put is not selected, or there is no current selector, the put is converted to a "basic" remove 
+     *     <li>if a put is not selected, or there is no current selector, the put is converted to a remove 
      *     (see {@link JsonCacheModule#getCacheRemove(String)}), and added to the removes for the output {@link CacheChangeSet}</li>
      *     <li>if the internal subscriber to the {@code cacheObjectSelectors} is finished by error, the subscription 
      *     to the {@link CacheImageSender} is cancelled, and the subscriber to this {@link CacheChangeSetProcessor}

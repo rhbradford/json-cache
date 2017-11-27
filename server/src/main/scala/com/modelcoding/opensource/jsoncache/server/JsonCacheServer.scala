@@ -2,62 +2,85 @@
 
 package com.modelcoding.opensource.jsoncache.server
 
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.webapp.WebAppContext
-import org.eclipse.jetty.websocket.api.{WebSocketBehavior, WebSocketPolicy}
+import grizzled.slf4j.Logging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.{EnableAutoConfiguration, SpringBootApplication}
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
-import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory
-import org.springframework.context.annotation.Bean
-import org.springframework.web.servlet.config.annotation.{ViewControllerRegistry, WebMvcConfigurerAdapter}
-import org.springframework.web.socket.config.annotation.{EnableWebSocket, WebSocketConfigurer, WebSocketHandlerRegistry}
-import org.springframework.web.socket.server.HandshakeHandler
-import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy
-import org.springframework.web.socket.server.standard.ServerEndpointExporter
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.{Bean, Configuration}
+import org.springframework.core.io.ClassPathResource
+import org.springframework.stereotype.Component
+import org.springframework.web.reactive.HandlerMapping
+import org.springframework.web.reactive.config.{EnableWebFlux, WebFluxConfigurer}
+import org.springframework.web.reactive.function.server._
+import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
+import org.springframework.web.reactive.socket.{WebSocketHandler, WebSocketSession}
+import org.springframework.web.server.{ServerWebExchange, WebFilter, WebFilterChain}
+import reactor.core.publisher.{Flux, Mono}
 
-@EnableAutoConfiguration
-@EnableWebSocket
+@EnableWebFlux
 @SpringBootApplication
-class JsonCacheServer extends WebMvcConfigurerAdapter with WebSocketConfigurer {
+class JsonCacheServer extends WebFluxConfigurer {
+  @Configuration
+  class WebSocketConfig {
 
-  override def addViewControllers(
-    registry: ViewControllerRegistry
-  ): Unit = {
-    registry.addViewController("/").setViewName("redirect:/assets/index.html")
+    @Autowired
+    private var webSocketHandler: WebSocketHandler = _
+
+    @Bean
+    def webSocketMapping(): HandlerMapping = {
+      import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping
+      import org.springframework.web.reactive.socket.WebSocketHandler
+      val map = new java.util.HashMap[String, WebSocketHandler]()
+      map.put("/cache", webSocketHandler)
+
+      val mapping = new SimpleUrlHandlerMapping
+      mapping.setOrder(10)
+      mapping.setUrlMap(map)
+
+      mapping
+    }
+
+    @Bean
+    def handlerAdapter(): WebSocketHandlerAdapter = {
+
+      new WebSocketHandlerAdapter()
+    }
   }
 
-  override def registerWebSocketHandlers(
-    registry: WebSocketHandlerRegistry
-  ): Unit = {
-    registry.addHandler(webSocketHandler, "/cache")
-      .setHandshakeHandler(handshakeHandler)
-      .setAllowedOrigins("*")  
+  @Component
+  class MyWebSocketHandler extends WebSocketHandler with Logging {
+
+    override def handle(
+      session: WebSocketSession
+    ): Mono[Void] = {
+
+      session.receive().doFinally(sig => {
+        info(s"It's gone away: $sig")
+      }
+      ).map[String](_.getPayloadAsText).log().subscribe()
+      session.send(
+        Flux.just(Array(session.textMessage("Hello World")): _*).publish() // Need the .publish() on the end to keep the publisher going.... !!
+      )
+    }
   }
-  
+
   @Bean
-  def embeddedServletContainerFactory(): EmbeddedServletContainerFactory = {
-    val factory = new JettyEmbeddedServletContainerFactory
-    factory.addServerCustomizers((server: Server) => {
-      server.getBean(classOf[WebAppContext]).setThrowUnavailableOnStartupException(true)
-    })
-    factory
-  }
-  
-  @Bean
-  def webSocketHandler = new WebSocketHandler
-  
-  @Bean
-  def serverEndpointExporter = new ServerEndpointExporter 
-  
-  @Bean
-  def handshakeHandler: HandshakeHandler = {
-    val policy = new WebSocketPolicy(WebSocketBehavior.SERVER)
-    policy.setInputBufferSize(8192)
-    policy.setIdleTimeout(600000)
-    
-    new DefaultHandshakeHandler(new JettyRequestUpgradeStrategy(policy))
+  def router(): RouterFunction[ServerResponse] = RouterFunctions.resources("/**", new ClassPathResource("/static/"))
+
+  @Configuration
+  class TemporaryStaticResolver extends WebFilter {
+
+    override def filter(
+      exchange: ServerWebExchange,
+      chain: WebFilterChain
+    ): Mono[Void] = {
+
+      if(exchange.getRequest.getURI.getPath == "/") {
+        return chain.filter(exchange.mutate().request(exchange.getRequest.mutate().path("/assets/index.html").build()).build())
+      }
+
+      chain.filter(exchange)
+    }
   }
 }
 

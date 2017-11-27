@@ -1,20 +1,32 @@
 // Author: Richard Bradford
 
-plugins {
-    id 'org.springframework.boot' version '1.5.4.RELEASE'
-    id 'scala'
+buildscript {
+    ext {
+   		springBootVersion = '2.0.0.M6'
+   	}
+    repositories {
+        maven {
+            url "http://localhost:8081/repository/maven-public/"
+        }
+    }
+   	dependencies {
+   		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+   	}
 }
+
+apply plugin: 'scala'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
 dependencies {
     // Spring Boot
-    compile("org.springframework.boot:spring-boot-starter-web") {
-        exclude module: "spring-boot-starter-tomcat"
-    }
-    compile("org.springframework.boot:spring-boot-starter-jetty")
-    compile("org.springframework.boot:spring-boot-starter-websocket")
+    compile("org.springframework.boot:spring-boot-starter-webflux")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
 
     // Scala
     compile("org.scala-lang:scala-library:2.12.2")
+    compile("com.typesafe.akka:akka-actor_2.12:2.5.6")
+    compile("com.typesafe.akka:akka-stream_2.12:2.5.6")
 
     // Logging
     compile("org.clapper:grizzled-slf4j_2.12:1.3.1")
