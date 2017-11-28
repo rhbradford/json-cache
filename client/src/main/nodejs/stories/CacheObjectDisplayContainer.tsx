@@ -181,7 +181,7 @@ class GoldenLayoutWrapper extends React.Component<GoldenLayoutWrapperProps, {}> 
 
     render() {
         return (
-            <div className='goldenLayout' style={{position:"absolute", height:"100%", width:"100%"}} ref={e => this.layoutDiv = e}/>
+            <div className='goldenLayout' style={{height:"100%", width:"100%"}} ref={e => this.layoutDiv = e}/>
         )
     }
 
@@ -267,9 +267,11 @@ storiesOf("CacheObjectDisplayContainer", module)
                         <Menu.Item name="menuItem"/>
                     </Menu>
                 </div>
-            <div style={{flex:"1 1 0%", position:"relative"}}>    
-            <GoldenLayoutWrapper dataProvider={LargeDataWrapper}/>
-            </div>
+                <div style={{flex:"1 1 0%", position:"relative"}}>    
+                    <div style={{position:"absolute", height:"100%", width:"100%"}}>
+                        <GoldenLayoutWrapper dataProvider={LargeDataWrapper}/>
+                    </div>
+                </div>
             </div>
         )
     })
