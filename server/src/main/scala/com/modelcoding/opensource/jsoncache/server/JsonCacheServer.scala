@@ -22,7 +22,10 @@ class JsonCacheServer extends WebFluxConfigurer {
   import JsonCacheServer._
   
   @Bean
-  def jsonCache: Cache = cacheModule.getCache(Set().asJava)
+  def jsonCache: Cache = {
+
+    cacheModule.getCache(Set().asJava)
+  }
   
   @Configuration
   class TemporaryStaticResolver extends WebFilter {

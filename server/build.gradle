@@ -18,7 +18,14 @@ apply plugin: 'scala'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
 dependencies {
+    // JsonCache
+    compile project(":CacheImpl")
+    compile project(":CacheClientImpl")
+    
     // Spring Boot
     compile("org.springframework.boot:spring-boot-starter-webflux")
     compile("org.springframework.boot:spring-boot-starter-actuator")
@@ -34,10 +41,6 @@ dependencies {
     compile("ch.qos.logback:logback-classic:1.2.3")
     compile("ch.qos.logback:logback-core:1.2.3")
 
-    // JsonCache
-    compile project(":CacheImpl")
-    compile project(":CacheClientImpl")
-    
     // UI
     compile project(":Client")
 }

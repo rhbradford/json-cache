@@ -1,8 +1,8 @@
 // Author: Richard Bradford
 
-package com.modelcoding.opensource.jsoncache.server.websocket
+package com.modelcoding.opensource.jsoncache.server.config
 
-import org.springframework.beans.factory.annotation.Autowired
+import com.modelcoding.opensource.jsoncache.server.websocket.CacheClientWebSocketHandler
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.web.reactive.HandlerMapping
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping
@@ -12,14 +12,11 @@ import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAd
 @Configuration
 class WebSocketConfig {
 
-  @Autowired
-  private val webSocketHandler: WebSocketHandler = null
-
   @Bean
   def webSocketMapping: HandlerMapping = {
     
     val map = new java.util.HashMap[String, WebSocketHandler]()
-    map.put("/cache", webSocketHandler)
+    map.put("/cache", new CacheClientWebSocketHandler())
 
     val mapping = new SimpleUrlHandlerMapping
     mapping.setOrder(10)
