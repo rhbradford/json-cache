@@ -8,12 +8,39 @@ buildscript {
     }
 }
 
-apply plugin: 'maven'
+plugins {
+    id 'maven'
+}
 
 allprojects {
     repositories {
         maven {
             url "http://localhost:8081/repository/maven-public/"
         }
+    }
+}
+
+subprojects {
+
+    configurations {
+        scala
+        akkaActor
+        akkaStream
+        akkaTestKit
+        spock
+        jacksonDatabind
+        jsonUnit
+        reactive
+    }
+    
+    dependencies {
+        scala "org.scala-lang:scala-library:${scalaMajorVersion}.2"
+        akkaActor "com.typesafe.akka:akka-actor_${scalaMajorVersion}:${akkaVersion}"
+        akkaStream "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
+        akkaTestKit "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
+        spock "org.spockframework:spock-core:${spockVersion}"
+        jacksonDatabind "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+        jsonUnit "net.javacrumbs.json-unit:json-unit:${jsonUnitVersion}"
+        reactive "org.reactivestreams:reactive-streams:${reactiveVersion}"
     }
 }

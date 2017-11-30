@@ -1,9 +1,6 @@
 // Author: Richard Bradford
 
 buildscript {
-    ext {
-   		springBootVersion = '2.0.0.M6'
-   	}
     repositories {
         maven {
             url "http://localhost:8081/repository/maven-public/"
@@ -14,7 +11,10 @@ buildscript {
    	}
 }
 
-apply plugin: 'scala'
+plugins {
+    id 'scala'
+}
+
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 

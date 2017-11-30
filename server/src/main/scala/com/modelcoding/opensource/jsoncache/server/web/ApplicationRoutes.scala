@@ -19,8 +19,6 @@ object ApplicationRoutes extends Logging {
 
       info(s"Received:\n$json")
       
-      Mono.create()
-      
       ServerResponse.ok().body(Mono.just(json), classOf[String])
     })
   }

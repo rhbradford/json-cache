@@ -4,9 +4,13 @@ plugins {
     id 'groovy'
 }
 
-dependencies {
-    // Spock 
-    compile("org.spockframework:spock-core:1.1-groovy-2.4")
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
 
+configurations {
+    compile.extendsFrom spock
+}
+
+dependencies {
     compile project(":CacheClient")
 }
