@@ -88,6 +88,7 @@ public interface JsonCacheClientModule {
      * @param cacheChangeSet a {@link CacheChangeSet} to be converted to a framed sequence of {@link CacheMessage}s
      * @return a {@link CacheChangeSetFrame} to convert the given {@code cacheChangeSet} into a framed sequence of
      *         {@link CacheMessage}s
+     * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
      */
     CacheChangeSetFrame getCacheChangeSetFrame(CacheChangeSet cacheChangeSet);
 
