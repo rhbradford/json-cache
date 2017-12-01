@@ -16,7 +16,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
   private case class RegisterCacheChangeSupplier(subscription: Subscription)
   private case class PublishToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
-  private case class ChangeCache(cacheChangeCalculator: CacheFunction)
+  private case class ChangeCache(cacheChangeCalculator: CacheFunctionInstance)
   private case class SendCacheImageToSubscriber(subscriber: Subscriber[_ >: CacheChangeSet])
   private case class CompleteAllSubscribers()
   private case class FailAllSubscribers(error: Throwable)
@@ -27,7 +27,7 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
   override def getSubscriberBacklogLimit: Int = backlogLimit
 
-  override def onNext(c: CacheFunction): Unit = {
+  override def onNext(c: CacheFunctionInstance): Unit = {
 
     requireNotNull(c, "Cannot apply null changes to a JsonCache")
 
@@ -98,8 +98,8 @@ class ScalaJsonCache(id: String, backlogLimit: Int, aCache: Cache)(implicit syst
 
     override def receive: Receive = {
 
-      case ChangeCache(cacheFunction) =>
-        val result: Result = cacheFunction.execute(cache)
+      case ChangeCache(cacheFunctionInstance) =>
+        val result: Result = cacheFunctionInstance.getCode.execute(cache)
         if(cache ne result.getCache) {
           cache = result.getCache
           publishers.keys.foreach { publisher => publisher ! result.getChangeSet }

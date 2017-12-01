@@ -24,7 +24,9 @@ import org.reactivestreams.Subscription;
  * {@link Subscription#cancel()}.
  * <p>
  * The value of {@link CacheChangeSet#isCacheImage()} on a received {@link CacheChangeSet} is always made the same on the 
- * corresponding output {@link CacheChangeSet}.
+ * corresponding output {@link CacheChangeSet}.<br>
+ * Similarly, the value of {@link CacheChangeSet#getId()} on a received {@link CacheChangeSet} is also always made the 
+ * same on the corresponding output {@link CacheChangeSet}.  
  */
 public interface CacheChangeSetProcessor extends CacheImageSender {
 

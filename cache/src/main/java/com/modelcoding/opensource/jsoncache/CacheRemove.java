@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <p>
  * A {@link CacheRemove} is <em>immutable</em>.    
  */
-public interface CacheRemove {
+public interface CacheRemove extends CacheMessage {
 
     /**
      * @return the identity of a {@link CacheRemove} in a {@link JsonCache}.

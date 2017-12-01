@@ -2,23 +2,20 @@
 
 package com.modelcoding.opensource.jsoncache
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory
-import com.fasterxml.jackson.databind.node.ObjectNode
 import net.javacrumbs.jsonunit.core.Option
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static TestSuite.*
-import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals
-import static net.javacrumbs.jsonunit.JsonAssert.when
+import static com.modelcoding.opensource.jsoncache.TestSuite.*
+import static net.javacrumbs.jsonunit.JsonAssert.*
 
 class CacheChangeSetSpecification extends Specification {
 
     @Rule
     private ExternalResource setup = perTestMethodSetup
-    
+
     @Shared
         content =
             [
@@ -45,79 +42,57 @@ class CacheChangeSetSpecification extends Specification {
             m.getCacheRemove("Id3"),
             m.getCacheRemove("Id4")
         ] as Set
-    
-    
+
+
     def "CacheChangeSet is created as expected"() {
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes, true)
-        def json = asJsonNode(
-            [
-                "isCacheImage": true,
-                "puts" : puts.collect { it.asJsonNode() },
-                "removes" : removes.collect { it.asJsonNode() }
-            ]
-        )
+        def cacheChangeSet = m.getCacheChangeSet("id", puts, removes, true)
 
         then:
+        cacheChangeSet.id == "id"
         cacheChangeSet.puts == puts
         cacheChangeSet.removes == removes
         cacheChangeSet.cacheImage
-        assertJsonEquals(cacheChangeSet.asJsonNode(), json, when(Option.IGNORING_ARRAY_ORDER))
-        
-        when:
-        cacheChangeSet = m.getCacheChangeSet(json)
-        
-        then:
-        cacheChangeSet.puts == puts
-        cacheChangeSet.removes == removes
-        cacheChangeSet.cacheImage
-        assertJsonEquals(cacheChangeSet.asJsonNode(), json, when(Option.IGNORING_ARRAY_ORDER))
     }
 
     def "CacheChangeSet cannot be created from bad parameters"() {
 
         when:
-        m.getCacheChangeSet(null, removes, false)
+        m.getCacheChangeSet(null, puts, removes, false)
 
         then:
         thrown(NullPointerException)
 
         when:
-        m.getCacheChangeSet(puts, null, false)
+        m.getCacheChangeSet("id", null, removes, false)
 
         then:
         thrown(NullPointerException)
-        
+
         when:
-        m.getCacheChangeSet(null)
+        m.getCacheChangeSet("id", puts, null, false)
 
         then:
         thrown(NullPointerException)
-        
-        when:
-        m.getCacheChangeSet(JsonNodeFactory.instance.objectNode())
-
-        then:
-        thrown(IllegalArgumentException)
     }
-    
+
     def "Equal CacheChangeSets are equal"() {
 
         expect:
-        m.getCacheChangeSet(p, r, ci) == m.getCacheChangeSet(p, r, ci)
-        m.getCacheChangeSet(p, r, ci).hashCode() == m.getCacheChangeSet(p, r, ci).hashCode()
+        m.getCacheChangeSet("id", p, r, ci) == m.getCacheChangeSet("not id", p, r, ci)
+        m.getCacheChangeSet("id", p, r, ci).hashCode() == m.getCacheChangeSet("not id", p, r, ci).hashCode()
 
         where:
         p    | r       | ci
         puts | removes | false
         puts | removes | true
     }
-    
+
     def "Equality must not rely on a specific implementation"() {
-        
+
         expect:
-        m.getCacheChangeSet(puts, removes, false) == new CacheChangeSet() {
+        m.getCacheChangeSet("id", puts, removes, false) == new CacheChangeSet() {
 
             @Override
             Set<? extends CacheObject> getPuts() {
@@ -135,16 +110,16 @@ class CacheChangeSetSpecification extends Specification {
             }
 
             @Override
-            ObjectNode asJsonNode() {
-                null
+            String getId() {
+                "not id"
             }
         }
     }
-    
+
     def "Unequal CacheChangeSets are not equal"() {
-        
+
         expect:
-        m.getCacheChangeSet(p, r, ci) != m.getCacheChangeSet(p_, r_, ci_)
+        m.getCacheChangeSet("id", p, r, ci) != m.getCacheChangeSet("not id", p_, r_, ci_)
 
         where:
         p         | r       | ci    | p_   | r_        | ci_
@@ -160,7 +135,7 @@ class CacheChangeSetSpecification extends Specification {
         def theRemoves = new HashSet(removes)
 
         when:
-        def cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
+        def cacheChangeSet = m.getCacheChangeSet("id", puts, removes, false)
         def gotPuts = cacheChangeSet.puts
         def gotRemoves = cacheChangeSet.removes
         try {
@@ -179,8 +154,8 @@ class CacheChangeSetSpecification extends Specification {
         catch(ignored) {
         }
         thePuts << m.getCacheObject("Id5", "Type", someContent)
-        theRemoves.clear() 
-        
+        theRemoves.clear()
+
         then:
         cacheChangeSet.puts == new HashSet(puts)
         cacheChangeSet.removes == new HashSet(removes)

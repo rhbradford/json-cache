@@ -9,7 +9,7 @@ import spock.lang.Specification
 
 import static TestSuite.*
 
-class CacheFunctionSpecification extends Specification {
+class CacheFunctionInstanceSpecification extends Specification {
 
     @Rule
     private ExternalResource setup = perTestMethodSetup
@@ -40,7 +40,7 @@ class CacheFunctionSpecification extends Specification {
         thrown(NullPointerException)
 
         when:
-        m.getCacheChangeCalculator(m.getCacheChangeSet([] as Set, [] as Set, true))
+        m.getCacheChangeCalculator(m.getCacheChangeSet("id", [] as Set, [] as Set, true))
 
         then:
         thrown(IllegalArgumentException)
@@ -62,14 +62,14 @@ class CacheFunctionSpecification extends Specification {
             m.getCacheRemove("Id2"),
             m.getCacheRemove("NotInCache")
         ] as Set
-        CacheChangeSet cacheChangeSet = m.getCacheChangeSet(puts, removes, false)
-        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheChangeSet cacheChangeSet = m.getCacheChangeSet("id", puts, removes, false)
+        CacheFunctionInstance cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
 
         when:
-        def results = cacheChangeCalculator.execute(cache)
+        def results = cacheChangeCalculator.code.execute(cache)
 
         then:
         !results.cache.is(cache)

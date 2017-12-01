@@ -35,11 +35,11 @@ class JsonCacheSpecification extends Specification {
         someOtherContent = asJsonNode(otherContent)
 
     private static CacheChangeSet cacheImage(Set<CacheObject> content) {
-        m.getCacheChangeSet(content, [] as Set, true)
+        m.getCacheChangeSet("id", content, [] as Set, true)
     }
     
     private static CacheChangeSet cacheChangeSet(Set<CacheObject> puts, Set<CacheRemove> removes) {
-        m.getCacheChangeSet(puts, removes, false)
+        m.getCacheChangeSet("id", puts, removes, false)
     }
     
     def "JsonCache is created as expected"() {
@@ -133,13 +133,16 @@ class JsonCacheSpecification extends Specification {
             m.getCacheRemove("NotInCache")
         ] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunctionInstance cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber = new MockSubscriber()
         def doNothingCacheFunction = Mock(CacheFunction)
+        def doNothingCacheFunctionInstance = Mock(CacheFunctionInstance) {
+            1 * getCode() >> doNothingCacheFunction
+        }
         
         when: "A new subscription is made"
         subscriber.expectChangeSets(1)
@@ -203,7 +206,7 @@ class JsonCacheSpecification extends Specification {
         subscriber.awaitChangeSets()
         subscriber.changeSets == [cacheImage(postContent)]
         subscriber.expectChangeSets(1)
-        jsonCache.onNext(doNothingCacheFunction)
+        jsonCache.onNext(doNothingCacheFunctionInstance)
         jsonCache.sendImageToSubscriber(subscriber)
         
         then: "the cache function is executed (which makes no changes), and only the requested cache image CacheChangeSet is output to the subscriber"
@@ -443,7 +446,7 @@ class JsonCacheSpecification extends Specification {
             m.getCacheRemove("NotInCache")
         ] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunctionInstance cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def preContent = [object1, object2] as Set
         def cache = m.getCache(preContent)
         def postContent = [object3, object4] as Set
@@ -601,7 +604,7 @@ class JsonCacheSpecification extends Specification {
         def puts = [object1, object2] as Set
         def removes = [] as Set
         CacheChangeSet cacheChangeSet = cacheChangeSet(puts, removes)
-        CacheFunction cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
+        CacheFunctionInstance cacheChangeCalculator = m.getCacheChangeCalculator(cacheChangeSet)
         def cache = m.getCache([] as Set)
         def jsonCache = m.getJsonCache("id", 2, cache)
         def subscriber1 = new MockSubscriber()
@@ -623,8 +626,8 @@ class JsonCacheSpecification extends Specification {
         !subscriber2.hasError
         !subscriber1.hasCompleted
         !subscriber2.hasCompleted
-        subscriber1.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
-        subscriber2.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
+        subscriber1.changeSets == [ m.getCacheChangeSet("id", [] as Set, [] as Set, true) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet("id", [] as Set, [] as Set, true) ]
         
         when:
         jsonCache.onSubscribe(null)
@@ -651,8 +654,8 @@ class JsonCacheSpecification extends Specification {
         !subscriber2.hasError
         !subscriber1.hasCompleted
         !subscriber2.hasCompleted
-        subscriber1.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
-        subscriber2.changeSets == [ m.getCacheChangeSet(puts, removes, false) ]
+        subscriber1.changeSets == [ m.getCacheChangeSet("id", puts, removes, false) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet("id", puts, removes, false) ]
         
         when:
         jsonCache.onComplete()
@@ -691,8 +694,8 @@ class JsonCacheSpecification extends Specification {
         !subscriber2.hasError
         !subscriber1.hasCompleted
         !subscriber2.hasCompleted
-        subscriber1.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
-        subscriber2.changeSets == [ m.getCacheChangeSet([] as Set, [] as Set, true) ]
+        subscriber1.changeSets == [ m.getCacheChangeSet("id", [] as Set, [] as Set, true) ]
+        subscriber2.changeSets == [ m.getCacheChangeSet("id", [] as Set, [] as Set, true) ]
         
         when:
         jsonCache.onError(null)

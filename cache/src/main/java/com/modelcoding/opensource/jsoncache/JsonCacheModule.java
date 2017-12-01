@@ -53,21 +53,14 @@ public interface JsonCacheModule {
     CacheRemove getCacheRemove(JsonNode json);
 
     /**
+     * @param id a tracking id
      * @param puts put operations on a {@link JsonCache} - cannot be {@code null}
      * @param removes remove operations on a {@link JsonCache} - cannot be {@code null}
      * @param isCacheImage sets the result of {@link CacheChangeSet#isCacheImage()} on the returned {@link CacheChangeSet}               
-     * @return an instance of a {@link CacheChangeSet} with the given {@code puts} and {@code removes}
-     * @throws NullPointerException if {@code puts} is {@code null}, or {@code removes} is {@code null}
+     * @return an instance of a {@link CacheChangeSet} with the given {@code id}, {@code isCacheImage}, {@code puts} and {@code removes}
+     * @throws NullPointerException if {@code id} is {@code null}, if {@code puts} is {@code null}, or {@code removes} is {@code null}
      */
-    CacheChangeSet getCacheChangeSet(Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
-
-    /**
-     * @param json JSON representation of a {@link CacheChangeSet} in the form given by {@link CacheChangeSet#asJsonNode()}
-     * @return an instance of a {@link CacheChangeSet} as defined by the given {@code json}
-     * @throws NullPointerException if {@code json} is {@code null}
-     * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheChangeSet#asJsonNode()}
-     */
-    CacheChangeSet getCacheChangeSet(JsonNode json);
+    CacheChangeSet getCacheChangeSet(String id, Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
     
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}
@@ -78,12 +71,15 @@ public interface JsonCacheModule {
 
     /**
      * @param cacheChangeSet changes to be applied to a {@link JsonCache} - cannot be {@code null}
-     * @return an instance of a {@link CacheFunction} that will simply apply all the puts and removes from the given
-     *         {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as the changes applied
+     * @return a {@link CacheFunctionInstance} whose {@link CacheFunctionInstance#getCode()}  will simply apply all the 
+     *         puts and removes from the given {@code cacheChangeSet}, returning the given {@code cacheChangeSet} as 
+     *         the changes applied.<br>
+     *         The {@link CacheFunctionInstance#getId()} is set to the {@link CacheChangeSet#getId()} from the given
+     *         {@code cacheChangeSet}.
      * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
      * @throws IllegalArgumentException if the given {@code cacheChangeSet} has {@link CacheChangeSet#isCacheImage()} as {@code true}
      */
-    CacheFunction getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
+    CacheFunctionInstance getCacheChangeCalculator(CacheChangeSet cacheChangeSet);
 
     /**
      * @param cacheId an id for the {@link JsonCache} - cannot be {@code null}

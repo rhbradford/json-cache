@@ -149,6 +149,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -166,7 +167,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -187,6 +190,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -205,7 +209,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -285,6 +291,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -302,7 +309,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -323,6 +332,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -341,7 +351,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -366,6 +378,7 @@ class JsonCacheClientSpecification extends Specification {
         input.awaitSendImageRequest()
         input.sendImageSubscriber.onNext(
             m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
                     m.getCacheObject("A3", "AType", asJsonNode([])),
@@ -382,7 +395,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("B1", "BType", asJsonNode([]))
                 ] as Set,
@@ -464,6 +479,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -481,7 +497,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -502,6 +520,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -520,7 +539,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -545,6 +566,7 @@ class JsonCacheClientSpecification extends Specification {
         input.awaitSendImageRequest()
         input.sendImageSubscriber.onNext(
             m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([])),
                     m.getCacheObject("A3", "AType", asJsonNode([])),
@@ -561,7 +583,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -644,6 +668,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -661,7 +686,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -682,6 +709,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -700,7 +728,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -799,6 +829,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -816,7 +847,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -837,6 +870,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -855,7 +889,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -954,6 +990,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -971,7 +1008,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -992,6 +1031,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -1010,7 +1050,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -1108,6 +1150,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -1125,7 +1168,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -1146,6 +1191,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -1164,7 +1210,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -1260,6 +1308,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -1277,7 +1326,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -1298,6 +1349,7 @@ class JsonCacheClientSpecification extends Specification {
         inputSubscription.outputOnRequest {
             input.subscriber.onNext(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A3", "AType", asJsonNode([])),
                         m.getCacheObject("B2", "BType", asJsonNode([])),
@@ -1316,7 +1368,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                 ] as Set,
                 [
@@ -1614,6 +1668,7 @@ class JsonCacheClientSpecification extends Specification {
         then: "the subscriber initially receives a cache image CacheChangeSet"
         subscriber.awaitChangeSet()
         subscriber.receivedChangeSet == m.getCacheChangeSet(
+            "id",
             [] as Set,
             [] as Set,
             true
@@ -1625,6 +1680,7 @@ class JsonCacheClientSpecification extends Specification {
         input.onNext(
             m.getCacheChangeCalculator(
                 m.getCacheChangeSet(
+                    "id",
                     [
                         m.getCacheObject("A1", "AType", asJsonNode([])),
                         m.getCacheObject("A2", "AType", asJsonNode([])),
@@ -1642,7 +1698,9 @@ class JsonCacheClientSpecification extends Specification {
             awaitChangeSet()
             !hasError
             !hasCompleted
+            receivedChangeSet.id == "id"
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("A1", "AType", asJsonNode([]))
                 ] as Set,
@@ -1668,6 +1726,7 @@ class JsonCacheClientSpecification extends Specification {
             !hasError
             !hasCompleted
             receivedChangeSet == m.getCacheChangeSet(
+                "id",
                 [
                     m.getCacheObject("B1", "BType", asJsonNode([]))
                 ] as Set,

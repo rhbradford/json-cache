@@ -49,7 +49,7 @@ import org.junit.runners.Suite
         CacheRemoveSpecification.class,
         CacheChangeSetSpecification.class,
         CacheSpecification.class,
-        CacheFunctionSpecification.class,
+        CacheFunctionInstanceSpecification.class,
         JsonCacheSpecification.class
     ]
 )

@@ -247,7 +247,7 @@ class ScalaCacheChangeSetProcessor(
       }
 
       val outputChangeSet: CacheChangeSet = 
-        jsonCacheModule.getCacheChangeSet(puts.asJava, removes.asJava, changeSet.isCacheImage)
+        jsonCacheModule.getCacheChangeSet(changeSet.getId, puts.asJava, removes.asJava, changeSet.isCacheImage)
 
       subscriber.onNext(outputChangeSet)
     }

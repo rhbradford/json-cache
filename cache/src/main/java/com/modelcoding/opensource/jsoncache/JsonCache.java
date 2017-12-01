@@ -14,8 +14,8 @@ import org.reactivestreams.Subscription;
  * A {@link JsonCache} contains a {@link Cache} of {@link CacheObject}s.
  * <p>
  * A {@link JsonCache} receives commands that can access and may alter the set of objects it contains via 
- * {@link #onNext(CacheFunction)}.<br>
- * The {@link CacheFunction}s received are applied in the same sequence as they were supplied.
+ * {@link #onNext(CacheFunctionInstance)}.<br>
+ * The {@link CacheFunctionInstance}s received are applied in the same sequence as they were supplied.
  * <p>
  * A {@link JsonCache} publishes the changes made to the set of objects it contains as a sequence of {@link CacheChangeSet}s to
  * {@link Subscriber}s registered using {@link #subscribe(Subscriber)}.<br>     
@@ -34,7 +34,7 @@ import org.reactivestreams.Subscription;
  * demand for {@link CacheFunction}s to ensure the input of {@link CacheFunction}s into the 
  * {@link JsonCache} is de-coupled from the demand for {@link CacheChangeSet}s.  
  */
-public interface JsonCache extends CacheImageSender, Subscriber<CacheFunction> {
+public interface JsonCache extends CacheImageSender, Subscriber<CacheFunctionInstance> {
 
     /**
      * @return the identity of this {@link JsonCache}
@@ -48,26 +48,26 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheFunction> {
     int getSubscriberBacklogLimit();
     
     /**
-     * Adds the given {@code cacheFunction} to the sequence of pending functions to be applied in due course.<br>
-     * {@link CacheFunction}s are applied in the order received. 
+     * Adds the given {@code cacheFunctionInstance} to the sequence of pending functions to be applied in due course.<br>
+     * {@link CacheFunctionInstance}s are applied in the order received. 
      * <p>
-     * A {@link JsonCache} applies a {@link CacheFunction} by calling {@link CacheFunction#execute(Cache)} against its
-     * current {@link Cache}.<br>
+     * A {@link JsonCache} applies a {@link CacheFunctionInstance#getCode()} by calling {@link CacheFunction#execute(Cache)} 
+     * against its current {@link Cache}.<br>
      * A {@link JsonCache} replaces its current {@link Cache} with {@link CacheFunction.Result#getCache()} if there is
      * a difference between the {@link Cache}s, and outputs {@link CacheFunction.Result#getChangeSet()} to its subscribers.<br>
      * A {@link JsonCache} does not output a {@link CacheChangeSet} to its subscribers if a {@link CacheFunction} does not
      * provide a new {@link Cache}.
      * <p>
-     * A {@link JsonCache} immediately requests another {@code cacheFunction} if subscribed.
+     * A {@link JsonCache} immediately requests another {@link CacheFunctionInstance} if subscribed.
      * 
-     * @param cacheFunction defines a function that can access and may change the contents of this {@link JsonCache}.
-     * @throws NullPointerException if {@code cacheFunction} is {@code null}
+     * @param cacheFunctionInstance defines a function that can access and may change the contents of this {@link JsonCache}.
+     * @throws NullPointerException if {@code cacheFunctionInstance} is {@code null}
      */
     @Override
-    void onNext(CacheFunction cacheFunction);
+    void onNext(CacheFunctionInstance cacheFunctionInstance);
 
     /**
-     * A {@link JsonCache} once subscribed immediately requests a {@code cacheChangeCalculator}. 
+     * A {@link JsonCache} once subscribed immediately requests a {@link CacheFunctionInstance} be published. 
      * 
      * @param subscription {@link Subscription} that allows requesting data via {@link Subscription#request(long)}
      * @throws NullPointerException if {@code subscription} is {@code null}
@@ -77,12 +77,12 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheFunction> {
 
     /**
      * A {@link JsonCache} fails all of its {@link CacheChangeSet} subscribers with the given {@code error} if its 
-     * subscription to {@link CacheFunction}s fails with an error.
+     * subscription to {@link CacheFunctionInstance}s fails with an error.
      * <p>
      * A {@link JsonCache} is finished by calling this method. Resources are cleared up, and the {@link JsonCache} 
      * must not be used any more.      
      * 
-     * @param error an error with the subscription to {@link CacheFunction}s
+     * @param error an error with the subscription to {@link CacheFunctionInstance}s
      * @throws NullPointerException if {@code error} is {@code null}
      */
     @Override
@@ -90,7 +90,7 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheFunction> {
 
     /**
      * A {@link JsonCache} completes all of its {@link CacheChangeSet} subscribers if its subscription to 
-     * {@link CacheFunction}s completes.
+     * {@link CacheFunctionInstance}s completes.
      * <p>
      * A {@link JsonCache} is finished by calling this method. Resources are cleared up, and the {@link JsonCache} 
      * must not be used any more.      
@@ -121,8 +121,8 @@ public interface JsonCache extends CacheImageSender, Subscriber<CacheFunction> {
      * (i.e. containing a "put" for each {@link CacheObject} in the cache, and {@link CacheChangeSet#isCacheImage()} 
      * set as {@code true}) is sent to the given {@code subscriber}.
      * <p>
-     * All calls to {@link #onNext(CacheFunction)} that happened before this call have their resulting {@link CacheChangeSet}s 
-     * output to the {@code subscriber} prior to the requested cache image.
+     * All calls to {@link #onNext(CacheFunctionInstance)} that happened before this call have their resulting 
+     * {@link CacheChangeSet}s output to the {@code subscriber} prior to the requested cache image.
      *     
      * @param subscriber the subscriber to receive the cache image.
      * @throws NullPointerException if {@code subscriber} is {@code null}

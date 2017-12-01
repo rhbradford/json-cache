@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *         <li>some JSON content: {@link #getContent()}</li>
  *     </ul>
  */
-public interface CacheObject {
+public interface CacheObject extends CacheMessage {
 
     /**
      * @return the identity of this {@link CacheObject} in a {@link JsonCache}.

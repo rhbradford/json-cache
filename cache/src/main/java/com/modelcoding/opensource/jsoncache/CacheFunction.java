@@ -25,6 +25,10 @@ public interface CacheFunction {
         Cache getCache();
 
         /**
+         * The {@link CacheChangeSet#getId()} of the returned changes must match {@link CacheFunctionInstance#getId()}
+         * from the {@link CacheFunctionInstance} containing the {@link CacheFunction}.<br>
+         * This makes it possible to track a flow of changes.
+         * 
          * @return the changes actually made to create a new {@link Cache} from the previous {@link Cache}.<br>
          *         <em>The return should never have {@link CacheChangeSet#isCacheImage()} as {@code true}</em>. 
          */
