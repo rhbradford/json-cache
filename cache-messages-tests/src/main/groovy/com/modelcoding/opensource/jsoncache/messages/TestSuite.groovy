@@ -51,8 +51,8 @@ import org.junit.runners.Suite
 @Suite.SuiteClasses(
     [
         StartOfCacheChangeSetSpecification.class,
-        EndOfCacheChangeSetSpecification.class
-        //CacheChangeSetFrameSpecification.class
+        EndOfCacheChangeSetSpecification.class,
+        CacheChangeSetFrameSpecification.class
     ]
 )
 class TestSuite {

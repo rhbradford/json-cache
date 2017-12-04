@@ -2,6 +2,7 @@
 
 package com.modelcoding.opensource.jsoncache.messages
 
+import com.modelcoding.opensource.jsoncache.CacheChangeSet
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Specification
@@ -13,6 +14,17 @@ class CacheChangeSetFrameSpecification extends Specification {
     @Rule
     private ExternalResource setup = perTestMethodSetup
 
+    static boolean messagesMatch(CacheChangeSet changeSet, CacheChangeSetFrame frame) {
+        int numPuts = changeSet.puts.size()
+        int numRemoves = changeSet.removes.size()
+        int size = 1 + numPuts + numRemoves + 1
+        
+        frame.messages.size() == size &&
+        frame.messages.head() == g.getStartOfCacheChangeSet(changeSet) &&
+        frame.messages.subList(1,numPuts+1) as Set == changeSet.puts && 
+        frame.messages.subList(numPuts+1,numPuts+1+numRemoves) as Set == changeSet.removes && 
+        frame.messages.last() == g.getEndOfCacheChangeSet(changeSet)
+    }
 
     def "CacheChangeSetFrame is created as expected"() {
         
@@ -46,26 +58,14 @@ class CacheChangeSetFrameSpecification extends Specification {
         
         then:
         cacheChangeSetFrame.cacheChangeSet.is(changeSet1)
-        cacheChangeSetFrame.messages == [
-            g.getStartOfCacheChangeSet(changeSet1),
-            m.getCacheObject("A1", "AType", asJsonNode([])),
-            m.getCacheObject("A2", "AType", asJsonNode([])),
-            m.getCacheObject("B1", "BType", asJsonNode([])),
-            m.getCacheObject("C1", "CType", asJsonNode([])),
-            m.getCacheRemove("A3"),
-            g.getEndOfCacheChangeSet(changeSet1)
-        ]
+        messagesMatch(changeSet1, cacheChangeSetFrame)
         
         when:
         cacheChangeSetFrame = g.getCacheChangeSetFrame(changeSet2)
         
         then:
         cacheChangeSetFrame.cacheChangeSet.is(changeSet2)
-        cacheChangeSetFrame.messages == [
-            g.getStartOfCacheChangeSet(changeSet2),
-            m.getCacheObject("A1", "AType", asJsonNode([])),
-            g.getEndOfCacheChangeSet(changeSet2)
-        ]
+        messagesMatch(changeSet2, cacheChangeSetFrame)
     }
     
     def "CacheChangeSetFrame cannot be created from bad parameters"() {
