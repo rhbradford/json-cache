@@ -2,6 +2,8 @@
 
 package com.modelcoding.opensource.jsoncache;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import java.util.Set;
 
 /**
@@ -10,7 +12,7 @@ import java.util.Set;
  * <p>
  * A {@link CacheChangeSet} is <em>immutable</em>.    
  */
-public interface CacheChangeSet {
+public interface CacheChangeSet extends CacheMessage {
 
     /**
      * @return a set of objects that are to be/were added to a {@link JsonCache}.<br>
@@ -34,6 +36,18 @@ public interface CacheChangeSet {
      * @return id assigned to this {@link CacheChangeSet} - see {@link CacheFunctionInstance#getId()}.  
      */
     String getId();
+
+    /**
+     * @return this {@link CacheChangeSet} as JSON of the form:
+     * <pre>
+     * {<br>
+     *     "isCacheImage" : {@link #isCacheImage()},<br>
+     *     "puts" : JSON array of {@link #getPuts()}, using {@link CacheObject#asJsonNode()} for each put,<br>
+     *     "removes" : JSON array of {@link #getRemoves()}, using {@link CacheRemove#asJsonNode()} for each remove<br>
+     * }    
+     * </pre>    
+     */
+    ObjectNode asJsonNode();
     
     /**
      * {@link CacheChangeSet} are considered equal if they have the same {@link #getPuts()} and {@link #getRemoves()}, 

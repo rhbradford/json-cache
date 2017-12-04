@@ -1,6 +1,6 @@
 // Author: Richard Bradford
 
-package com.modelcoding.opensource.jsoncache.client.messages;
+package com.modelcoding.opensource.jsoncache.messages;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
 import com.modelcoding.opensource.jsoncache.CacheMessage;
@@ -11,7 +11,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
 /**
- * A {@link CacheChangeSetStream} converts a flow of {@link CacheChangeSet}s into a flow of {@link CacheMessage}s.
+ * A {@link CacheChangeSetOutputStream} converts a flow of {@link CacheChangeSet}s into a flow of {@link CacheMessage}s.
  * <p>
  * Calling {@link #getCacheChangeSetSubscriber(Observer)} returns a {@link Subscriber} which will call back to 
  * {@link Observer#onSubscribed(Publisher)} once it is subscribed to a source of {@link CacheChangeSet}s, providing
@@ -28,10 +28,22 @@ import org.reactivestreams.Subscription;
  *     <li>an {@link EndOfCacheChangeSet}</li>
  * </ul>    
  */
-public interface CacheChangeSetStream {
+public interface CacheChangeSetOutputStream {
 
     interface Observer {
         
+        /**
+         * This is called only once.
+         * 
+         * @param messagePublisher a publisher of {@link CacheMessage}s.<br>
+         *                         The {@link Publisher} can only be subscribed to <em>once</em>.<br>
+         *                         The {@link Subscriber} attached to the {@link Publisher} terminates with
+         *                         {@link Subscriber#onError(Throwable)} if the source of {@link CacheChangeSet}s
+         *                         terminates with an error.<br>
+         *                         The {@link Subscriber} attached to the {@link Publisher} terminates with
+         *                         {@link Subscriber#onComplete()} if the source of {@link CacheChangeSet}s
+         *                         completes.<br>
+         */
         void onSubscribed(Publisher<CacheMessage> messagePublisher);
     }
 

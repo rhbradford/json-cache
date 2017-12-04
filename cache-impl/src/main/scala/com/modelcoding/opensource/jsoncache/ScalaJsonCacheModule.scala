@@ -67,6 +67,15 @@ class ScalaJsonCacheModule(implicit val actorSystem: ActorSystem) extends JsonCa
     ScalaCacheChangeSet(id, puts, removes, isCacheImage)
   }
 
+  override def getCacheChangeSet(
+    json: JsonNode
+  ): CacheChangeSet = {
+    
+    requireNotNull(json, "A CacheChangeSet cannot be created from null json")
+    
+    ScalaCacheChangeSet(json)
+  }
+
   override def getCache(
     cacheObjects: util.Set[_ <: CacheObject]
   ): Cache = {

@@ -6,8 +6,7 @@ import java.util.function.Predicate
 
 import akka.actor.ActorSystem
 import com.modelcoding.opensource.jsoncache.client.ScalaJsonCacheClientModule._
-import com.modelcoding.opensource.jsoncache.client.messages.{CacheChangeSetFrame, CacheChangeSetStream}
-import com.modelcoding.opensource.jsoncache.{CacheChangeSet, CacheImageSender, CacheObject, JsonCacheModule}
+import com.modelcoding.opensource.jsoncache.{CacheImageSender, CacheObject, JsonCacheModule}
 import org.reactivestreams.Publisher
 
 class ScalaJsonCacheClientModule(implicit val jsonCacheModule: JsonCacheModule, val actorSystem: ActorSystem) 
@@ -36,17 +35,6 @@ class ScalaJsonCacheClientModule(implicit val jsonCacheModule: JsonCacheModule, 
     
     new ScalaJsonCacheClient(id)(input, cacheObjectSelector, cacheObjectAuthorisor)
   }
-
-  override def getCacheChangeSetFrame(
-    cacheChangeSet: CacheChangeSet
-  ): CacheChangeSetFrame = {
-
-    requireNotNull(cacheChangeSet, "Cannot create CacheChangeSetFrame from null cacheChangeSet")
-    
-    null
-  }
-
-  override def getCacheChangeSetStream: CacheChangeSetStream = null
 }
 
 object ScalaJsonCacheClientModule {

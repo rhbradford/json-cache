@@ -1,0 +1,24 @@
+// Author: Richard Bradford
+
+plugins {
+    id 'java'
+    id 'scala'
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+configurations {
+    compile.extendsFrom scala
+    compile.extendsFrom akkaActor
+    compile.extendsFrom akkaStream
+    
+    testCompile.extendsFrom akkaTestKit
+}
+
+dependencies {
+    compile project(":CacheMessages")
+    
+    testCompile project(":CacheMessagesTests")
+    testCompile project(":CacheImpl")
+}

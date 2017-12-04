@@ -61,6 +61,14 @@ public interface JsonCacheModule {
      * @throws NullPointerException if {@code id} is {@code null}, if {@code puts} is {@code null}, or {@code removes} is {@code null}
      */
     CacheChangeSet getCacheChangeSet(String id, Set<? extends CacheObject> puts, Set<? extends CacheRemove> removes, boolean isCacheImage);
+
+    /**
+     * @param json JSON representation of a {@link CacheChangeSet} in the form given by {@link CacheChangeSet#asJsonNode()}
+     * @return an instance of a {@link CacheChangeSet} as defined by the given {@code json}
+     * @throws NullPointerException if {@code json} is {@code null}
+     * @throws IllegalArgumentException if {@code json} is not in the form given by {@link CacheChangeSet#asJsonNode()}
+     */
+    CacheChangeSet getCacheChangeSet(JsonNode json);
     
     /**
      * @param cacheObjects set of objects for the {@link Cache} - cannot be {@code null}

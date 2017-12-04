@@ -4,12 +4,9 @@ package com.modelcoding.opensource.jsoncache.client;
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet;
 import com.modelcoding.opensource.jsoncache.CacheImageSender;
-import com.modelcoding.opensource.jsoncache.CacheMessage;
 import com.modelcoding.opensource.jsoncache.CacheObject;
 import com.modelcoding.opensource.jsoncache.JsonCache;
 import com.modelcoding.opensource.jsoncache.JsonCacheModule;
-import com.modelcoding.opensource.jsoncache.client.messages.CacheChangeSetFrame;
-import com.modelcoding.opensource.jsoncache.client.messages.CacheChangeSetStream;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -83,18 +80,4 @@ public interface JsonCacheClientModule {
         CacheChangeSetProcessor cacheObjectSelector,
         CacheChangeSetProcessor cacheObjectAuthorisor
     );
-
-    /**
-     * @param cacheChangeSet a {@link CacheChangeSet} to be converted to a framed sequence of {@link CacheMessage}s
-     * @return a {@link CacheChangeSetFrame} to convert the given {@code cacheChangeSet} into a framed sequence of
-     *         {@link CacheMessage}s
-     * @throws NullPointerException if {@code cacheChangeSet} is {@code null}        
-     */
-    CacheChangeSetFrame getCacheChangeSetFrame(CacheChangeSet cacheChangeSet);
-
-    /**
-     * @return a {@link CacheChangeSetStream} to provide a means of subscribing to {@link CacheChangeSet}s and
-     *         re-publishing them as {@link CacheMessage}s
-     */
-    CacheChangeSetStream getCacheChangeSetStream();
 }
