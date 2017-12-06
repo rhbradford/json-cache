@@ -53,6 +53,8 @@ public interface JsonCacheMessagesModule {
     CacheChangeSetOutputStream getCacheChangeSetOutputStream();
 
     /**
+     * Note: A {@link CacheChangeSetFrameAssembler} is not expected to be thread-safe.
+     * 
      * @return a stateful entity that can assemble {@link CacheChangeSetFrame}s from {@link CacheMessage}s 
      */
     CacheChangeSetFrameAssembler getCacheChangeSetFrameAssembler();

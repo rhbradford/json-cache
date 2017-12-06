@@ -8,6 +8,8 @@ import com.modelcoding.opensource.jsoncache.CacheMessage;
 /**
  * A {@link CacheChangeSetFrameAssembler} is a stateful assembler of {@link CacheMessage}s, outputting 
  * {@link CacheChangeSetFrame}s as they are received.
+ * <p>
+ * A {@link CacheChangeSetFrameAssembler} is not expected to be thread-safe.    
  */
 public interface CacheChangeSetFrameAssembler {
 
