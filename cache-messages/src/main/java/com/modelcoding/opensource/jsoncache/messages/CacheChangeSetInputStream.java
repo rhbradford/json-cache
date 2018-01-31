@@ -30,6 +30,7 @@ import org.reactivestreams.Subscription;
  */
 public interface CacheChangeSetInputStream {
 
+    @FunctionalInterface
     interface Observer {
 
         /**
@@ -48,6 +49,10 @@ public interface CacheChangeSetInputStream {
     }
 
     /**
+     * Returns a {@link Subscriber} to {@link CacheMessage}s. When this subscriber is subscribed to a source of 
+     * {@link CacheMessage}s, a {@link Publisher} of {@link CacheChangeSet}s is created and passed to the given
+     * {@code observer}.
+     * <p>
      * The demand from a subscriber to the {@link Publisher} of {@link CacheChangeSet}s is passed back to the source of
      * {@link CacheMessage}s - once there is some demand for a {@link CacheChangeSet} a {@link CacheMessage}
      * will be requested.
@@ -59,7 +64,9 @@ public interface CacheChangeSetInputStream {
      *     <li>one or more {@link CacheObject}s for the puts</li>
      *     <li>one or more {@link CacheRemove}s for the removes</li>
      *     <li>an {@link EndOfCacheChangeSet}</li>
-     * </ul>    
+     * </ul>
+     * An error in the stream of {@link CacheMessage}s will result in the subscription being cancelled, and the output
+     * of {@link CacheChangeSet}s being terminated with {@link Subscriber#onError(Throwable)}.
      * 
      * @param observer will receive a {@link Publisher} of {@link CacheChangeSet}s once the returned {@link Subscriber}
      *                 has received its {@link Subscription}

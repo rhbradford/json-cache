@@ -56,7 +56,7 @@ class ScalaCacheChangeSetFrameAssembler(implicit cacheModule: JsonCacheModule) e
       else
         throw new IllegalArgumentException(s"Expecting ${classOf[StartOfCacheChangeSet].getSimpleName}, but received $cacheMessage")
     
-      if(numPuts() > 0 )
+      if(numPuts() > 0)
         state = ExpectingPuts(1+numPuts())
       else if(numRemoves() > 0)
         state = ExpectingRemoves(1+numRemoves())
@@ -130,7 +130,7 @@ class ScalaCacheChangeSetFrameAssembler(implicit cacheModule: JsonCacheModule) e
     state.onCacheMessage(cacheMessage)
   }
 
-  override def onMessage(
+  override def getCacheMessage(
     json: JsonNode
   ): CacheMessage = {
     

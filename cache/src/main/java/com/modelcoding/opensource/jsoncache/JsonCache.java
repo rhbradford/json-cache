@@ -28,10 +28,10 @@ import org.reactivestreams.Subscription;
  * A {@link JsonCache} stops publishing to a subscriber and calls {@link Subscriber#onError(Throwable)} if the backlog of 
  * change sets published to a subscriber exceeds {@link #getSubscriberBacklogLimit()}.
  * <p>
- * A {@link JsonCache} can be used as a {@link Subscriber} to a {@link Publisher} of {@link CacheFunction}s.<br>
- * Used in this way, the termination of the subscription to {@link CacheFunction}s also terminates any
+ * A {@link JsonCache} can be used as a {@link Subscriber} to a {@link Publisher} of {@link CacheFunctionInstance}s.<br>
+ * Used in this way, the termination of the subscription to {@link CacheFunctionInstance}s also terminates any
  * {@link CacheChangeSet} subscribers attached to the {@link JsonCache}. However, a {@link JsonCache} keeps a constant 
- * demand for {@link CacheFunction}s to ensure the input of {@link CacheFunction}s into the 
+ * demand for {@link CacheFunctionInstance}s to ensure the input of {@link CacheFunctionInstance}s into the 
  * {@link JsonCache} is de-coupled from the demand for {@link CacheChangeSet}s.  
  */
 public interface JsonCache extends CacheImageSender, Subscriber<CacheFunctionInstance> {

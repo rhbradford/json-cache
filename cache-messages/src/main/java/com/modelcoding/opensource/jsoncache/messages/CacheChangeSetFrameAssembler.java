@@ -13,6 +13,7 @@ import com.modelcoding.opensource.jsoncache.CacheMessage;
  */
 public interface CacheChangeSetFrameAssembler {
 
+    @FunctionalInterface
     interface Receiver {
         
         void onCacheChangeSetFrame(CacheChangeSetFrame cacheChangeSetFrame);
@@ -42,5 +43,5 @@ public interface CacheChangeSetFrameAssembler {
      * @return an instance of the {@link CacheMessage} corresponding to the given {@code json}
      * @throws IllegalArgumentException if {@code json} is not in the correct form
      */
-    CacheMessage onMessage(JsonNode json);
+    CacheMessage getCacheMessage(JsonNode json);
 }

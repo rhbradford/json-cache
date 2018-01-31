@@ -4,7 +4,7 @@ package com.modelcoding.opensource.jsoncache;
 
 /**
  * A {@link CacheFunction} defines a manipulation of a {@link Cache} contained in a {@link JsonCache} - 
- * see {@link JsonCache#onNext(CacheFunction)}.
+ * see {@link JsonCache#onNext(CacheFunctionInstance)}.
  * <p>
  * A {@link JsonCache} applies a {@link CacheFunction} to its current {@link Cache} by calling 
  * {@link #execute(Cache)} and receives a {@link Result}.<br>

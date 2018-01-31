@@ -30,6 +30,7 @@ import org.reactivestreams.Subscription;
  */
 public interface CacheChangeSetOutputStream {
 
+    @FunctionalInterface
     interface Observer {
         
         /**
@@ -48,6 +49,10 @@ public interface CacheChangeSetOutputStream {
     }
 
     /**
+     * Returns a {@link Subscriber} to {@link CacheChangeSet}s. When this subscriber is subscribed to a source of 
+     * {@link CacheChangeSet}s, a {@link Publisher} of {@link CacheMessage}s is created and passed to the given
+     * {@code observer}.
+     * <p>
      * The demand from a subscriber to the {@link Publisher} of {@link CacheMessage}s is passed back to the source of
      * {@link CacheChangeSet}s - once there is some demand for a {@link CacheMessage} a {@link CacheChangeSet}
      * will be requested.

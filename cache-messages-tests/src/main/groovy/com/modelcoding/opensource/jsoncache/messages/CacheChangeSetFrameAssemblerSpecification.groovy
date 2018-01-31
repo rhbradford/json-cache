@@ -85,31 +85,31 @@ class CacheChangeSetFrameAssemblerSpecification extends Specification {
         def endOfCacheChangeSet = g.getEndOfCacheChangeSet(changeSet)
         
         when:
-        def fromJson_cacheObject = cacheChangeSetFrameAssembler.onMessage(cacheObject.asJsonNode())
+        def fromJson_cacheObject = cacheChangeSetFrameAssembler.getCacheMessage(cacheObject.asJsonNode())
         
         then:
         fromJson_cacheObject == cacheObject
         
         when:
-        def fromJson_cacheRemove = cacheChangeSetFrameAssembler.onMessage(cacheRemove.asJsonNode())
+        def fromJson_cacheRemove = cacheChangeSetFrameAssembler.getCacheMessage(cacheRemove.asJsonNode())
         
         then:
         fromJson_cacheRemove == cacheRemove
         
         when:
-        def fromJson_startOfCacheChangeSet = cacheChangeSetFrameAssembler.onMessage(startOfCacheChangeSet.asJsonNode())
+        def fromJson_startOfCacheChangeSet = cacheChangeSetFrameAssembler.getCacheMessage(startOfCacheChangeSet.asJsonNode())
         
         then:
         fromJson_startOfCacheChangeSet == startOfCacheChangeSet
         
         when:
-        def fromJson_endOfCacheChangeSet = cacheChangeSetFrameAssembler.onMessage(endOfCacheChangeSet.asJsonNode())
+        def fromJson_endOfCacheChangeSet = cacheChangeSetFrameAssembler.getCacheMessage(endOfCacheChangeSet.asJsonNode())
         
         then:
         fromJson_endOfCacheChangeSet == endOfCacheChangeSet
         
         when:
-        def fromJson_cacheChangeSet = cacheChangeSetFrameAssembler.onMessage(changeSet.asJsonNode())
+        def fromJson_cacheChangeSet = cacheChangeSetFrameAssembler.getCacheMessage(changeSet.asJsonNode())
         
         then:
         fromJson_cacheChangeSet == changeSet
@@ -122,13 +122,13 @@ class CacheChangeSetFrameAssemblerSpecification extends Specification {
         def cacheChangeSetFrameAssembler = g.cacheChangeSetFrameAssembler
         
         when:
-        cacheChangeSetFrameAssembler.onMessage(asJsonNode([]))
+        cacheChangeSetFrameAssembler.getCacheMessage(asJsonNode([]))
         
         then:
         thrown(IllegalArgumentException)
         
         when:
-        cacheChangeSetFrameAssembler.onMessage(asJsonNode([
+        cacheChangeSetFrameAssembler.getCacheMessage(asJsonNode([
             "id": "id",
             "type": "type"
         ]))

@@ -64,6 +64,7 @@ public interface JsonCacheMessagesModule {
      *                       {@link CacheChangeSetFrame}s
      * @return a {@link CacheChangeSetInputStream} to provide a means of subscribing to {@link CacheMessage}s and
      *         re-publishing them as {@link CacheChangeSet}s
+     * @throws NullPointerException if {@code frameAssembler} is {@code null}        
      */
     CacheChangeSetInputStream getCacheChangeSetInputStream(CacheChangeSetFrameAssembler frameAssembler);
 }
