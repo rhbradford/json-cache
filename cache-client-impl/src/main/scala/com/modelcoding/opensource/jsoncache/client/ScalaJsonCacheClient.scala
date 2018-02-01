@@ -9,6 +9,8 @@ class ScalaJsonCacheClient
 (val getId: String)(input: CacheImageSender, selectors: CacheChangeSetProcessor, authorisors: CacheChangeSetProcessor) 
   extends JsonCacheClient {
 
+  private val setupSync: Object = new Object()
+
   private var subscriber: Subscriber[_ >: CacheChangeSet] = _
   
   override def subscribe(
@@ -17,7 +19,7 @@ class ScalaJsonCacheClient
     
     requireNotNull(subscriber, "Cannot subscribe to a JsonCacheClient with a null subscriber")
     
-    this.synchronized {
+    setupSync.synchronized {
      
       if(this.subscriber != null)
         throw new IllegalStateException("Cannot subscribe more than once to a JsonCacheClient")

@@ -4,12 +4,11 @@ package com.modelcoding.opensource.jsoncache.messages
 
 import com.modelcoding.opensource.jsoncache.CacheChangeSet
 import com.modelcoding.opensource.jsoncache.messages.CacheChangeSetInputStream.Observer
-import com.modelcoding.opensource.jsoncache.messages.testSupport.MockSubscriber
-import com.modelcoding.opensource.jsoncache.messages.testSupport.MockSubscription
+import com.modelcoding.opensource.jsoncache.messages.testSupport.*
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import org.reactivestreams.Publisher
-import org.reactivestreams.Subscription
+import org.reactivestreams.Subscriber
 import spock.lang.Specification
 
 import static com.modelcoding.opensource.jsoncache.messages.TestSuite.*
@@ -28,13 +27,41 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         thrown(NullPointerException)
     }
 
+    def "CacheChangeSetInputStream getCacheMessageSubscriber cannot be called with null observer"() {
+        
+        setup:
+        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
+        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
+
+        when:
+        stream.getCacheMessageSubscriber(null)
+        
+        then:
+        thrown(NullPointerException)
+    }
+
+    def "CacheChangeSetInputStream getCacheMessageSubscriber cannot be called more than once"() {
+        
+        setup:
+        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
+        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
+        def observer = Mock(CacheChangeSetInputStream.Observer)
+
+        when:
+        stream.getCacheMessageSubscriber(observer)
+        stream.getCacheMessageSubscriber(observer)
+        
+        then:
+        thrown(IllegalStateException)
+    }
+
     @SuppressWarnings("GroovyAssignabilityCheck")
     def "CacheChangeSetInputStream observer is notified when subscription is made to a source of CacheMessages"() {
         
         setup:
         CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
         CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def observer = Mock(CacheChangeSetInputStream.Observer)
+        def observer = new MockInputStreamObserver()
         def cacheMessageSubscription = new MockSubscription()
         cacheMessageSubscription.outputOnRequest {
             throw new IllegalStateException("Should be no request for CacheMessages until CacheChangeSets are demanded")
@@ -42,10 +69,11 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         
         when:
         def cacheMessageSubscriber = stream.getCacheMessageSubscriber(observer)
+        observer.expectPublisher()
         cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
         
         then:
-        1 * observer.onSubscribed(_)
+        observer.awaitPublisher()
     }
     
     @SuppressWarnings("GroovyAssignabilityCheck")
@@ -54,39 +82,43 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         setup:
         CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
         CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
-        def cacheMessageSubscription = Mock(Subscription)
-        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
-            new Observer() {
-
-                @Override
-                void onSubscribed(final Publisher<CacheChangeSet> changeSetPublisher) {
-                    
-                    changeSetPublisher.subscribe(cacheChangeSetSubscriber)
-                }
-            }
-        )
+        def cacheChangeSetSubscriber = new MockSubscriber<CacheChangeSet>()
+        def cacheMessageSubscription = new MockSubscription()
+        def observer = new MockInputStreamObserver()
+        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(observer)
 
         when: "Subscription is started with source of CacheMessages"
+        observer.expectPublisher()
         cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
         
-        then: "CacheChangeSet subscriber is started, but no requests for CacheMessages is made as yet"
+        then: "Publisher of CacheChangeSets delivered to observer" 
+        observer.awaitPublisher()
+        
+        when: "Subscription for CacheChangeSets is made"
+        observer.publisher.subscribe(cacheChangeSetSubscriber)
+        
+        then: "CacheChangeSet subscriber is started"
         cacheChangeSetSubscriber.awaitSubscribed()
-        0 * cacheMessageSubscription.request(_)
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet"
+        cacheMessageSubscription.expectRequests(1)
+        cacheMessageSubscription.outputOnRequest {}
         cacheChangeSetSubscriber.subscription.request(1)
         
         then: "Request is made for a CacheMessage"
-        1 * cacheMessageSubscription.request(1)
+        cacheMessageSubscription.awaitRequests()
+        
+        when: "Another subscription for CacheChangeSets is made"
+        observer.publisher.subscribe(Mock(Subscriber))
+        
+        then: "An exception occurs as CacheChangeSet Publisher can only be subscribed to once"
+        thrown(Exception)
     }
     
-    def "CacheChangeSetInputStream outputs CacheChangeSets built from stream of CacheMessages as expected"() {
-        
-        setup:
+    private class Components {
         CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
         CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
+        def cacheChangeSetSubscriber = new MockSubscriber<CacheChangeSet>()
         def cacheMessageSubscription = new MockSubscription()
         def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
             new Observer() {
@@ -98,6 +130,12 @@ class CacheChangeSetInputStreamSpecification extends Specification {
                 }
             }
         )
+    }
+    
+    def "CacheChangeSetInputStream outputs CacheChangeSets built from stream of CacheMessages as expected"() {
+        
+        setup:
+        Components c = new Components()
         def changeSet1 = m.getCacheChangeSet(
             "id1", 
             [
@@ -138,78 +176,65 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         def cacheMessages3 = cacheChangeSetFrame3.messages
 
         when: "Subscription is started with source of CacheMessages"
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then: "CacheChangeSet subscriber is started"
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet"
-        cacheChangeSetSubscriber.expectChangeSets(1)
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheChangeSetSubscriber.expectObjects(1)
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages1.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
                 throw new IllegalStateException("Should not request more CacheMessages once demand for CacheChangeSet is fulfilled")   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "Requests for CacheMessages are made continuously until a CacheChangeSet is assembled and output"
-        cacheMessageSubscription.awaitRequests()
-        with(cacheChangeSetSubscriber) {
-            awaitChangeSets()
-            receivedChangeSets.size() == 1
-            receivedChangeSets.head() == changeSet1
-            receivedChangeSets.head().id == changeSet1.id
+        c.cacheMessageSubscription.awaitRequests()
+        with(c.cacheChangeSetSubscriber) {
+            awaitObjects()
+            receivedObjects.size() == 1
+            receivedObjects.head() == changeSet1
+            receivedObjects.head().id == changeSet1.id
             !hasCompleted
             !hasError
         }
 
         when: "CacheChangeSet subscriber requests more CacheChangeSets"
-        cacheChangeSetSubscriber.expectChangeSets(2)
-        cacheMessageSubscription.expectRequests(cacheMessages2.size() + cacheMessages3.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheChangeSetSubscriber.expectObjects(2)
+        c.cacheMessageSubscription.expectRequests(cacheMessages2.size() + cacheMessages3.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages2.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages2[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages2[request])
             } else if(request >= cacheMessages2.size() && request < cacheMessages2.size() + cacheMessages3.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages3[request - cacheMessages2.size()])
+                c.cacheMessageSubscriber.onNext(cacheMessages3[request - cacheMessages2.size()])
             } else {
                 throw new IllegalStateException("Should not request more CacheMessages once demand for CacheChangeSet is fulfilled")   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(2)
+        c.cacheChangeSetSubscriber.subscription.request(2)
         
         then: "Requests for CacheMessages are made continuously until all CacheChangeSets are assembled and output"
-        with(cacheChangeSetSubscriber) {
-            awaitChangeSets()
-            receivedChangeSets.size() == 2
-            receivedChangeSets[0] == changeSet2
-            receivedChangeSets[0].id == changeSet2.id
-            receivedChangeSets[1] == changeSet3
-            receivedChangeSets[1].id == changeSet3.id
+        with(c.cacheChangeSetSubscriber) {
+            awaitObjects()
+            receivedObjects.size() == 2
+            receivedObjects[0] == changeSet2
+            receivedObjects[0].id == changeSet2.id
+            receivedObjects[1] == changeSet3
+            receivedObjects[1].id == changeSet3.id
             !hasCompleted
             !hasError
         }
     }
-    
+
     def "CacheChangeSetInputStream completes CacheChangeSet subscription if source of CacheMessages completes"() {
         
         setup:
-        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
-        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
-        def cacheMessageSubscription = new MockSubscription()
-        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
-            new Observer() {
-
-                @Override
-                void onSubscribed(final Publisher<CacheChangeSet> changeSetPublisher) {
-                    
-                    changeSetPublisher.subscribe(cacheChangeSetSubscriber)
-                }
-            }
-        )
+        Components c = new Components()
         def changeSet1 = m.getCacheChangeSet(
             "id1", 
             [
@@ -227,87 +252,83 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         def cacheMessages1 = cacheChangeSetFrame1.messages
 
         when: "Subscription is started with source of CacheMessages"
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then: "CacheChangeSet subscriber is started"
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "Source of CacheMessages completes"
-        cacheMessageSubscriber.onComplete()
+        c.cacheMessageSubscriber.onComplete()
         
         then: "CacheChangeSet subscription is completed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitCompleted()
             hasCompleted
             !hasError
         }
         
         when: 
-        cacheMessageSubscriber = new MockSubscriber()
-        cacheMessageSubscription = new MockSubscription()
-        cacheChangeSetSubscriber = new MockSubscriber()
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c = new Components()
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then:
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet"
-        cacheChangeSetSubscriber.expectChangeSets(1)
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheChangeSetSubscriber.expectObjects(1)
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages1.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
                 throw new IllegalStateException("Should not request more CacheMessages once demand for CacheChangeSet is fulfilled")   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "Requests for CacheMessages are made continuously until a CacheChangeSet is assembled and output"
-        cacheMessageSubscription.awaitRequests()
-        with(cacheChangeSetSubscriber) {
-            awaitChangeSets()
-            receivedChangeSets.size() == 1
-            receivedChangeSets.head() == changeSet1
-            receivedChangeSets.head().id == changeSet1.id
+        c.cacheMessageSubscription.awaitRequests()
+        with(c.cacheChangeSetSubscriber) {
+            awaitObjects()
+            receivedObjects.size() == 1
+            receivedObjects.head() == changeSet1
+            receivedObjects.head().id == changeSet1.id
             !hasCompleted
             !hasError
         }
         
         when: "Source of CacheMessages completes"
-        cacheMessageSubscriber.onComplete()
+        c.cacheMessageSubscriber.onComplete()
         
         then: "CacheChangeSet subscription is completed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitCompleted()
             hasCompleted
             !hasError
         }
         
         when: 
-        cacheMessageSubscriber = new MockSubscriber()
-        cacheMessageSubscription = new MockSubscription()
-        cacheChangeSetSubscriber = new MockSubscriber()
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c = new Components()
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then:
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet but CacheMessages completes part-way"
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < 3) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
-                cacheMessageSubscriber.onComplete()   
+                c.cacheMessageSubscriber.onComplete()   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "CacheChangeSet subscription is completed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitCompleted()
-            receivedChangeSets.size() == 0
+            receivedObjects.size() == 0
             hasCompleted
             !hasError
         }
@@ -316,20 +337,7 @@ class CacheChangeSetInputStreamSpecification extends Specification {
     def "CacheChangeSetInputStream fails CacheChangeSet subscription if source of CacheMessages fails"() {
         
         setup:
-        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
-        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
-        def cacheMessageSubscription = new MockSubscription()
-        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
-            new Observer() {
-
-                @Override
-                void onSubscribed(final Publisher<CacheChangeSet> changeSetPublisher) {
-                    
-                    changeSetPublisher.subscribe(cacheChangeSetSubscriber)
-                }
-            }
-        )
+        Components c = new Components()
         def changeSet1 = m.getCacheChangeSet(
             "id1", 
             [
@@ -347,61 +355,59 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         def cacheMessages1 = cacheChangeSetFrame1.messages
 
         when: "Subscription is started with source of CacheMessages"
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then: "CacheChangeSet subscriber is started"
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "Source of CacheMessages fails"
-        cacheChangeSetSubscriber.expectError()
-        cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
+        c.cacheChangeSetSubscriber.expectError()
+        c.cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
         
         then: "CacheChangeSet subscription is failed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitError()
             !hasCompleted
             hasError
             receivedError.message == "CacheMessage source has failed"
         }
         
-        when: 
-        cacheMessageSubscriber = new MockSubscriber()
-        cacheMessageSubscription = new MockSubscription()
-        cacheChangeSetSubscriber = new MockSubscriber()
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        when:
+        c = new Components()
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then:
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet"
-        cacheChangeSetSubscriber.expectChangeSets(1)
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheChangeSetSubscriber.expectObjects(1)
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages1.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
                 throw new IllegalStateException("Should not request more CacheMessages once demand for CacheChangeSet is fulfilled")   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "Requests for CacheMessages are made continuously until a CacheChangeSet is assembled and output"
-        cacheMessageSubscription.awaitRequests()
-        with(cacheChangeSetSubscriber) {
-            awaitChangeSets()
-            receivedChangeSets.size() == 1
-            receivedChangeSets.head() == changeSet1
-            receivedChangeSets.head().id == changeSet1.id
+        c.cacheMessageSubscription.awaitRequests()
+        with(c.cacheChangeSetSubscriber) {
+            awaitObjects()
+            receivedObjects.size() == 1
+            receivedObjects.head() == changeSet1
+            receivedObjects.head().id == changeSet1.id
             !hasCompleted
             !hasError
         }
         
         when: "Source of CacheMessages fails"
-        cacheChangeSetSubscriber.expectError()
-        cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
+        c.cacheChangeSetSubscriber.expectError()
+        c.cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
         
         then: "CacheChangeSet subscription is failed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitError()
             !hasCompleted
             hasError
@@ -409,29 +415,27 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         }
         
         when: 
-        cacheMessageSubscriber = new MockSubscriber()
-        cacheMessageSubscription = new MockSubscription()
-        cacheChangeSetSubscriber = new MockSubscriber()
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c = new Components()
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then:
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet but CacheMessages fails part-way"
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < 3) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
-                cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
+                c.cacheMessageSubscriber.onError(new RuntimeException("CacheMessage source has failed"))
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "CacheChangeSet subscription is failed"
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitError()
-            receivedChangeSets.size() == 0
+            receivedObjects.size() == 0
             !hasCompleted
             hasError
             receivedError.message == "CacheMessage source has failed"
@@ -441,20 +445,7 @@ class CacheChangeSetInputStreamSpecification extends Specification {
     def "CacheChangeSetInputStream fails CacheChangeSet subscription if CacheMessage sequence is incorrect"() {
         
         setup:
-        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
-        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
-        def cacheMessageSubscription = new MockSubscription()
-        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
-            new Observer() {
-
-                @Override
-                void onSubscribed(final Publisher<CacheChangeSet> changeSetPublisher) {
-                    
-                    changeSetPublisher.subscribe(cacheChangeSetSubscriber)
-                }
-            }
-        )
+        Components c = new Components()
         def changeSet1 = m.getCacheChangeSet(
             "id1", 
             [
@@ -472,33 +463,33 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         def cacheMessages1 = cacheChangeSetFrame1.messages
 
         when: "Subscription is started with source of CacheMessages"
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then: "CacheChangeSet subscriber is started"
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet, but the sequence of CacheMessages won't build a CacheChangeSet"
-        cacheChangeSetSubscriber.expectError()
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.expectCancel()
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheChangeSetSubscriber.expectError()
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.expectCancel()
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages1.size()-1) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
             } else {
-                cacheMessageSubscriber.onNext(m.getCacheObject("Bad", "Message", asJsonNode([])))   
+                c.cacheMessageSubscriber.onNext(m.getCacheObject("Bad", "Message", asJsonNode([])))   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "CacheMessage subscription is cancelled, and the CacheChangeSet subscriber is failed"
-        with(cacheMessageSubscription) {
+        with(c.cacheMessageSubscription) {
             awaitRequests()
             awaitCancel()
             cancelRequested
         }
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitError()
-            receivedChangeSets.size() == 0
+            receivedObjects.size() == 0
             !hasCompleted
             hasError
         }
@@ -507,20 +498,7 @@ class CacheChangeSetInputStreamSpecification extends Specification {
     def "CacheChangeSetInputStream cancels CacheMessage subscription if CacheChangeSet subscription is cancelled"() {
         
         setup:
-        CacheChangeSetFrameAssembler assembler = g.getCacheChangeSetFrameAssembler()
-        CacheChangeSetInputStream stream = g.getCacheChangeSetInputStream(assembler)
-        def cacheChangeSetSubscriber = new MockSubscriber()
-        def cacheMessageSubscription = new MockSubscription()
-        def cacheMessageSubscriber = stream.getCacheMessageSubscriber(
-            new Observer() {
-
-                @Override
-                void onSubscribed(final Publisher<CacheChangeSet> changeSetPublisher) {
-                    
-                    changeSetPublisher.subscribe(cacheChangeSetSubscriber)
-                }
-            }
-        )
+        Components c = new Components()
         def changeSet1 = m.getCacheChangeSet(
             "id1", 
             [
@@ -538,31 +516,31 @@ class CacheChangeSetInputStreamSpecification extends Specification {
         def cacheMessages1 = cacheChangeSetFrame1.messages
 
         when: "Subscription is started with source of CacheMessages"
-        cacheMessageSubscriber.onSubscribe(cacheMessageSubscription)
+        c.cacheMessageSubscriber.onSubscribe(c.cacheMessageSubscription)
         
         then: "CacheChangeSet subscriber is started"
-        cacheChangeSetSubscriber.awaitSubscribed()
+        c.cacheChangeSetSubscriber.awaitSubscribed()
         
         when: "CacheChangeSet subscriber requests a CacheChangeSet, and then cancels"
-        cacheMessageSubscription.expectRequests(cacheMessages1.size())
-        cacheMessageSubscription.expectCancel()
-        cacheMessageSubscription.outputOnRequest { int request ->
+        c.cacheMessageSubscription.expectRequests(cacheMessages1.size())
+        c.cacheMessageSubscription.expectCancel()
+        c.cacheMessageSubscription.outputOnRequest { int request ->
             if(request < cacheMessages1.size()) {
-                cacheMessageSubscriber.onNext(cacheMessages1[request])
+                c.cacheMessageSubscriber.onNext(cacheMessages1[request])
                 if(request == 2)
-                    cacheChangeSetSubscriber.subscription.cancel()
+                    c.cacheChangeSetSubscriber.subscription.cancel()
             } else {
                 throw new IllegalStateException("Should not request more CacheMessages once demand for CacheChangeSet is fulfilled")   
             }
         }
-        cacheChangeSetSubscriber.subscription.request(1)
+        c.cacheChangeSetSubscriber.subscription.request(1)
         
         then: "CacheMessage subscription is cancelled, and the CacheChangeSet subscriber completes"
-        with(cacheMessageSubscription) {
+        with(c.cacheMessageSubscription) {
             awaitCancel()
             cancelRequested
         }
-        with(cacheChangeSetSubscriber) {
+        with(c.cacheChangeSetSubscriber) {
             awaitCompleted()
             hasCompleted
             !hasError

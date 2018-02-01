@@ -2,21 +2,20 @@
 
 package com.modelcoding.opensource.jsoncache.messages.testSupport
 
-import com.modelcoding.opensource.jsoncache.CacheChangeSet
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class MockSubscriber implements Subscriber<CacheChangeSet> {
+class MockSubscriber<T> implements Subscriber<T> {
 
     Subscription subscription
 
-    List<CacheChangeSet> receivedChangeSets
+    List<T> receivedObjects = []
     Throwable receivedError
 
-    private CountDownLatch changeSetsReceived
+    private CountDownLatch objectsReceived = new CountDownLatch(0)
     private final CountDownLatch subscribed = new CountDownLatch(1)
     private final CountDownLatch completed = new CountDownLatch(1)
     private final CountDownLatch errorReceived = new CountDownLatch(1)
@@ -25,13 +24,13 @@ class MockSubscriber implements Subscriber<CacheChangeSet> {
         subscribed.await(milliseconds, TimeUnit.MILLISECONDS)
     }
 
-    void expectChangeSets(int numChangeSets = 1) {
-        receivedChangeSets = []
-        changeSetsReceived = new CountDownLatch(numChangeSets)
+    void expectObjects(int numObjects = 1) {
+        receivedObjects = []
+        objectsReceived = new CountDownLatch(numObjects)
     }
 
-    boolean awaitChangeSets(long milliseconds = 1000) {
-        changeSetsReceived.await(milliseconds, TimeUnit.MILLISECONDS)
+    boolean awaitObjects(long milliseconds = 1000) {
+        objectsReceived.await(milliseconds, TimeUnit.MILLISECONDS)
     }
 
     boolean awaitCompleted(long milliseconds = 1000) {
@@ -53,9 +52,9 @@ class MockSubscriber implements Subscriber<CacheChangeSet> {
     }
 
     @Override
-    void onNext(final CacheChangeSet cacheChangeSet) {
-        receivedChangeSets << cacheChangeSet
-        changeSetsReceived.countDown()
+    void onNext(final T object) {
+        receivedObjects << object
+        objectsReceived.countDown()
     }
 
     boolean hasError

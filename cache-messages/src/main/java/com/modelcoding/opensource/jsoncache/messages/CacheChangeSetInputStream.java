@@ -71,6 +71,7 @@ public interface CacheChangeSetInputStream {
      * @param observer will receive a {@link Publisher} of {@link CacheChangeSet}s once the returned {@link Subscriber}
      *                 has received its {@link Subscription}
      * @return a {@link Subscriber} to be attached to a {@link Publisher} of {@link CacheMessage}s
+     * @throws NullPointerException if {@code observer} is {@code null}
      * @throws IllegalStateException if called more than once
      */
     Subscriber<? extends CacheMessage> getCacheMessageSubscriber(Observer observer);

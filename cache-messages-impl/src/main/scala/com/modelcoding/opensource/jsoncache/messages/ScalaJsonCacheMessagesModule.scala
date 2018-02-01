@@ -55,13 +55,18 @@ class ScalaJsonCacheMessagesModule(implicit val jsonCacheModule: JsonCacheModule
     new ScalaCacheChangeSetFrameWrappingChangeSet(cacheChangeSet)
   }
 
-  override def getCacheChangeSetOutputStream: CacheChangeSetOutputStream = null
+  override def getCacheChangeSetOutputStream: CacheChangeSetOutputStream = new ScalaCacheChangeSetOutputStream()
 
   override def getCacheChangeSetFrameAssembler: CacheChangeSetFrameAssembler = new ScalaCacheChangeSetFrameAssembler()
   
   override def getCacheChangeSetInputStream(
     frameAssembler: CacheChangeSetFrameAssembler
-  ): CacheChangeSetInputStream = null
+  ): CacheChangeSetInputStream = {
+    
+    requireNotNull(frameAssembler, "Cannot create CacheChangeSetInputStream from null frameAssembler")
+    
+    new ScalaCacheChangeSetInputStream(frameAssembler)
+  }
 }
 
 object ScalaJsonCacheMessagesModule {

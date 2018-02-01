@@ -19,6 +19,8 @@ class ScalaCacheChangeSetProcessor(
   (implicit jsonCacheModule: JsonCacheModule, system: ActorSystem)
   extends CacheChangeSetProcessor {
 
+  private val setupSync: Object = new Object()
+  
   private var input     : CacheImageSender                = _
   private var subscriber: Subscriber[_ >: CacheChangeSet] = _
 
@@ -28,7 +30,7 @@ class ScalaCacheChangeSetProcessor(
 
     requireNotNull(input, "A CacheChangeSetProcessor cannot be connected with a null input")
     
-    this.synchronized {
+    setupSync.synchronized {
      
       if(this.input != null)
         throw new IllegalStateException("A CacheChangeSetProcessor cannot be connected more than once")
@@ -43,7 +45,7 @@ class ScalaCacheChangeSetProcessor(
 
     requireNotNull(subscriber, "Cannot subscribe to a CacheChangeSetProcessor with a null subscriber")
     
-    this.synchronized {
+    setupSync.synchronized {
       
       if(input == null)
         throw new IllegalStateException("Cannot subscribe to an unconnected CacheChangeSetProcessor - call connect first")
@@ -55,7 +57,7 @@ class ScalaCacheChangeSetProcessor(
 
     processorActor = system.actorOf(Props(new ProcessorActor()))
 
-    processorActor ! SubscribeToSelectors
+    processorActor ! SubscribeToSelectors()
   }
 
   override def sendImageToSubscriber(
@@ -64,7 +66,7 @@ class ScalaCacheChangeSetProcessor(
     
     requireNotNull(subscriber, "A CacheChangeSetProcessor cannot send a cache image to a null subscriber")
     
-    this.synchronized {
+    setupSync.synchronized {
       
       if(input == null)
         throw new IllegalStateException("An unconnected CacheChangeSetProcessor cannot send a cache image - call connect first")
@@ -73,7 +75,7 @@ class ScalaCacheChangeSetProcessor(
       require(this.subscriber == subscriber, "A CacheChangeSetProcessor can only send images to the subscriber given in subscribe")
     }
     
-    processorActor ! SendCacheImageToSubscriber
+    processorActor ! SendCacheImageToSubscriber()
   }
 
   private var processorActor: ActorRef = _
@@ -104,22 +106,22 @@ class ScalaCacheChangeSetProcessor(
 
     override def receive: Receive = {
 
-      case SubscribeToSelectors =>
+      case SubscribeToSelectors() =>
         subscribeToSelectors()
         become(subscribingToSelectors)
 
-      case SendCacheImageToSubscriber =>  
+      case SendCacheImageToSubscriber() =>  
     }
 
     private def subscribingToSelectors: PartialFunction[Any, Unit] = {
 
       withHandlingOfFinishedStreams({
 
-        case OnSelectorsSubscribed =>
+        case OnSelectorsSubscribed() =>
           selectorsSubscription.request(1)
           become(subscribedToSelectors)
 
-        case SendCacheImageToSubscriber =>  
+        case SendCacheImageToSubscriber() =>  
       })
     }
     
@@ -133,7 +135,7 @@ class ScalaCacheChangeSetProcessor(
           subscribeToInput()
           become(subscribingToInput)
 
-        case SendCacheImageToSubscriber =>  
+        case SendCacheImageToSubscriber() =>  
       })
     }
 
@@ -141,7 +143,7 @@ class ScalaCacheChangeSetProcessor(
 
       withHandlingOfFinishedStreams({
 
-        case OnInputSubscribed =>
+        case OnInputSubscribed() =>
           subscriber.onSubscribe(new OutputSubscription)
           become(running)
 
@@ -149,7 +151,7 @@ class ScalaCacheChangeSetProcessor(
           selector = s
           selectorsSubscription.request(1)
 
-        case SendCacheImageToSubscriber =>  
+        case SendCacheImageToSubscriber() =>  
       })
     }
 
@@ -157,7 +159,7 @@ class ScalaCacheChangeSetProcessor(
 
       withHandlingOfFinishedStreams({
 
-        case CancelOutput => onCancelOutput()
+        case CancelOutput() => onCancelOutput()
         
         case RequestOutputChangeSets(n) =>
           inputSubscription.request(n)
@@ -171,7 +173,7 @@ class ScalaCacheChangeSetProcessor(
           input.sendImageToSubscriber(inputSubscriber)
           become(runningPendingSelectorChange)
 
-        case SendCacheImageToSubscriber =>
+        case SendCacheImageToSubscriber() =>
           input.sendImageToSubscriber(inputSubscriber)
       })
     }
@@ -180,7 +182,7 @@ class ScalaCacheChangeSetProcessor(
 
       withHandlingOfFinishedStreams({
 
-        case CancelOutput => onCancelOutput()
+        case CancelOutput() => onCancelOutput()
         
         case RequestOutputChangeSets(n) =>
           inputSubscription.request(n)
@@ -199,7 +201,7 @@ class ScalaCacheChangeSetProcessor(
           selectorsSubscription.request(1)
           input.sendImageToSubscriber(inputSubscriber)
 
-        case SendCacheImageToSubscriber =>
+        case SendCacheImageToSubscriber() =>
           input.sendImageToSubscriber(inputSubscriber)
       })
     }
@@ -211,11 +213,11 @@ class ScalaCacheChangeSetProcessor(
 
       case OnInputFailed(error) => onInputFailed(error)
 
-      case OnInputCompleted => onInputComplete()
+      case OnInputCompleted() => onInputComplete()
 
       case OnSelectorsFailed(error) => onSelectorsFailed(error)
 
-      case OnSelectorsCompleted => onSelectorsComplete()
+      case OnSelectorsCompleted() => onSelectorsComplete()
     }
 
     private def onCancelOutput(): Unit = {
@@ -290,7 +292,7 @@ class ScalaCacheChangeSetProcessor(
 
     private class OutputSubscription() extends Subscription {
 
-      override def cancel(): Unit = processorActor ! CancelOutput
+      override def cancel(): Unit = processorActor ! CancelOutput()
 
       override def request(n: Long): Unit = processorActor ! RequestOutputChangeSets(n)
     }
@@ -299,17 +301,14 @@ class ScalaCacheChangeSetProcessor(
 
       override def onError(t: Throwable): Unit = processorActor ! OnInputFailed(t)
 
-      override def onComplete(): Unit = processorActor ! OnInputCompleted
+      override def onComplete(): Unit = processorActor ! OnInputCompleted()
 
-      override def onNext(t: CacheChangeSet): Unit = {
-
-        processorActor ! OnNextChangeSetFromInput(t)
-      }
+      override def onNext(t: CacheChangeSet): Unit = processorActor ! OnNextChangeSetFromInput(t)
 
       override def onSubscribe(s: Subscription): Unit = {
 
         inputSubscription = s
-        processorActor ! OnInputSubscribed
+        processorActor ! OnInputSubscribed()
       }
     }
 
@@ -317,7 +316,7 @@ class ScalaCacheChangeSetProcessor(
 
       override def onError(t: Throwable): Unit = processorActor ! OnSelectorsFailed(t)
 
-      override def onComplete(): Unit = processorActor ! OnSelectorsCompleted
+      override def onComplete(): Unit = processorActor ! OnSelectorsCompleted()
 
       override def onNext(t: Predicate[CacheObject]): Unit = {
 
@@ -328,7 +327,7 @@ class ScalaCacheChangeSetProcessor(
       override def onSubscribe(s: Subscription): Unit = {
 
         selectorsSubscription = s
-        processorActor ! OnSelectorsSubscribed
+        processorActor ! OnSelectorsSubscribed()
       }
     }
   }

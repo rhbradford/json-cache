@@ -9,15 +9,9 @@ import java.util.concurrent.TimeUnit
 
 class MockSubscription implements Subscription {
 
-    private final long timeout
-
-    MockSubscription(long timeout = 1000) {
-        this.timeout = timeout
-    }
-
     int requestCount
     private Closure outputCode
-    private CountDownLatch requestReceived
+    private CountDownLatch requestReceived = new CountDownLatch(0)
 
     void expectRequests(int numRequests) {
         requestCount = 0
@@ -35,27 +29,22 @@ class MockSubscription implements Subscription {
     @Override
     void request(final long n) {
         n.times {
-            outputCode.call(requestCount)
+            outputCode?.call(requestCount)
             requestCount++
             requestReceived.countDown()
         }
     }
 
-    private Closure cancelCode
-    private CountDownLatch cancelReceived
+    private CountDownLatch cancelReceived = new CountDownLatch(0)
     boolean cancelRequested
 
     void expectCancel() {
         cancelRequested = false
-        requestReceived = new CountDownLatch(1)
+        cancelReceived = new CountDownLatch(1)
     }
     
     boolean awaitCancel(long timeout = 1000) {
         cancelReceived.await(timeout, TimeUnit.MILLISECONDS)
-    }
-
-    void cancelOnRequest(Closure cancelCode) {
-        this.cancelCode = cancelCode
     }
 
     @Override
